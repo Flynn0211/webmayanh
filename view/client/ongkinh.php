@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html class="light" lang="vi">
 <head>
     <meta charset="utf-8"/>
@@ -7,8 +7,10 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script src="js/tailwind.config.js"></script>
-    <link href="css/style.css" rel="stylesheet" />
+    <script src="assets/js/tailwind.config.js"></script>
+    <link href="assets/css/base.css" rel="stylesheet" />
+    <link href="assets/css/client.css" rel="stylesheet" />
+    <link href="assets/css/responsive.css" rel="stylesheet" />
 </head>
 <body class="bg-surface text-on-surface font-body-md antialiased selection:bg-primary selection:text-on-primary">
 <!-- TopNavBar -->
@@ -20,23 +22,23 @@
         </a>
         <!-- Links (Desktop) -->
         <div class="hidden md:flex space-x-gutter items-center">
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="trangchu.html">Trang chủ</a>
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="mayanh.html">Máy ảnh</a>
-            <a class="font-label-caps text-label-caps text-primary border-b-2 border-primary pb-1 cursor-pointer transition-all duration-300" href="ongkinh.html">Ống kính</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="index.php?page=trangchu">Trang chủ</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="index.php?page=mayanh">Máy ảnh</a>
+            <a class="font-label-caps text-label-caps text-primary border-b-2 border-primary pb-1 cursor-pointer transition-all duration-300" href="index.php?page=ongkinh">Ống kính</a>
             <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Phụ kiện</a>
             <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Bài viết</a>
             <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Liên hệ</a>
         </div>
         <!-- Actions -->
         <div class="flex items-center space-x-2">
-            <a class="auth-admin-btn hidden font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors mr-4" href="admin.html">Quản trị</a>
-            <a class="auth-login-btn font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors mr-4 flex items-center" href="login.html">Đăng nhập</a>
+            <a class="auth-admin-btn hidden font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors mr-4" href="index.php?page=admin">Quản trị</a>
+            <a class="auth-login-btn font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors mr-4 flex items-center" href="index.php?page=login">Đăng nhập</a>
             
-            <a href="donhang.html" aria-label="order_history" class="p-2 text-on-surface-variant hover:text-primary transition-colors relative flex items-center mr-2" title="Đơn hàng của tôi">
+            <a href="index.php?page=donhang" aria-label="order_history" class="p-2 text-on-surface-variant hover:text-primary transition-colors relative flex items-center mr-2" title="Đơn hàng của tôi">
                 <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
             </a>
 
-            <a href="giohang.html" aria-label="shopping_cart" class="p-2 text-on-surface-variant hover:text-primary transition-colors relative flex items-center">
+            <a href="index.php?page=giohang" aria-label="shopping_cart" class="p-2 text-on-surface-variant hover:text-primary transition-colors relative flex items-center">
                 <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full hidden" id="cartBadge"></span>
             </a>
@@ -181,7 +183,8 @@
     </div>
 </footer>
 
-<script src="js/auth.js"></script>
-<script src="js/ongkinh.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/ongkinh.js"></script>
 </body>
 </html>
+

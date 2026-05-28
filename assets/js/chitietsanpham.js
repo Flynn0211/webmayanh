@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function() {
+﻿document.addEventListener("DOMContentLoaded", function() {
     // Utilities format from trangchu.js
     function getBrandColor(brand) {
         if (!brand) return 'text-primary';
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const user = getCurrentUser();
             if (!user) {
                 alert("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!");
-                window.location.href = 'login.html';
+                window.location.href = 'index.php?page=login';
                 return;
             }
             
@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const user = getCurrentUser();
             if (!user) {
                 alert("Vui lòng đăng nhập để thêm vào Yêu thích!");
-                window.location.href = 'login.html';
+                window.location.href = 'index.php?page=login';
                 return;
             }
             
@@ -156,3 +156,4 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 });
+

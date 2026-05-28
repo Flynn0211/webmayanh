@@ -1,0 +1,63 @@
+/* ============================================================
+   RESPONSIVE.CSS – Media queries cho toàn bộ giao diện
+   ============================================================ */
+
+/* ── Mobile (< 640px) ───────────────────────────────────────── */
+@media (max-width: 639px) {
+    .hero-content { padding: 2rem 1.5rem; margin-inline: 1rem; }
+    .hero-title { font-size: 2rem; }
+    .hero-desc  { font-size: 1rem; }
+
+    .section-heading-row { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 2rem; }
+    .section-heading-row h2 { font-size: 1.5rem; }
+
+    .editorial-section__text { padding: 2rem; }
+
+    .cart-item__price { width: auto; }
+
+    .footer-light__inner { padding-inline: var(--margin-mobile); }
+    .footer-light__bottom { flex-direction: column; gap: 1rem; text-align: center; }
+
+    .auth-back-btn { top: 1rem; left: 1rem; font-size: 0.625rem; }
+    .auth-card { padding: 1.5rem; }
+
+    .admin-sidebar { width: 0; overflow: hidden; }
+    .admin-header { padding-inline: 1rem; }
+    .admin-header__title { font-size: 1.125rem; }
+    .admin-content { padding: 1rem; }
+
+    .stats-grid { grid-template-columns: 1fr; }
+
+    .page-header { padding-top: 3rem; padding-bottom: 2rem; }
+    .page-header__title { font-size: 1.5rem; }
+
+    .cart-page { padding-inline: var(--margin-mobile); padding-block: 2rem; }
+    .cart-page__title { font-size: 1.5rem; margin-bottom: 2rem; }
+}
+
+
+/* ── Tablet (640px – 1023px) ────────────────────────────────── */
+@media (min-width: 640px) and (max-width: 1023px) {
+    .hero-content { padding: 2.5rem; }
+
+    .admin-sidebar { width: 14rem; }
+
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stats-grid > .stat-card:last-child { grid-column: span 2; }
+
+    .filter-bar__inner { flex-direction: row; justify-content: space-between; }
+    .brand-filters { width: auto; padding-bottom: 0; }
+}
+
+
+/* ── Desktop (≥ 1024px) ─────────────────────────────────────── */
+@media (min-width: 1024px) {
+    .admin-sidebar { width: 16rem; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+
+/* ── Large desktop (≥ 1280px) ──────────────────────────────── */
+@media (min-width: 1280px) {
+    .catalog-grid__inner { grid-template-columns: repeat(4, 1fr); }
+}

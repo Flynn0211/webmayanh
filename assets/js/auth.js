@@ -1,4 +1,4 @@
-// File: js/auth.js
+﻿// File: js/auth.js
 
 // Khởi tạo dữ liệu mặc định khi script load
 (function initAuthData() {
@@ -63,7 +63,7 @@ function register(fullname, username, password) {
 
 function logout() {
     localStorage.removeItem('currentUser');
-    window.location.href = 'trangchu.html';
+    window.location.href = 'index.php?page=trangchu';
 }
 
 function getCurrentUser() {
@@ -103,7 +103,7 @@ function updateAuthUI() {
         // Trạng thái chưa đăng nhập
         loginBtns.forEach(btn => {
             btn.innerHTML = "Đăng nhập";
-            btn.href = "login.html";
+            btn.href = "index.php?page=login";
             btn.onclick = null;
         });
         
@@ -116,3 +116,4 @@ function updateAuthUI() {
 
 // Tự động chạy cập nhật UI khi Load xong HTML
 document.addEventListener("DOMContentLoaded", updateAuthUI);
+
