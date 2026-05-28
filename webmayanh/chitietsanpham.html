@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>LENS & LIGHT - Chi Tiết Sản Phẩm</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="js/tailwind.config.js"></script>
+    <link href="css/style.css" rel="stylesheet" />
+    <style>
+        /* Custom scrollbar for gallery */
+        .gallery-scroll::-webkit-scrollbar {
+            height: 4px;
+        }
+        .gallery-scroll::-webkit-scrollbar-track {
+            background: #f6f3f2;
+        }
+        .gallery-scroll::-webkit-scrollbar-thumb {
+            background: #1c1b1b;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar (giống hệt trang chủ) -->
+<nav class="bg-surface/80 backdrop-blur-md w-full top-0 sticky border-b border-outline-variant/30 z-50">
+    <div class="max-w-container-max mx-auto flex items-center justify-between h-20 px-margin-mobile md:px-margin-desktop">
+        <!-- Brand -->
+        <a class="font-display-lg text-headline-md md:text-display-lg tracking-tighter text-on-surface hover:text-primary transition-colors duration-300" href="trangchu.html">
+            LENS & LIGHT
+        </a>
+        <!-- Links (Desktop) -->
+        <div class="hidden md:flex space-x-gutter items-center">
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="trangchu.html">Trang chủ</a>
+            <a class="font-label-caps text-label-caps text-primary border-b-2 border-primary pb-1 cursor-pointer transition-all duration-300" href="mayanh.html">Máy ảnh</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Ống kính</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Phụ kiện</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Bài viết</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Liên hệ</a>
+        </div>
+        <!-- Actions -->
+        <div class="flex items-center space-x-2">
+            <a class="auth-admin-btn hidden font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors mr-4" href="admin.html">Quản trị</a>
+            <a class="auth-login-btn font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors mr-4 flex items-center" href="login.html">Đăng nhập</a>
+            
+            <a href="donhang.html" aria-label="order_history" class="p-2 text-on-surface-variant hover:text-primary transition-colors relative flex items-center mr-2" title="Đơn hàng của tôi">
+                <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+            </a>
+
+            <a href="giohang.html" aria-label="shopping_cart" class="p-2 text-on-surface-variant hover:text-primary transition-colors relative flex items-center">
+                <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full hidden" id="cartBadgeDetail"></span>
+            </a>
+            <button aria-label="menu" class="md:hidden p-2 text-on-surface-variant hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pt-16 pb-section-gap">
+    
+    <!-- Lỗi không tìm thấy sản phẩm -->
+    <div id="errorState" class="hidden text-center py-32">
+        <span class="material-symbols-outlined text-6xl text-error mb-4">error</span>
+        <h2 class="font-display-lg text-3xl mb-4">Không tìm thấy sản phẩm</h2>
+        <p class="font-body-md text-on-surface-variant mb-8">Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+        <a href="trangchu.html" class="inline-flex bg-primary text-on-primary px-8 py-3 font-label-caps tracking-widest uppercase hover:bg-inverse-surface transition-colors">Quay lại trang chủ</a>
+    </div>
+
+    <div id="productDetailContainer" class="hidden">
+        <!-- Breadcrumb -->
+        <div class="flex items-center space-x-2 font-label-caps text-label-caps text-on-surface-variant mb-8">
+            <a class="hover:text-on-surface transition-colors" href="trangchu.html">TRANG CHỦ</a>
+            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+            <a class="hover:text-on-surface transition-colors uppercase" href="#" id="breadcrumbBrand">THƯƠNG HIỆU</a>
+            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span class="text-on-surface" id="breadcrumbName">TÊN SẢN PHẨM</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-gutter lg:gap-16">
+            <!-- Gallery Section (Left - 7 cols) -->
+            <div class="md:col-span-7 space-y-unit">
+                <!-- Main Image -->
+                <div class="aspect-[4/3] bg-surface-container-low w-full overflow-hidden relative flex items-center justify-center p-8">
+                    <img id="detailImage" alt="Product Image" class="w-full h-full object-contain mix-blend-multiply" src="">
+                </div>
+            </div>
+
+            <!-- Product Info (Right - 5 cols) -->
+            <div class="md:col-span-5 flex flex-col pt-8 md:pt-0">
+                <div class="mb-6">
+                    <span id="detailBrand" class="font-label-caps text-label-caps text-primary block mb-2 tracking-[0.2em]">THƯƠNG HIỆU</span>
+                    <h1 id="detailName" class="font-display-lg text-display-lg text-on-surface mb-4">Tên Sản Phẩm</h1>
+                    <div id="detailPrice" class="font-headline-md text-headline-md text-on-surface mb-2 font-mono-spec">0 ₫</div>
+                    <div class="text-sm font-label-caps tracking-widest text-on-surface-variant flex items-center mb-6">
+                        <span class="material-symbols-outlined text-[16px] mr-1">inventory_2</span> 
+                        Tồn kho: <span id="detailStock" class="ml-1 text-primary font-bold">0</span>
+                    </div>
+                </div>
+
+                <div id="detailDescription" class="font-body-md text-body-md text-on-surface-variant space-y-4 mb-8 whitespace-pre-wrap leading-relaxed">
+                    Đang tải mô tả sản phẩm...
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col space-y-4 mt-auto">
+                    <button id="btnAddToCart" class="w-full bg-primary text-on-primary font-label-caps text-label-caps py-4 tracking-widest hover:bg-inverse-surface transition-all shadow-md flex justify-center items-center">
+                        THÊM VÀO GIỎ HÀNG
+                    </button>
+                    <button id="btnFavorite" class="w-full bg-transparent border border-outline text-on-surface font-label-caps text-label-caps py-4 tracking-widest hover:bg-surface-container-low transition-colors flex justify-center items-center">
+                        <span class="material-symbols-outlined mr-2">favorite</span> YÊU THÍCH
+                    </button>
+                </div>
+
+                <!-- Shipping info -->
+                <div class="mt-8 border-t border-outline-variant/50 pt-6 space-y-3 font-body-md text-body-md text-on-surface-variant">
+                    <div class="flex items-center">
+                        <span class="material-symbols-outlined mr-3 text-primary">local_shipping</span>
+                        Giao hàng miễn phí toàn quốc
+                    </div>
+                    <div class="flex items-center">
+                        <span class="material-symbols-outlined mr-3 text-primary">verified</span>
+                        Bảo hành chính hãng 24 tháng
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Specs Section -->
+        <div class="mt-section-gap">
+            <h2 class="font-headline-lg text-headline-lg text-on-surface mb-8 border-b border-outline-variant/50 pb-4 tracking-tight">THÔNG SỐ KỸ THUẬT</h2>
+            <div id="detailSpecs" class="font-body-md text-body-md text-on-surface-variant whitespace-pre-wrap bg-surface-container-low p-8 rounded-xl border border-outline-variant/30 leading-loose">
+                Đang tải thông số kỹ thuật...
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer (giống hệt trang chủ) -->
+<footer class="bg-inverse-surface text-surface-container-lowest border-t border-white/10 w-full">
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
+        <!-- Cột 1 -->
+        <div class="lg:col-span-2 flex flex-col space-y-5">
+            <h2 class="font-display-lg text-2xl tracking-tight text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-[28px]">camera</span> LENS & LIGHT
+            </h2>
+            <p class="font-body-md text-surface-variant/70 max-w-sm leading-relaxed text-sm">Nơi khởi nguồn cảm hứng cho những tâm hồn đam mê nghệ thuật nhiếp ảnh và ánh sáng chuyên nghiệp hàng đầu.</p>
+            <div class="flex space-x-3 pt-3">
+                <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-variant hover:bg-primary hover:text-on-primary hover:-translate-y-1 transition-all" href="#"><span class="material-symbols-outlined text-[20px]">public</span></a>
+                <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-variant hover:bg-primary hover:text-on-primary hover:-translate-y-1 transition-all" href="#"><span class="material-symbols-outlined text-[20px]">photo_camera</span></a>
+                <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-variant hover:bg-primary hover:text-on-primary hover:-translate-y-1 transition-all" href="#"><span class="material-symbols-outlined text-[20px]">smart_display</span></a>
+            </div>
+        </div>
+        <!-- Cột 2 -->
+        <div class="flex flex-col space-y-5">
+            <h3 class="font-label-caps text-xs text-white uppercase tracking-[0.15em] font-semibold">Về Chúng Tôi</h3>
+            <ul class="flex flex-col space-y-3">
+                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Câu chuyện thương hiệu</a></li>
+                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Sản phẩm tuyển chọn</a></li>
+            </ul>
+        </div>
+        <!-- Cột 3 -->
+        <div class="flex flex-col space-y-5">
+            <h3 class="font-label-caps text-xs text-white uppercase tracking-[0.15em] font-semibold">Hỗ Trợ</h3>
+            <ul class="flex flex-col space-y-3">
+                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Chính sách bảo hành</a></li>
+                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Giao hàng & Đổi trả</a></li>
+            </ul>
+        </div>
+        <!-- Cột 4 -->
+        <div class="flex flex-col space-y-5">
+            <h3 class="font-label-caps text-xs text-white uppercase tracking-[0.15em] font-semibold">Liên Hệ</h3>
+            <ul class="flex flex-col space-y-3">
+                <li class="flex items-start gap-3 text-sm text-surface-variant/70"><span class="material-symbols-outlined text-[18px] text-primary/80 mt-0.5">location_on</span><span>123 Ánh Sáng, Quận 1, HCM</span></li>
+                <li class="flex items-center gap-3 text-sm text-surface-variant/70"><span class="material-symbols-outlined text-[18px] text-primary/80">mail</span><span>hi@lensandlight.com</span></li>
+                <li class="flex items-center gap-3 text-sm text-surface-variant/70"><span class="material-symbols-outlined text-[18px] text-primary/80">call</span><span class="text-primary font-medium">+84 (0) 28 3822 0000</span></li>
+            </ul>
+        </div>
+    </div>
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-6 border-t border-white/5">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-surface-variant/50 text-xs text-center md:text-left tracking-wide">© 2024 LENS & LIGHT OPTICS. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="js/auth.js"></script>
+<script src="js/chitietsanpham.js"></script>
+</body>
+</html>

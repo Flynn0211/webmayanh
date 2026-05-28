@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>LENS & LIGHT - Capturing Precision</title>
+    <title>LENS & LIGHT - Danh mục Máy Ảnh</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -20,8 +20,8 @@
         </a>
         <!-- Links (Desktop) -->
         <div class="hidden md:flex space-x-gutter items-center">
-            <a class="font-label-caps text-label-caps text-primary border-b-2 border-primary pb-1 cursor-pointer transition-all duration-300" href="#">Trang chủ</a>
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="mayanh.html">Máy ảnh</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="trangchu.html">Trang chủ</a>
+            <a class="font-label-caps text-label-caps text-primary border-b-2 border-primary pb-1 cursor-pointer transition-all duration-300" href="mayanh.html">Máy ảnh</a>
             <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Ống kính</a>
             <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Phụ kiện</a>
             <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Bài viết</a>
@@ -47,70 +47,60 @@
     </div>
 </nav>
 
-<main>
-    <!-- Hero Section -->
-    <section class="w-full h-[85vh] min-h-[700px] flex items-center justify-center relative bg-inverse-surface overflow-hidden">
-        <div class="absolute inset-0 z-0">
-            <img alt="High-end camera equipment" class="w-full h-full object-cover object-center opacity-70 grayscale-[0.5]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2Ob2lK3yLki_Od5qKHrUU-up0z-xQYobXAGzc7gtJdVH7PVmMY_7jzO7-L8aUG0_fKw2R-5T9qTW55uGNkpDguORG8Au01GoFojZeVGKDdtGAg6VSXlcxsIkqZcSc4SwR7hv9CY7AMm1ZOfq2okLDgyD_7Tqn95IdeVtZ96gPSKmeDr30IjX9WDr6iFgCpTAquSr9umZoXWPpFUCYgVZxSh4v_qxHVUPcmwYkMHPYV2YB0CqPc73ZRdb0_l5w9py-4dgLjF0aDhY"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-inverse-surface via-transparent to-transparent opacity-60"></div>
-        </div>
-        <div class="relative z-10 text-center px-margin-mobile md:px-margin-desktop glass-dark p-12 max-w-3xl border border-white/10 shadow-2xl">
-            <span class="font-label-caps text-label-caps text-primary mb-4 block tracking-[0.3em]">THE ART OF OPTICS</span>
-            <h1 class="font-display-lg text-4xl md:text-6xl text-white mb-6 uppercase tracking-tight leading-tight">GÓI TRỌN TINH XẢO</h1>
-            <p class="font-body-lg text-body-lg text-surface-container-highest mb-10 max-w-lg mx-auto">Công cụ quang học đỉnh cao dành cho những người thợ ảnh khắt khe nhất thế giới.</p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button class="bg-primary text-on-primary font-label-caps text-label-caps px-10 py-5 uppercase tracking-[0.15em] hover:bg-on-primary hover:text-primary transition-all duration-500 shadow-lg">Khám Phá Bộ Sưu Tập</button>
-                <button class="bg-transparent border border-white/30 text-white font-label-caps text-label-caps px-10 py-5 uppercase tracking-[0.15em] hover:bg-white/10 transition-all duration-500">Tìm hiểu thêm</button>
-            </div>
+<main class="w-full bg-surface">
+    <!-- Page Header -->
+    <section class="w-full bg-surface-container-lowest pt-20 pb-12 px-margin-mobile md:px-margin-desktop border-b border-outline-variant/30">
+        <div class="max-w-container-max mx-auto text-center">
+            <h1 class="font-display-lg text-3xl md:text-5xl text-on-background uppercase tracking-tight mb-4">BỘ SƯU TẬP MÁY ẢNH</h1>
+            <p class="font-body-md text-on-surface-variant max-w-2xl mx-auto">Khám phá toàn bộ các kiệt tác nhiếp ảnh từ những thương hiệu hàng đầu thế giới.</p>
         </div>
     </section>
 
-    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
-        <!-- Featured Cameras Grid -->
-        <section class="py-section-gap">
-            <div class="flex items-end justify-between mb-16">
-                <div>
-                    <h2 class="font-headline-lg text-headline-lg text-on-background uppercase tracking-tight mb-2">Máy Ảnh Nổi Bật</h2>
-                    <div class="w-12 h-1 bg-primary"></div>
-                </div>
-                <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors flex items-center group" href="#">
-                    XEM TẤT CẢ <span class="material-symbols-outlined ml-1 text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </a>
-            </div>
+    <!-- Toolbar & Filter -->
+    <section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 border-b border-outline-variant/30 sticky top-16 bg-surface/90 backdrop-blur-md z-20">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6">
             
-            <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
-                <!-- Products will be generated here by JS -->
+            <!-- Brand Filter -->
+            <div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar" id="brandFilterContainer">
+                <button class="brand-btn bg-primary text-on-primary font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="all">Tất cả</button>
+                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="sony">Sony</button>
+                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="canon">Canon</button>
+                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="nikon">Nikon</button>
+                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="fujifilm">Fujifilm</button>
+                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="leica">Leica</button>
+                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="hasselblad">Hasselblad</button>
             </div>
-        </section>
 
-        <!-- Editorial Teaser -->
-        <section class="mb-section-gap grid grid-cols-1 md:grid-cols-2 gap-0 border border-outline-variant/30 shadow-sm overflow-hidden rounded-sm">
-            <div class="p-12 md:p-20 flex flex-col justify-center bg-surface-container-low">
-                <p class="font-label-caps text-label-caps text-primary mb-6 tracking-widest">JOURNAL NO. 12</p>
-                <h2 class="font-display-lg text-3xl md:text-5xl text-on-background mb-8 leading-tight tracking-tight">Nghệ Thuật Của Sự Tối Giản Trong Nhiếp Ảnh Phong Cảnh</h2>
-                <p class="font-body-lg text-body-lg text-on-surface-variant mb-10 leading-relaxed">Khám phá cách sử dụng không gian âm và những thiết bị tinh gọn nhất để truyền tải cảm xúc mạnh mẽ qua từng khung hình tối giản.</p>
-                <a class="inline-flex items-center font-label-caps text-label-caps text-on-background border-b-2 border-primary pb-2 self-start hover:text-primary transition-all group" href="#">
-                    ĐỌC BÀI VIẾT <span class="material-symbols-outlined ml-3 text-[18px] group-hover:translate-x-2 transition-transform">east</span>
-                </a>
-            </div>
-            <div class="aspect-square md:aspect-auto overflow-hidden bg-surface-dim">
-                <img alt="Minimalist Landscape" class="w-full h-full object-cover grayscale hover:scale-105 transition-transform duration-[2s]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvwtqKfVUO-KG3R_hyQtLexRLS0JX4yyD2aftNRoFcYwSLxVHJRTc7bDRIi0Ci0JV81Onp7WoJda39Sh-tWLlos8EjGWSenCRZCwYc1W66fUIpTr1KiCV4nVfb1m_1U6NJNhTdi9y-B6U3Tana3IwIa4CPApN9a-kYp12jeJ2ALAZE-PmXHZ0-6yRpCZycuTdEm2kdzyqd24l4mJ0Q2p9wiogArzcQW6LR85tSaRbohrC4QOnPlEOaw2QMpyoWgIcZw2s6SP7O8bI"/>
-            </div>
-        </section>
-    </div>
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <!-- Search -->
+                <div class="relative flex-grow md:flex-grow-0">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+                    <input type="text" id="searchInput" placeholder="Tìm tên máy ảnh..." class="w-full md:w-48 bg-surface-container-low border border-outline-variant/50 focus:border-primary rounded-full py-2 pl-10 pr-4 text-sm font-body-md outline-none transition-all">
+                </div>
 
-    <!-- Newsletter / CTA -->
-    <section class="bg-surface-container-high py-24 mb-section-gap">
-        <div class="max-w-container-max mx-auto px-margin-mobile text-center">
-            <span class="material-symbols-outlined text-primary text-4xl mb-6">camera</span>
-            <h2 class="font-headline-lg text-headline-lg text-on-background mb-4">GIA NHẬP CỘNG ĐỒNG LENS & LIGHT</h2>
-            <p class="font-body-lg text-on-surface-variant mb-10 max-w-xl mx-auto">Nhận các thông tin sớm nhất về các sản phẩm giới hạn và kiến thức nhiếp ảnh chuyên sâu.</p>
-            <form class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-                <input class="flex-grow bg-white border border-outline-variant px-6 py-4 text-on-surface focus:border-primary focus:ring-0 font-body-md" placeholder="Email của bạn" type="email"/>
-                <button class="bg-primary text-on-primary px-10 py-4 font-label-caps text-label-caps uppercase tracking-widest hover:bg-inverse-surface transition-colors shadow-md" type="submit">ĐĂNG KÝ</button>
-            </form>
+                <!-- Sort -->
+                <select id="sortSelect" class="bg-surface-container-low border border-outline-variant/50 text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase rounded-full py-2 px-4 outline-none focus:border-primary cursor-pointer transition-all appearance-none pr-8 relative">
+                    <option value="default">Mặc định</option>
+                    <option value="price_asc">Giá: Thấp - Cao</option>
+                    <option value="price_desc">Giá: Cao - Thấp</option>
+                </select>
+            </div>
         </div>
     </section>
+
+    <!-- Product Grid -->
+    <section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12 min-h-[500px]">
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+            <!-- JS Rendered Products Here -->
+            <div class="col-span-full text-center py-20 text-on-surface-variant hidden" id="noProductsMsg">
+                Không tìm thấy sản phẩm nào phù hợp.
+            </div>
+        </div>
+    </section>
+
+
+
+
 </main>
 
 <!-- Footer -->
@@ -192,6 +182,6 @@
 </footer>
 
 <script src="js/auth.js"></script>
-<script src="js/trangchu.js"></script>
+<script src="js/mayanh.js"></script>
 </body>
 </html>

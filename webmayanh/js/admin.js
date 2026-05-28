@@ -95,6 +95,7 @@ function renderAdminProducts() {
             <td class="px-6 py-4 font-label-caps text-primary tracking-widest">${p.brand}</td>
             <td class="px-6 py-4 font-medium text-on-surface truncate max-w-[200px]">${p.name}</td>
             <td class="px-6 py-4 font-mono-spec text-right text-on-surface">${p.price}</td>
+            <td class="px-6 py-4 font-mono-spec text-center text-on-surface-variant">${p.stock || 0}</td>
             <td class="px-6 py-4 text-center">
                 <div class="flex items-center justify-center gap-2">
                     <button type="button" onclick="editProduct('${p.id}')" class="text-tertiary-container hover:text-tertiary transition-colors" title="Sửa">
@@ -110,22 +111,50 @@ function renderAdminProducts() {
 }
 
 // -- Orders
+window.updateOrderStatus = function(orderId, newStatus) {
+    let orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const index = orders.findIndex(o => o.id === orderId);
+    if(index > -1) {
+        orders[index].status = newStatus;
+        localStorage.setItem('orders', JSON.stringify(orders));
+        alert('Đã cập nhật trạng thái đơn hàng!');
+        renderAdminOrders();
+    }
+}
+
 function renderAdminOrders() {
-    const statuses = ['chờ xác nhận', 'xác nhận đơn hàng', 'đang giao', 'đã giao', 'thành công'];
-    document.getElementById('adminOrderTableBody').innerHTML = mockOrders.map((o, i) => `
+    let orders = JSON.parse(localStorage.getItem('orders')) || [];
+    const statuses = ['Đang xử lý', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Thành công', 'Đã hủy'];
+    
+    if (orders.length === 0) {
+        document.getElementById('adminOrderTableBody').innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-on-surface-variant">Chưa có đơn hàng nào.</td></tr>`;
+        document.getElementById('newOrdersBadge').innerText = '0';
+        return;
+    }
+
+    // Hiển thị mới nhất trước
+    const sortedOrders = [...orders].reverse();
+
+    document.getElementById('adminOrderTableBody').innerHTML = sortedOrders.map((o) => `
         <tr class="hover:bg-surface-container-low/30 transition-colors">
             <td class="px-6 py-4 font-mono-spec text-primary font-medium">${o.id}</td>
-            <td class="px-6 py-4 text-on-surface">${o.customer}</td>
+            <td class="px-6 py-4 text-on-surface">
+                ${o.customerName}
+                <div class="text-[10px] text-on-surface-variant font-label-caps uppercase mt-1">@${o.customerUsername}</div>
+            </td>
             <td class="px-6 py-4 font-mono-spec text-on-surface">${o.total}</td>
-            <td class="px-6 py-4 text-on-surface-variant">${o.date}</td>
+            <td class="px-6 py-4 text-on-surface-variant text-sm">${o.date}</td>
             <td class="px-6 py-4 text-center">
-                <select class="bg-surface-container-lowest border border-outline-variant/50 text-sm rounded-md px-2 py-1 focus:ring-0 focus:border-primary w-full" onchange="alert('Đã cập nhật trạng thái đơn hàng!')">
+                <select onchange="updateOrderStatus('${o.id}', this.value)" class="bg-surface-container-lowest border border-outline-variant/50 text-sm rounded-md px-2 py-1 focus:ring-0 focus:border-primary w-full">
                     ${statuses.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
                 </select>
             </td>
         </tr>
     `).join('');
-    document.getElementById('newOrdersBadge').innerText = mockOrders.filter(o => o.status === 'chờ xác nhận').length;
+    
+    // Cập nhật số đơn mới
+    const newCount = orders.filter(o => o.status === 'Đang xử lý').length;
+    document.getElementById('newOrdersBadge').innerText = newCount;
 }
 
 // -- Customers
@@ -291,7 +320,10 @@ function initModal() {
             const brand = document.getElementById('productBrand').value;
             const name = document.getElementById('productName').value;
             const price = document.getElementById('productPrice').value;
+            const stock = parseInt(document.getElementById('productStock').value) || 0;
             const image = document.getElementById('productImage').value;
+            const desc = document.getElementById('productDescription').value;
+            const specs = document.getElementById('productSpecs').value;
 
             if (!image) {
                 alert('Vui lòng chọn hình ảnh cho sản phẩm!');
@@ -307,7 +339,8 @@ function initModal() {
                 const index = products.findIndex(p => p.id == originalId);
                 if(index > -1) {
                     // Cập nhật sản phẩm, có thể ID được thay đổi nếu cần (dù hiện tại ta khóa)
-                    products[index] = { id: id, brand, name, price, image };
+                    products[index] = { ...products[index], id: id, brand, name, price, stock, description: desc, specs, image };
+                    alert('Cập nhật sản phẩm thành công!');
                 }
             } else {
                 // Thêm mới
@@ -316,7 +349,8 @@ function initModal() {
                     alert('Mã sản phẩm này đã tồn tại! Vui lòng chọn mã khác.');
                     return;
                 }
-                products.push({ id: id, brand, name, price, image });
+                products.unshift({ id: id, brand, name, price, stock, description: desc, specs, image });
+                alert('Thêm sản phẩm thành công!');
             }
             localStorage.setItem('products', JSON.stringify(products));
             closeProductModal();
@@ -351,6 +385,9 @@ function openProductModal(id = null) {
     // Reset ID readonly
     idInput.readOnly = false;
     idInput.classList.remove('opacity-60', 'cursor-not-allowed', 'bg-surface-container-high');
+    
+    document.getElementById('productDescription').value = '';
+    document.getElementById('productSpecs').value = '';
 
     document.getElementById('modalTitle').innerText = id ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm';
     if (id) {
@@ -359,8 +396,12 @@ function openProductModal(id = null) {
         idInput.value = p.id;
         brandInput.value = p.brand;
         nameInput.value = p.name;
-        document.getElementById('productPrice').value = p.price;
+        document.getElementById('productName').value = p.name || '';
+        document.getElementById('productPrice').value = p.price || '';
+        document.getElementById('productStock').value = p.stock !== undefined ? p.stock : 10;
         document.getElementById('productImage').value = p.image;
+        document.getElementById('productDescription').value = p.description || '';
+        document.getElementById('productSpecs').value = p.specs || '';
         
         // Khóa mã ID khi sửa để tránh lỗi trùng lặp/đổi mã
         idInput.readOnly = true;
