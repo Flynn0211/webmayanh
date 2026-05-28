@@ -7,108 +7,10 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script id="tailwind-config">
-        tailwind.config = {
-          darkMode: "class",
-          theme: {
-            extend: {
-              "colors": {
-                      "secondary-fixed-dim": "#e9c349",
-                      "surface-container-highest": "#e5e2e1",
-                      "on-tertiary-container": "#f3fffc",
-                      "background": "#fcf9f8",
-                      "tertiary": "#006860",
-                      "surface-container-low": "#f6f3f2",
-                      "on-error": "#ffffff",
-                      "secondary": "#735c00",
-                      "primary-fixed": "#ffdad8",
-                      "surface-variant": "#e5e2e1",
-                      "surface-dim": "#dcd9d9",
-                      "inverse-surface": "#313030",
-                      "inverse-on-surface": "#f3f0ef",
-                      "surface-bright": "#fcf9f8",
-                      "on-secondary-fixed": "#241a00",
-                      "on-surface": "#1c1b1b",
-                      "outline-variant": "#e4bebc",
-                      "surface-container-lowest": "#ffffff",
-                      "on-primary-fixed-variant": "#92001c",
-                      "on-primary-fixed": "#410007",
-                      "on-error-container": "#93000a",
-                      "tertiary-container": "#008379",
-                      "error": "#ba1a1a",
-                      "outline": "#8f6f6e",
-                      "surface-container-high": "#eae7e7",
-                      "on-tertiary": "#ffffff",
-                      "secondary-container": "#fed65b",
-                      "primary-fixed-dim": "#ffb3b1",
-                      "surface-container": "#f0eded",
-                      "secondary-fixed": "#ffe088",
-                      "inverse-primary": "#ffb3b1",
-                      "tertiary-fixed-dim": "#6fd8cc",
-                      "primary-container": "#db313f",
-                      "on-surface-variant": "#5b403f",
-                      "on-tertiary-fixed": "#00201d",
-                      "on-primary-container": "#fffbff",
-                      "surface": "#fcf9f8",
-                      "on-secondary-fixed-variant": "#574500",
-                      "on-secondary": "#ffffff",
-                      "on-background": "#1c1b1b",
-                      "primary": "#e63946",
-                      "on-secondary-container": "#745c00",
-                      "error-container": "#ffdad6",
-                      "tertiary-fixed": "#8cf4e8",
-                      "on-tertiary-fixed-variant": "#00504a",
-                      "surface-tint": "#e63946",
-                      "on-primary": "#ffffff"
-              },
-              "borderRadius": {
-                      "DEFAULT": "0.25rem",
-                      "lg": "0.5rem",
-                      "xl": "0.75rem",
-                      "full": "9999px"
-              },
-              "spacing": {
-                      "margin-desktop": "64px",
-                      "gutter": "24px",
-                      "unit": "8px",
-                      "margin-mobile": "20px",
-                      "container-max": "1280px",
-                      "section-gap": "120px"
-              },
-              "fontFamily": {
-                      "body-md": ["Inter"],
-                      "headline-lg-mobile": ["Geist"],
-                      "headline-md": ["Geist"],
-                      "mono-spec": ["Geist"],
-                      "display-lg": ["Geist"],
-                      "body-lg": ["Inter"],
-                      "label-caps": ["Geist"],
-                      "headline-lg": ["Geist"]
-              },
-              "fontSize": {
-                      "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
-                      "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "500"}],
-                      "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "0.03em", "fontWeight": "500"}],
-                      "mono-spec": ["14px", {"lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "400"}],
-                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
-                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
-                      "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.15em", "fontWeight": "600"}],
-                      "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "500"}]
-              }
-            },
-          },
-        }
-      </script>
-    <style>
-        .glass-dark {
-            background: rgba(28, 27, 27, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-    </style>
+    <script src="js/tailwind.config.js"></script>
+    <link href="css/style.css" rel="stylesheet" />
 </head>
 <body class="bg-surface text-on-surface font-body-md antialiased selection:bg-primary selection:text-on-primary">
-
 <!-- TopNavBar -->
 <nav class="bg-surface/80 backdrop-blur-md w-full top-0 sticky border-b border-outline-variant/30 z-50">
     <div class="max-w-container-max mx-auto flex items-center justify-between h-20 px-margin-mobile md:px-margin-desktop">
@@ -116,43 +18,36 @@
         <a class="font-display-lg text-headline-md md:text-display-lg tracking-tighter text-on-surface hover:text-primary transition-colors duration-300" href="#">
             LENS & LIGHT
         </a>
-        
         <!-- Links (Desktop) -->
         <div class="hidden md:flex space-x-gutter items-center">
             <a class="font-label-caps text-label-caps text-primary border-b-2 border-primary pb-1 cursor-pointer transition-all duration-300" href="#">Trang chủ</a>
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Sản phẩm</a>
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Triển lãm</a>
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Về chúng tôi</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Máy ảnh</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Ống kính</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Phụ kiện</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Bài viết</a>
+            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Liên hệ</a>
         </div>
-
         <!-- Actions -->
-        <div class="flex items-center space-x-6">
-            <button class="text-on-surface hover:text-primary transition-colors" title="Tìm kiếm">
-                <span class="material-symbols-outlined text-[24px]">search</span>
+        <div class="flex items-center space-x-2">
+            <a class="hidden sm:block font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors mr-4" href="admin.html">Quản trị</a>
+            <button aria-label="shopping_cart" class="p-2 text-on-surface-variant hover:text-primary transition-colors relative">
+                <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
             </button>
-            <a href="admin.html" class="text-on-surface hover:text-primary transition-colors" title="Admin">
-                <span class="material-symbols-outlined text-[24px]">shield_person</span>
-            </a>
-            <button class="text-on-surface hover:text-primary transition-colors relative" title="Giỏ hàng">
-                <span class="material-symbols-outlined text-[24px]">shopping_bag</span>
-                <span class="absolute -top-1 -right-1 bg-primary text-on-primary text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">2</span>
-            </button>
-            <!-- Mobile Menu Toggle -->
-            <button class="md:hidden text-on-surface hover:text-primary">
-                <span class="material-symbols-outlined text-[24px]">menu</span>
+            <button aria-label="menu" class="md:hidden p-2 text-on-surface-variant hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">menu</span>
             </button>
         </div>
     </div>
 </nav>
 
-<!-- Hero Section -->
-<main class="w-full">
-    <section class="relative h-[85vh] min-h-[600px] flex items-center justify-center overflow-hidden">
+<main>
+    <!-- Hero Section -->
+    <section class="w-full h-[85vh] min-h-[700px] flex items-center justify-center relative bg-inverse-surface overflow-hidden">
         <div class="absolute inset-0 z-0">
-            <img alt="Hero Camera Concept" class="w-full h-full object-cover scale-105 animate-[pulse_10s_ease-in-out_infinite]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3R5R_Z9uX4R9K7s8-D88P7t1P-gV6-Y7U2n5-Y7h9U-0zQ_4P1gU8gW-3P5b6R3p8X8x-1xT4v6Q1sT-V7D3f7H0v0X0X7T0z7D4a8N9wV1y2-U4e9I9e9-E9r3O9_4d1d-X7O1-9H5_7B5T9C2_7_9pY6wzU0P3mZ8R4s8R2uV3H9s7A7L9zT0k-3K7g9N5l8kO9I1H5_7b8kK2jZ2H4bO9D5s7Y6-U3c8O9_9r5O1d1_5B9s-V9-C1D1-aO6-n9O9c5L8r3r4S3tW2aZ7R6-M8K8p6e_6D4e8L7mS6kI8p1r4T5oV2c_8B9v2Z0hQ" />
+            <img alt="High-end camera equipment" class="w-full h-full object-cover object-center opacity-70 grayscale-[0.5]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2Ob2lK3yLki_Od5qKHrUU-up0z-xQYobXAGzc7gtJdVH7PVmMY_7jzO7-L8aUG0_fKw2R-5T9qTW55uGNkpDguORG8Au01GoFojZeVGKDdtGAg6VSXlcxsIkqZcSc4SwR7hv9CY7AMm1ZOfq2okLDgyD_7Tqn95IdeVtZ96gPSKmeDr30IjX9WDr6iFgCpTAquSr9umZoXWPpFUCYgVZxSh4v_qxHVUPcmwYkMHPYV2YB0CqPc73ZRdb0_l5w9py-4dgLjF0aDhY"/>
             <div class="absolute inset-0 bg-gradient-to-t from-inverse-surface via-transparent to-transparent opacity-60"></div>
         </div>
-        
         <div class="relative z-10 text-center px-margin-mobile md:px-margin-desktop glass-dark p-12 max-w-3xl border border-white/10 shadow-2xl">
             <span class="font-label-caps text-label-caps text-primary mb-4 block tracking-[0.3em]">THE ART OF OPTICS</span>
             <h1 class="font-display-lg text-4xl md:text-6xl text-white mb-6 uppercase tracking-tight leading-tight">GÓI TRỌN TINH XẢO</h1>
@@ -213,111 +108,83 @@
 </main>
 
 <!-- Footer -->
-<footer class="bg-inverse-surface text-surface-container-lowest w-full border-t border-white/5">
-    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20 grid grid-cols-1 md:grid-cols-4 gap-gutter">
-        <div class="flex flex-col space-y-8">
-            <h2 class="font-display-lg text-headline-md tracking-tighter text-white uppercase">LENS & LIGHT</h2>
-            <p class="font-body-md text-surface-variant/80 max-w-xs leading-relaxed">
+<footer class="bg-inverse-surface text-surface-container-lowest border-t border-white/10 w-full">
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
+        
+        <!-- Cột 1: Thông tin thương hiệu (chiếm 2 cột) -->
+        <div class="lg:col-span-2 flex flex-col space-y-5">
+            <h2 class="font-display-lg text-2xl tracking-tight text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-[28px]">camera</span> LENS & LIGHT
+            </h2>
+            <p class="font-body-md text-surface-variant/70 max-w-sm leading-relaxed text-sm">
                 Nơi khởi nguồn cảm hứng cho những tâm hồn đam mê nghệ thuật nhiếp ảnh và ánh sáng chuyên nghiệp hàng đầu.
             </p>
-            <div class="flex space-x-6">
-                <a class="text-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined">photo_camera</span>
+            <div class="flex space-x-3 pt-3">
+                <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-variant hover:bg-primary hover:text-on-primary hover:-translate-y-1 transition-all" href="#" title="Facebook">
+                    <span class="material-symbols-outlined text-[20px]">public</span>
                 </a>
-                <a class="text-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined">brand_awareness</span>
+                <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-variant hover:bg-primary hover:text-on-primary hover:-translate-y-1 transition-all" href="#" title="Instagram">
+                    <span class="material-symbols-outlined text-[20px]">photo_camera</span>
                 </a>
-                <a class="text-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined">share</span>
+                <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-variant hover:bg-primary hover:text-on-primary hover:-translate-y-1 transition-all" href="#" title="Youtube">
+                    <span class="material-symbols-outlined text-[20px]">smart_display</span>
                 </a>
             </div>
         </div>
-        
-        <div class="flex flex-col space-y-6">
-            <h3 class="font-label-caps text-label-caps text-white uppercase tracking-[0.2em]">VỀ CHÚNG TÔI</h3>
-            <ul class="flex flex-col space-y-4">
-                <li><a class="font-body-md text-surface-variant/80 hover:text-primary transition-colors" href="#">Câu chuyện thương hiệu</a></li>
-                <li><a class="font-body-md text-surface-variant/80 hover:text-primary transition-colors" href="#">Sản phẩm tuyển chọn</a></li>
-                <li><a class="font-body-md text-surface-variant/80 hover:text-primary transition-colors" href="#">Đội ngũ chuyên gia</a></li>
-            </ul>
-        </div>
-        
-        <div class="flex flex-col space-y-6">
-            <h3 class="font-label-caps text-label-caps text-white uppercase tracking-[0.2em]">HỖ TRỢ</h3>
-            <ul class="flex flex-col space-y-4">
-                <li><a class="font-body-md text-surface-variant/80 hover:text-primary transition-colors" href="#">Chính sách bảo mật</a></li>
-                <li><a class="font-body-md text-surface-variant/80 hover:text-primary transition-colors" href="#">Giao hàng & Đổi trả</a></li>
-                <li><a class="font-body-md text-surface-variant/80 hover:text-primary transition-colors" href="#">Trung tâm bảo hành</a></li>
+
+        <!-- Cột 2: Về Chúng Tôi -->
+        <div class="flex flex-col space-y-5">
+            <h3 class="font-label-caps text-xs text-white uppercase tracking-[0.15em] font-semibold">Về Chúng Tôi</h3>
+            <ul class="flex flex-col space-y-3">
+                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Câu chuyện thương hiệu</a></li>
+                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Sản phẩm tuyển chọn</a></li>
+                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Đội ngũ chuyên gia</a></li>
             </ul>
         </div>
 
-        <div class="flex flex-col space-y-6">
-            <h3 class="font-label-caps text-label-caps text-white uppercase tracking-[0.2em]">LIÊN HỆ</h3>
-            <div class="flex flex-col space-y-4">
-                <p class="font-body-md text-surface-variant/80">Số 123, Đường Ánh Sáng, Quận 1, TP. HCM</p>
-                <p class="font-body-md text-surface-variant/80">support@lensandlight.com</p>
-                <p class="font-body-md text-primary font-medium">+84 (0) 28 3822 0000</p>
-            </div>
+        <!-- Cột 3: Hỗ Trợ -->
+        <div class="flex flex-col space-y-5">
+            <h3 class="font-label-caps text-xs text-white uppercase tracking-[0.15em] font-semibold">Hỗ Trợ</h3>
+            <ul class="flex flex-col space-y-3">
+                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Chính sách bảo hành</a></li>
+                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Giao hàng & Đổi trả</a></li>
+                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Hỗ trợ kỹ thuật</a></li>
+            </ul>
+        </div>
+
+        <!-- Cột 4: Liên Hệ -->
+        <div class="flex flex-col space-y-5">
+            <h3 class="font-label-caps text-xs text-white uppercase tracking-[0.15em] font-semibold">Liên Hệ</h3>
+            <ul class="flex flex-col space-y-3">
+                <li class="flex items-start gap-3 text-sm text-surface-variant/70">
+                    <span class="material-symbols-outlined text-[18px] text-primary/80 mt-0.5">location_on</span>
+                    <span>123 Ánh Sáng, Quận 1, HCM</span>
+                </li>
+                <li class="flex items-center gap-3 text-sm text-surface-variant/70">
+                    <span class="material-symbols-outlined text-[18px] text-primary/80">mail</span>
+                    <span>hi@lensandlight.com</span>
+                </li>
+                <li class="flex items-center gap-3 text-sm text-surface-variant/70">
+                    <span class="material-symbols-outlined text-[18px] text-primary/80">call</span>
+                    <span class="text-primary font-medium">+84 (0) 28 3822 0000</span>
+                </li>
+            </ul>
         </div>
     </div>
     
-    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pb-12 border-t border-white/5 pt-12">
+    <!-- Footer Bottom -->
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-6 border-t border-white/5">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p class="font-body-md text-surface-variant/60 text-xs text-center md:text-left">© 2024 LENS & LIGHT OPTICS. TRADEMARK OF APERTURE PRECISION.</p>
-            <div class="flex space-x-6">
-                <span class="text-surface-variant/40 text-[10px] uppercase tracking-widest">Mastercard</span>
-                <span class="text-surface-variant/40 text-[10px] uppercase tracking-widest">Visa</span>
-                <span class="text-surface-variant/40 text-[10px] uppercase tracking-widest">Amex</span>
+            <p class="text-surface-variant/50 text-xs text-center md:text-left tracking-wide">© 2024 LENS & LIGHT OPTICS. All rights reserved.</p>
+            <div class="flex space-x-3">
+                <span class="text-surface-variant/40 text-[10px] uppercase tracking-widest border border-white/10 px-2 py-1 rounded">Mastercard</span>
+                <span class="text-surface-variant/40 text-[10px] uppercase tracking-widest border border-white/10 px-2 py-1 rounded">Visa</span>
+                <span class="text-surface-variant/40 text-[10px] uppercase tracking-widest border border-white/10 px-2 py-1 rounded">Amex</span>
             </div>
         </div>
     </div>
 </footer>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const defaultProducts = [
-            { id: 1, brand: 'Leica', name: 'Leica M11 Monochrom', price: '239,000,000 ₫', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuABV-XTe-vFpU53s2sTQEXzuCqivZEsb9F8spF0sA1gE_hcx1EJqBVD1wlHL9CSbeOzdLZbm4eP2EUBYwHCWYJGam7sMDOFde_HDqjIwdfUzAcQh_yaxd8USG7ICBLW0gw5S6zL_VL3O5RXD4hZ6Lxs0t56YUuNnbaoZymLvHHuULPmIyJ5RMGzwmtB60zmG9VW1pEoHMeNjQg88MLotOICFVJnIWrnmhQHQeQhaogxdIIQLjpM5kcOBiaTKfh8Hx9MOvcvVb8YICc' },
-            { id: 2, brand: 'Sony', name: 'Sony Alpha 7R V', price: '90,000,000 ₫', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCLoCYShKrk94bl_ZVJhTbHUwmDE2oVSHqd1KKVTcT8Bm-ejTy5YGT7Zb1s5G0qMqZ6anS-lJQ2elz8PT_Cw8UzwGugXglTvyZQZvZt6-Ja5mQDzci-urOhLnOFkKrvuZW0OecHBAHi-CFcOe6WfXaGGIFdnmASviUBWn1mZ2tYTg6WHfmlFLGmzlOEBzeF0OD2K-KCz-uD5l4ZQ--k_SmaUYfIEAjZs62fTlJf1EomIlg_534rHFS9-IYUW8YyaTdQ56QFM9KHQzE' },
-            { id: 3, brand: 'Fujifilm', name: 'Fujifilm X-T5 Body', price: '43,000,000 ₫', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDl6r5lt_hmgSZ8skeRJHkAfIEdVgAiVwx3Jg0RnhisE1bvLnOSZzUjIy5RKTxUflmNoLSuUvQedC-WG3UFXtw_7-wz4twPhs1l9kqMrv1yO3raVAPeRm3SNQzb1waYtqhwuVd9hDHy1dIoxO1SSFKoWzmPH5z92gerhsm-_t3qgXS55jPUdiFIq_q6RL0Pd2g_3owCF8gjSdyjl5LwkkHlIQpT09kUQXrgIbdSDvmaghvg9FJrdwD8IoHL54ERn_BMxaZiRD3NcRE' },
-            { id: 4, brand: 'Hasselblad', name: 'Hasselblad X2D 100C', price: '205,000,000 ₫', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDQm8a7UaM8Tf1r0bA76uF6W3fW04u0M_H-h1Q1E9_a4Kqf3Bqf3A2_wzKz-a5n91Yv74x-yv9_Kq7b2-O72-fU9sT-Z0vWf8vMhT2e697_7G8J8g_18tE9-4y0d13G85Zz8Oa3y8pZ610f4Xg_h0d1a49E5O4uXzK79eO1bW4M9lK3_wzZz84xUq10H200G4D9_0pT9k4-A82b' }
-        ];
-
-        if (!localStorage.getItem('products')) {
-            localStorage.setItem('products', JSON.stringify(defaultProducts));
-        }
-
-        const products = JSON.parse(localStorage.getItem('products')) || [];
-        const productGrid = document.getElementById('productGrid');
-        
-        if (productGrid) {
-            productGrid.innerHTML = products.map(product => `
-                <div class="group relative flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 border border-outline-variant/30">
-                    <div class="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button class="bg-surface/80 backdrop-blur-sm p-2 rounded-full hover:bg-surface text-on-surface-variant hover:text-primary transition-colors shadow-sm">
-                            <span class="material-symbols-outlined text-[20px]">favorite</span>
-                        </button>
-                    </div>
-                    
-                    <div class="aspect-square bg-surface-container-low p-6 flex items-center justify-center relative overflow-hidden group-hover:bg-white transition-colors duration-500">
-                        <img src="${product.image}" alt="${product.name}" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy">
-                    </div>
-                    
-                    <div class="p-6 flex flex-col flex-grow bg-surface-container-lowest">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="font-label-caps tracking-widest text-[10px] text-primary uppercase font-bold">${product.brand}</span>
-                        </div>
-                        <h3 class="font-headline-md text-lg text-on-surface leading-tight mb-3 group-hover:text-primary transition-colors">${product.name}</h3>
-                        <div class="mt-auto flex items-end justify-between">
-                            <span class="font-mono-spec text-lg font-medium tracking-tight text-on-surface">${product.price}</span>
-                            <button class="flex items-center gap-2 text-[12px] font-label-caps tracking-widest text-on-surface hover:text-primary transition-colors uppercase font-bold">
-                                Mua <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-    });
-</script>
+<script src="js/trangchu.js"></script>
 </body>
 </html>

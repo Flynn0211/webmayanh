@@ -7,118 +7,11 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script id="tailwind-config">
-        tailwind.config = {
-          darkMode: "class",
-          theme: {
-            extend: {
-              "colors": {
-                      "secondary-fixed-dim": "#e9c349",
-                      "surface-container-highest": "#e5e2e1",
-                      "on-tertiary-container": "#f3fffc",
-                      "background": "#fcf9f8",
-                      "tertiary": "#006860",
-                      "surface-container-low": "#f6f3f2",
-                      "on-error": "#ffffff",
-                      "secondary": "#735c00",
-                      "primary-fixed": "#ffdad8",
-                      "surface-variant": "#e5e2e1",
-                      "surface-dim": "#dcd9d9",
-                      "inverse-surface": "#313030",
-                      "inverse-on-surface": "#f3f0ef",
-                      "surface-bright": "#fcf9f8",
-                      "on-secondary-fixed": "#241a00",
-                      "on-surface": "#1c1b1b",
-                      "outline-variant": "#e4bebc",
-                      "surface-container-lowest": "#ffffff",
-                      "on-primary-fixed-variant": "#92001c",
-                      "on-primary-fixed": "#410007",
-                      "on-error-container": "#93000a",
-                      "tertiary-container": "#008379",
-                      "error": "#ba1a1a",
-                      "outline": "#8f6f6e",
-                      "surface-container-high": "#eae7e7",
-                      "on-tertiary": "#ffffff",
-                      "secondary-container": "#fed65b",
-                      "primary-fixed-dim": "#ffb3b1",
-                      "surface-container": "#f0eded",
-                      "secondary-fixed": "#ffe088",
-                      "inverse-primary": "#ffb3b1",
-                      "tertiary-fixed-dim": "#6fd8cc",
-                      "primary-container": "#db313f",
-                      "on-surface-variant": "#5b403f",
-                      "on-tertiary-fixed": "#00201d",
-                      "on-primary-container": "#fffbff",
-                      "surface": "#fcf9f8",
-                      "on-secondary-fixed-variant": "#574500",
-                      "on-secondary": "#ffffff",
-                      "on-background": "#1c1b1b",
-                      "primary": "#e63946",
-                      "on-secondary-container": "#745c00",
-                      "error-container": "#ffdad6",
-                      "tertiary-fixed": "#8cf4e8",
-                      "on-tertiary-fixed-variant": "#00504a",
-                      "surface-tint": "#e63946",
-                      "on-primary": "#ffffff"
-              },
-              "borderRadius": {
-                      "DEFAULT": "0.25rem",
-                      "lg": "0.5rem",
-                      "xl": "0.75rem",
-                      "full": "9999px"
-              },
-              "spacing": {
-                      "margin-desktop": "64px",
-                      "gutter": "24px",
-                      "unit": "8px",
-                      "margin-mobile": "20px",
-                      "container-max": "1280px",
-                      "section-gap": "120px"
-              },
-              "fontFamily": {
-                      "body-md": ["Inter"],
-                      "headline-lg-mobile": ["Geist"],
-                      "headline-md": ["Geist"],
-                      "mono-spec": ["Geist"],
-                      "display-lg": ["Geist"],
-                      "body-lg": ["Inter"],
-                      "label-caps": ["Geist"],
-                      "headline-lg": ["Geist"]
-              },
-              "fontSize": {
-                      "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
-                      "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "500"}],
-                      "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "0.03em", "fontWeight": "500"}],
-                      "mono-spec": ["14px", {"lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "400"}],
-                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
-                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
-                      "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.15em", "fontWeight": "600"}],
-                      "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "500"}]
-              }
-            },
-          },
-        }
-    </script>
-    <style>
-        .glass-dark {
-            background: rgba(28, 27, 27, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        /* Custom scrollbar for sidebar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background-color: #dcd9d9;
-            border-radius: 20px;
-        }
-    </style>
-    <!-- Alpine.js for simple interactions like sub-menus -->
+    <script src="js/tailwind.config.js"></script>
+    <link href="css/style.css" rel="stylesheet" />
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+    </style>
 </head>
 <body class="bg-surface text-on-surface font-body-md antialiased h-screen overflow-hidden flex">
 
@@ -131,41 +24,36 @@
         </div>
 
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-            <p class="px-2 font-label-caps text-[10px] tracking-widest text-on-surface-variant uppercase mb-4 mt-2">Tổng quan</p>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium">
-                <span class="material-symbols-outlined text-[20px]">dashboard</span> Dashboard
-            </a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors">
-                <span class="material-symbols-outlined text-[20px]">shopping_cart</span> Đơn hàng
-                <span class="ml-auto bg-error text-white text-[10px] font-bold px-2 py-0.5 rounded-full">3</span>
-            </a>
+            <p class="px-2 font-label-caps text-[10px] tracking-widest text-on-surface-variant uppercase mb-4 mt-2">Báo cáo</p>
+            <button onclick="switchTab('revenue')" id="menu-revenue" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors menu-item whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">bar_chart</span> <span class="truncate">Quản lý doanh thu</span>
+            </button>
 
-            <p class="px-2 font-label-caps text-[10px] tracking-widest text-on-surface-variant uppercase mb-4 mt-8">Quản lý</p>
-            <!-- Dropdown Menu using Alpine -->
-            <div x-data="{ open: true }">
-                <button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-[20px]">inventory_2</span> Sản phẩm
-                    </div>
-                    <span class="material-symbols-outlined text-[16px] transition-transform" :class="{'rotate-180': open}">expand_more</span>
-                </button>
-                <div x-show="open" x-collapse class="pl-11 pr-3 py-1 space-y-1">
-                    <a href="#" class="block py-2 text-sm text-on-surface font-medium">Tất cả sản phẩm</a>
-                    <a href="#" class="block py-2 text-sm text-on-surface-variant hover:text-on-surface">Danh mục</a>
-                    <a href="#" class="block py-2 text-sm text-on-surface-variant hover:text-on-surface">Kho hàng</a>
-                </div>
-            </div>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors">
-                <span class="material-symbols-outlined text-[20px]">group</span> Khách hàng
-            </a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors">
-                <span class="material-symbols-outlined text-[20px]">local_activity</span> Khuyến mãi
-            </a>
+            <p class="px-2 font-label-caps text-[10px] tracking-widest text-on-surface-variant uppercase mb-4 mt-8">Nghiệp vụ</p>
+            <button onclick="switchTab('orders')" id="menu-orders" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors menu-item whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">shopping_cart</span> <span class="truncate">Quản lý đơn hàng</span>
+                <span class="ml-auto bg-error text-white text-[10px] font-bold px-2 py-0.5 rounded-full" id="newOrdersBadge">0</span>
+            </button>
+            <button onclick="switchTab('products')" id="menu-products" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors menu-item active-menu whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">inventory_2</span> <span class="truncate">Quản lý sản phẩm</span>
+            </button>
+            <button onclick="switchTab('promotions')" id="menu-promotions" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors menu-item whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">sell</span> <span class="truncate">Khuyến mãi sản phẩm</span>
+            </button>
+            <button onclick="switchTab('vouchers')" id="menu-vouchers" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors menu-item whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">confirmation_number</span> <span class="truncate">Quản voucher</span>
+            </button>
 
-            <p class="px-2 font-label-caps text-[10px] tracking-widest text-on-surface-variant uppercase mb-4 mt-8">Cấu hình</p>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors">
-                <span class="material-symbols-outlined text-[20px]">settings</span> Cài đặt chung
-            </a>
+            <p class="px-2 font-label-caps text-[10px] tracking-widest text-on-surface-variant uppercase mb-4 mt-8">Người dùng</p>
+            <button onclick="switchTab('customers')" id="menu-customers" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors menu-item whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">groups</span> <span class="truncate">Quản lý khách hàng</span>
+            </button>
+            <button onclick="switchTab('employees')" id="menu-employees" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors menu-item whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">badge</span> <span class="truncate">Quản lý nhân viên</span>
+            </button>
+            <button onclick="switchTab('reviews')" id="menu-reviews" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors menu-item whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">reviews</span> <span class="truncate">Quản lý đánh giá</span>
+            </button>
         </div>
 
         <div class="p-4 border-t border-outline-variant/30">
@@ -183,10 +71,9 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-w-0 bg-surface">
-        <!-- Top Header -->
         <header class="h-20 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant/30 flex items-center justify-between px-8 sticky top-0 z-30">
             <div class="flex items-center gap-4">
-                <h1 class="font-headline-lg text-2xl text-on-background tracking-tight">Dashboard</h1>
+                <h1 class="font-headline-lg text-2xl text-on-background tracking-tight" id="pageTitle">Quản lý sản phẩm</h1>
             </div>
             <div class="flex items-center gap-4">
                 <div class="relative hidden md:block">
@@ -200,80 +87,193 @@
             </div>
         </header>
 
-        <!-- Page Content (Dashboard / Default View) -->
         <div class="flex-1 overflow-y-auto p-8">
-            <div class="max-w-6xl mx-auto space-y-8 pb-8">
+            <div class="max-w-7xl mx-auto space-y-8 pb-8">
                 
-                <!-- Stats Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col justify-between h-32 hover:border-primary/30 transition-colors cursor-default">
-                        <div class="flex justify-between items-start">
-                            <span class="font-label-caps text-on-surface-variant tracking-widest text-[11px]">TỔNG DOANH THU</span>
-                            <span class="material-symbols-outlined text-primary text-[20px]">payments</span>
+                <!-- REVENUE TAB -->
+                <div id="tab-revenue" class="admin-tab">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col justify-between h-32 hover:border-primary/30 transition-colors">
+                            <span class="font-label-caps text-on-surface-variant tracking-widest text-[11px]">DOANH THU TUẦN</span>
+                            <span class="font-display-lg text-2xl text-on-surface">125,000,000 ₫</span>
                         </div>
-                        <div class="flex items-end gap-3">
-                            <span class="font-display-lg text-2xl text-on-surface">1.25B ₫</span>
-                            <span class="text-xs text-tertiary-container flex items-center font-medium mb-1"><span class="material-symbols-outlined text-[14px]">trending_up</span> +12%</span>
+                        <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col justify-between h-32 hover:border-primary/30 transition-colors">
+                            <span class="font-label-caps text-on-surface-variant tracking-widest text-[11px]">DOANH THU THÁNG</span>
+                            <span class="font-display-lg text-2xl text-on-surface">850,000,000 ₫</span>
                         </div>
-                    </div>
-                    
-                    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col justify-between h-32 hover:border-primary/30 transition-colors cursor-default">
-                        <div class="flex justify-between items-start">
-                            <span class="font-label-caps text-on-surface-variant tracking-widest text-[11px]">ĐƠN HÀNG MỚI</span>
-                            <span class="material-symbols-outlined text-primary text-[20px]">shopping_bag</span>
-                        </div>
-                        <div class="flex items-end gap-3">
-                            <span class="font-display-lg text-2xl text-on-surface">156</span>
-                            <span class="text-xs text-error flex items-center font-medium mb-1"><span class="material-symbols-outlined text-[14px]">trending_down</span> -2%</span>
+                        <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col justify-between h-32 hover:border-primary/30 transition-colors">
+                            <span class="font-label-caps text-on-surface-variant tracking-widest text-[11px]">DOANH THU NĂM</span>
+                            <span class="font-display-lg text-2xl text-on-surface">5,420,000,000 ₫</span>
                         </div>
                     </div>
 
-                    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col justify-between h-32 hover:border-primary/30 transition-colors cursor-default">
-                        <div class="flex justify-between items-start">
-                            <span class="font-label-caps text-on-surface-variant tracking-widest text-[11px]">KHÁCH HÀNG</span>
-                            <span class="material-symbols-outlined text-primary text-[20px]">groups</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm p-6">
+                            <h3 class="font-headline-md text-lg mb-4 text-primary"><span class="material-symbols-outlined text-[18px] align-middle">trending_up</span> Bán Chạy Nhất</h3>
+                            <ul class="space-y-4" id="bestSellersList"></ul>
                         </div>
-                        <div class="flex items-end gap-3">
-                            <span class="font-display-lg text-2xl text-on-surface">3,420</span>
-                            <span class="text-xs text-tertiary-container flex items-center font-medium mb-1"><span class="material-symbols-outlined text-[14px]">trending_up</span> +5%</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col justify-between h-32 hover:border-primary/30 transition-colors cursor-default">
-                        <div class="flex justify-between items-start">
-                            <span class="font-label-caps text-on-surface-variant tracking-widest text-[11px]">ĐÁNH GIÁ CHỜ DUYỆT</span>
-                            <span class="material-symbols-outlined text-primary text-[20px]">reviews</span>
-                        </div>
-                        <div class="flex items-end gap-3">
-                            <span class="font-display-lg text-2xl text-on-surface">12</span>
+                        <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm p-6">
+                            <h3 class="font-headline-md text-lg mb-4 text-error"><span class="material-symbols-outlined text-[18px] align-middle">trending_down</span> Bán Ế Nhất</h3>
+                            <ul class="space-y-4" id="worstSellersList"></ul>
                         </div>
                     </div>
                 </div>
 
-                <!-- Recent Activity & Shortcuts -->
-                <div class="grid grid-cols-1 gap-6">
+                <!-- ORDERS TAB -->
+                <div id="tab-orders" class="admin-tab">
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left font-body-md text-sm">
+                                <thead class="bg-surface-container-low/30 text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase">
+                                    <tr>
+                                        <th class="px-6 py-4 font-semibold w-20">Mã ĐH</th>
+                                        <th class="px-6 py-4 font-semibold">Khách hàng</th>
+                                        <th class="px-6 py-4 font-semibold">Tổng tiền</th>
+                                        <th class="px-6 py-4 font-semibold">Ngày đặt</th>
+                                        <th class="px-6 py-4 font-semibold w-64 text-center">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/20" id="adminOrderTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRODUCTS TAB -->
+                <div id="tab-products" class="admin-tab active">
                     <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
                         <div class="px-6 py-5 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/50">
-                            <h2 class="font-headline-md text-lg text-on-surface tracking-tight font-medium">Quản lý sản phẩm</h2>
+                            <h2 class="font-headline-md text-lg text-on-surface tracking-tight font-medium">Sản phẩm</h2>
                             <button onclick="openProductModal()" class="bg-primary text-on-primary font-label-caps text-[11px] px-4 py-2 uppercase tracking-widest hover:bg-inverse-surface transition-colors shadow-sm rounded-md flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[16px]">add</span> Thêm sản phẩm
+                                <span class="material-symbols-outlined text-[16px]">add</span> Thêm
                             </button>
                         </div>
                         <div class="overflow-x-auto flex-1">
                             <table class="w-full text-left font-body-md text-sm min-w-[800px]">
                                 <thead class="bg-surface-container-low/30 text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase">
                                     <tr>
-                                        <th class="px-6 py-4 font-semibold whitespace-nowrap w-20 text-center">ID</th>
-                                        <th class="px-6 py-4 font-semibold whitespace-nowrap w-24">Hình ảnh</th>
-                                        <th class="px-6 py-4 font-semibold whitespace-nowrap">Thương hiệu</th>
-                                        <th class="px-6 py-4 font-semibold whitespace-nowrap">Tên sản phẩm</th>
-                                        <th class="px-6 py-4 font-semibold text-right whitespace-nowrap">Giá tiền</th>
-                                        <th class="px-6 py-4 font-semibold text-center whitespace-nowrap w-32">Thao tác</th>
+                                        <th class="px-6 py-4 font-semibold w-20 text-center">ID</th>
+                                        <th class="px-6 py-4 font-semibold w-24">Hình ảnh</th>
+                                        <th class="px-6 py-4 font-semibold">Thương hiệu</th>
+                                        <th class="px-6 py-4 font-semibold">Tên sản phẩm</th>
+                                        <th class="px-6 py-4 font-semibold text-right">Giá tiền</th>
+                                        <th class="px-6 py-4 font-semibold text-center w-32">Thao tác</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-outline-variant/20" id="adminProductTableBody">
-                                    <!-- Populated by JS -->
-                                </tbody>
+                                <tbody class="divide-y divide-outline-variant/20" id="adminProductTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROMOTIONS TAB -->
+                <div id="tab-promotions" class="admin-tab">
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
+                        <div class="px-6 py-5 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/50">
+                            <h2 class="font-headline-md text-lg text-on-surface tracking-tight font-medium">Khuyến mãi</h2>
+                            <button class="bg-primary text-on-primary font-label-caps text-[11px] px-4 py-2 uppercase tracking-widest hover:bg-inverse-surface transition-colors shadow-sm rounded-md flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px]">add</span> Thêm
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left font-body-md text-sm">
+                                <thead class="bg-surface-container-low/30 text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase">
+                                    <tr>
+                                        <th class="px-6 py-4 font-semibold">Sản phẩm</th>
+                                        <th class="px-6 py-4 font-semibold">Mức giảm (%)</th>
+                                        <th class="px-6 py-4 font-semibold text-center w-32">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/20" id="adminPromoTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VOUCHERS TAB -->
+                <div id="tab-vouchers" class="admin-tab">
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
+                        <div class="px-6 py-5 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/50">
+                            <h2 class="font-headline-md text-lg text-on-surface tracking-tight font-medium">Voucher</h2>
+                            <button class="bg-primary text-on-primary font-label-caps text-[11px] px-4 py-2 uppercase tracking-widest hover:bg-inverse-surface transition-colors shadow-sm rounded-md flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px]">add</span> Thêm
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left font-body-md text-sm">
+                                <thead class="bg-surface-container-low/30 text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase">
+                                    <tr>
+                                        <th class="px-6 py-4 font-semibold">Mã Voucher</th>
+                                        <th class="px-6 py-4 font-semibold">Mức giảm</th>
+                                        <th class="px-6 py-4 font-semibold">Số lượng</th>
+                                        <th class="px-6 py-4 font-semibold">Thời hạn</th>
+                                        <th class="px-6 py-4 font-semibold text-center w-32">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/20" id="adminVoucherTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CUSTOMERS TAB -->
+                <div id="tab-customers" class="admin-tab">
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left font-body-md text-sm">
+                                <thead class="bg-surface-container-low/30 text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase">
+                                    <tr>
+                                        <th class="px-6 py-4 font-semibold w-20">ID</th>
+                                        <th class="px-6 py-4 font-semibold">Khách hàng</th>
+                                        <th class="px-6 py-4 font-semibold">Phân hạng</th>
+                                        <th class="px-6 py-4 font-semibold text-center w-32">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/20" id="adminCustomerTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EMPLOYEES TAB -->
+                <div id="tab-employees" class="admin-tab">
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
+                        <div class="px-6 py-5 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/50">
+                            <h2 class="font-headline-md text-lg text-on-surface tracking-tight font-medium">Nhân viên</h2>
+                            <button class="bg-primary text-on-primary font-label-caps text-[11px] px-4 py-2 uppercase tracking-widest hover:bg-inverse-surface transition-colors shadow-sm rounded-md flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px]">add</span> Thêm
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left font-body-md text-sm">
+                                <thead class="bg-surface-container-low/30 text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase">
+                                    <tr>
+                                        <th class="px-6 py-4 font-semibold w-20">ID</th>
+                                        <th class="px-6 py-4 font-semibold">Tên nhân viên</th>
+                                        <th class="px-6 py-4 font-semibold">Chức vụ</th>
+                                        <th class="px-6 py-4 font-semibold text-center w-32">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/20" id="adminEmployeeTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REVIEWS TAB -->
+                <div id="tab-reviews" class="admin-tab">
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left font-body-md text-sm">
+                                <thead class="bg-surface-container-low/30 text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase">
+                                    <tr>
+                                        <th class="px-6 py-4 font-semibold w-48">Sản phẩm</th>
+                                        <th class="px-6 py-4 font-semibold w-32">Người đánh giá</th>
+                                        <th class="px-6 py-4 font-semibold">Nội dung</th>
+                                        <th class="px-6 py-4 font-semibold text-center w-32">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/20" id="adminReviewTableBody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -284,155 +284,78 @@
     </main>
 
     <!-- Product Modal -->
-    <div id="productModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-inverse-surface/50 backdrop-blur-sm transition-opacity">
-        <div class="bg-surface-container-lowest rounded-xl shadow-2xl w-full max-w-md border border-outline-variant/30 overflow-hidden transform scale-95 transition-transform origin-center" id="productModalContent">
-            <div class="px-6 py-4 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/50">
-                <h3 id="modalTitle" class="font-headline-md text-lg text-on-surface tracking-tight font-medium">Thêm Sản Phẩm</h3>
-                <button onclick="closeProductModal()" class="text-on-surface-variant hover:text-error transition-colors">
+    <div id="productModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-inverse-surface/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-3xl border border-outline-variant/30 overflow-hidden transform scale-95 transition-transform origin-center" id="productModalContent">
+            <div class="px-8 py-5 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/30">
+                <h3 id="modalTitle" class="font-headline-md text-xl text-on-surface tracking-tight font-medium">Thêm Sản Phẩm</h3>
+                <button onclick="closeProductModal()" class="text-on-surface-variant hover:text-error transition-colors rounded-full p-1 hover:bg-surface-container-high">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <div class="p-6">
-                <form id="productForm" class="flex flex-col gap-4">
-                    <input type="hidden" id="productId" value="">
-                    <div>
-                        <label class="block font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase mb-1">Thương hiệu</label>
-                        <input type="text" id="productBrand" required class="w-full bg-surface-container-low border border-transparent focus:border-primary focus:bg-white rounded-lg py-2 px-4 text-sm font-body-md text-on-surface outline-none transition-all">
+            <div class="p-8">
+                <form id="productForm">
+                    <input type="hidden" id="originalProductId" value="">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Cột Trái: Upload Hình Ảnh -->
+                        <div class="flex flex-col gap-3">
+                            <label class="block font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase">Hình ảnh sản phẩm</label>
+                            
+                            <div class="flex-1 min-h-[240px] border-2 border-dashed border-outline-variant/60 rounded-xl bg-surface-container-lowest hover:bg-surface-container-low/50 transition-colors flex flex-col items-center justify-center relative overflow-hidden group">
+                                
+                                <!-- Trạng thái rỗng -->
+                                <div id="imagePlaceholder" class="flex flex-col items-center justify-center text-on-surface-variant pointer-events-none p-6 text-center">
+                                    <span class="material-symbols-outlined text-4xl mb-3 text-primary/70">add_photo_alternate</span>
+                                    <span class="text-sm font-medium text-on-surface mb-1">Nhấn để tải ảnh lên</span>
+                                    <span class="text-xs text-on-surface-variant/70">PNG, JPG, WEBP</span>
+                                </div>
+
+                                <!-- Trạng thái có ảnh -->
+                                <div id="imagePreview" class="absolute inset-0 hidden bg-white p-4 items-center justify-center">
+                                    <img src="" id="imagePreviewImg" class="max-w-full max-h-full object-contain mix-blend-multiply">
+                                    <!-- Overlay khi hover -->
+                                    <div class="absolute inset-0 bg-inverse-surface/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none backdrop-blur-[2px]">
+                                        <span class="material-symbols-outlined text-white text-3xl">edit</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Input File Ẩn -->
+                                <input type="file" id="productImageFile" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="Chọn ảnh sản phẩm">
+                            </div>
+                            <input type="hidden" id="productImage" value="">
+                        </div>
+
+                        <!-- Cột Phải: Thông tin -->
+                        <div class="flex flex-col gap-5 justify-center">
+                            <div>
+                                <label class="block font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase mb-2">Mã sản phẩm (ID)</label>
+                                <input type="text" id="productId" required placeholder="Ví dụ: SP001" class="w-full bg-surface-container-low/50 border border-outline-variant/30 focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm font-body-md text-on-surface outline-none transition-all shadow-sm font-mono-spec text-primary">
+                            </div>
+                            <div>
+                                <label class="block font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase mb-2">Thương hiệu</label>
+                                <input type="text" id="productBrand" required placeholder="Ví dụ: Sony, Canon..." class="w-full bg-surface-container-low/50 border border-outline-variant/30 focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm font-body-md text-on-surface outline-none transition-all shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase mb-2">Tên sản phẩm</label>
+                                <input type="text" id="productName" required placeholder="Nhập tên sản phẩm..." class="w-full bg-surface-container-low/50 border border-outline-variant/30 focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm font-body-md text-on-surface outline-none transition-all shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase mb-2">Giá tiền (kèm ký hiệu ₫)</label>
+                                <input type="text" id="productPrice" required placeholder="VD: 43,000,000 ₫" class="w-full bg-surface-container-low/50 border border-outline-variant/30 focus:border-primary focus:bg-white rounded-xl py-3 px-4 text-sm font-body-md text-on-surface outline-none transition-all shadow-sm font-mono-spec">
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase mb-1">Tên sản phẩm</label>
-                        <input type="text" id="productName" required class="w-full bg-surface-container-low border border-transparent focus:border-primary focus:bg-white rounded-lg py-2 px-4 text-sm font-body-md text-on-surface outline-none transition-all">
-                    </div>
-                    <div>
-                        <label class="block font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase mb-1">Giá tiền (kèm ₫)</label>
-                        <input type="text" id="productPrice" required placeholder="VD: 43,000,000 ₫" class="w-full bg-surface-container-low border border-transparent focus:border-primary focus:bg-white rounded-lg py-2 px-4 text-sm font-body-md text-on-surface outline-none transition-all">
-                    </div>
-                    <div>
-                        <label class="block font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase mb-1">URL Hình ảnh</label>
-                        <input type="url" id="productImage" required class="w-full bg-surface-container-low border border-transparent focus:border-primary focus:bg-white rounded-lg py-2 px-4 text-sm font-body-md text-on-surface outline-none transition-all">
-                    </div>
-                    <div class="mt-4 flex justify-end gap-3">
-                        <button type="button" onclick="closeProductModal()" class="px-5 py-2 rounded-lg font-label-caps text-[11px] tracking-widest text-on-surface-variant hover:bg-surface-container-low uppercase transition-colors">Hủy</button>
-                        <button type="submit" class="bg-primary text-on-primary px-5 py-2 rounded-lg font-label-caps text-[11px] tracking-widest uppercase hover:bg-inverse-surface transition-colors shadow-sm">Lưu</button>
+
+                    <div class="mt-8 pt-6 border-t border-outline-variant/30 flex justify-end gap-3">
+                        <button type="button" onclick="closeProductModal()" class="px-6 py-2.5 rounded-xl font-label-caps text-[11px] tracking-widest text-on-surface-variant hover:bg-surface-container-low uppercase transition-colors font-medium">Hủy</button>
+                        <button type="submit" class="bg-primary text-on-primary px-8 py-2.5 rounded-xl font-label-caps text-[11px] tracking-widest uppercase hover:bg-inverse-surface transition-all shadow-md hover:shadow-lg font-medium flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">save</span> Lưu Sản Phẩm
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-<script>
-    let products = JSON.parse(localStorage.getItem('products')) || [];
-
-    function renderAdminTable() {
-        const tbody = document.getElementById('adminProductTableBody');
-        if (!tbody) return;
-
-        if (products.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-on-surface-variant">Không có sản phẩm nào.</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = products.map(p => `
-            <tr class="hover:bg-surface-container-low/30 transition-colors">
-                <td class="px-6 py-4 text-center font-mono-spec text-on-surface-variant">#${p.id}</td>
-                <td class="px-6 py-4">
-                    <div class="w-12 h-12 bg-white rounded-md border border-outline-variant/20 flex items-center justify-center overflow-hidden p-1">
-                        <img src="${p.image}" class="max-w-full max-h-full object-contain mix-blend-multiply" alt="${p.name}">
-                    </div>
-                </td>
-                <td class="px-6 py-4 font-label-caps text-primary tracking-widest">${p.brand}</td>
-                <td class="px-6 py-4 font-medium text-on-surface truncate max-w-[200px]">${p.name}</td>
-                <td class="px-6 py-4 font-mono-spec text-right text-on-surface">${p.price}</td>
-                <td class="px-6 py-4 text-center">
-                    <div class="flex items-center justify-center gap-2">
-                        <button onclick="editProduct(${p.id})" class="text-tertiary-container hover:text-tertiary transition-colors" title="Sửa">
-                            <span class="material-symbols-outlined text-[20px]">edit_square</span>
-                        </button>
-                        <button onclick="deleteProduct(${p.id})" class="text-error hover:text-error-container transition-colors" title="Xóa">
-                            <span class="material-symbols-outlined text-[20px]">delete</span>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    const modal = document.getElementById('productModal');
-    const modalContent = document.getElementById('productModalContent');
-    const form = document.getElementById('productForm');
-
-    function openProductModal(id = null) {
-        document.getElementById('modalTitle').innerText = id ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm';
-        
-        if (id) {
-            const p = products.find(x => x.id === id);
-            document.getElementById('productId').value = p.id;
-            document.getElementById('productBrand').value = p.brand;
-            document.getElementById('productName').value = p.name;
-            document.getElementById('productPrice').value = p.price;
-            document.getElementById('productImage').value = p.image;
-        } else {
-            form.reset();
-            document.getElementById('productId').value = '';
-        }
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        setTimeout(() => {
-            modalContent.classList.remove('scale-95');
-            modalContent.classList.add('scale-100');
-        }, 10);
-    }
-
-    function closeProductModal() {
-        modalContent.classList.remove('scale-100');
-        modalContent.classList.add('scale-95');
-        setTimeout(() => {
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        }, 200);
-    }
-
-    function deleteProduct(id) {
-        if(confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-            products = products.filter(p => p.id !== id);
-            localStorage.setItem('products', JSON.stringify(products));
-            renderAdminTable();
-        }
-    }
-
-    function editProduct(id) {
-        openProductModal(id);
-    }
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const id = document.getElementById('productId').value;
-        const brand = document.getElementById('productBrand').value;
-        const name = document.getElementById('productName').value;
-        const price = document.getElementById('productPrice').value;
-        const image = document.getElementById('productImage').value;
-
-        if (id) {
-            // Edit
-            const index = products.findIndex(p => p.id == id);
-            if(index > -1) {
-                products[index] = { id: parseInt(id), brand, name, price, image };
-            }
-        } else {
-            // Add
-            const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-            products.push({ id: newId, brand, name, price, image });
-        }
-
-        localStorage.setItem('products', JSON.stringify(products));
-        closeProductModal();
-        renderAdminTable();
-    });
-
-    document.addEventListener("DOMContentLoaded", function() {
-        renderAdminTable();
-    });
-</script>
+<script src="js/admin.js"></script>
 </body>
 </html>
