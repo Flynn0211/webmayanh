@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
     // Utilities format from trangchu.js
     function getBrandColor(brand) {
         if (!brand) return 'text-primary';
@@ -114,25 +114,20 @@
         };
 
         // Favorite Logic
-        document.getElementById('btnFavorite').onclick = function() {
-            const user = getCurrentUser();
-            if (!user) {
-                alert("Vui lòng đăng nhập để thêm vào Yêu thích!");
-                window.location.href = 'index.php?page=login';
-                return;
+        const btnFavorite = document.getElementById('btnFavorite');
+        if (btnFavorite) {
+            btnFavorite.onclick = function() {
+                handleFavorite(product.id, this);
+            };
+            // Setup initial color
+            if (isFavorited(product.id)) {
+                const icon = btnFavorite.querySelector('.material-symbols-outlined') || btnFavorite;
+                if (icon) {
+                    icon.style.color = 'var(--error)';
+                    icon.style.fontVariationSettings = `"FILL" 1`;
+                }
             }
-            
-            const favKey = `favorites_${user.username}`;
-            let favs = JSON.parse(localStorage.getItem(favKey)) || [];
-            
-            if (!favs.includes(String(product.id))) {
-                favs.push(String(product.id));
-                localStorage.setItem(favKey, JSON.stringify(favs));
-                alert("Đã thêm sản phẩm vào danh sách yêu thích!");
-            } else {
-                alert("Sản phẩm này đã có trong danh sách yêu thích của bạn!");
-            }
-        };
+        }
         
         updateCartBadgeDetail();
     }

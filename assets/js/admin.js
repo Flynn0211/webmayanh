@@ -2,17 +2,10 @@
 let products = window.dbProducts || [];
 let orders = window.dbOrders || [];
 let vouchers = window.dbVouchers || [];
+let articles = window.dbArticles || [];
 
-let mockCustomers = [
-    { id: 'KH01', name: 'Nguyễn Văn A', tier: 'diamond', active: true },
-    { id: 'KH02', name: 'Trần Thị B', tier: 'gold', active: true },
-    { id: 'KH03', name: 'Lê Văn C', tier: 'silver', active: false }
-];
-let mockEmployees = [
-    { id: 'NV01', name: 'Admin Tối Cao', role: 'Quản trị viên', active: true },
-    { id: 'NV02', name: 'Phạm Nhân Sự', role: 'Nhân sự', active: true },
-    { id: 'NV03', name: 'Lê Kế Toán', role: 'Kế toán', active: true }
-];
+let mockCustomers = window.dbCustomers || [];
+let mockEmployees = window.dbEmployees || [];
 let mockReviews = [
     { id: 1, product: 'Leica M11 Monochrom', user: 'Nguyễn Văn A', content: 'Chất lượng ảnh đen trắng tuyệt vời, thiết kế rất cổ điển.' },
     { id: 2, product: 'Sony Alpha 7R V', user: 'Trần Thị B', content: 'Lấy nét tự động cực nhanh, rất đáng tiền!' }
@@ -29,6 +22,7 @@ const tabNames = {
     'products':   'Quản lý sản phẩm',
     'promotions': 'Khuyến mãi sản phẩm',
     'vouchers':   'Quản lý voucher',
+    'articles':   'Quản lý Bài viết',
     'customers':  'Quản lý khách hàng',
     'employees':  'Quản lý nhân viên',
     'reviews':    'Quản lý đánh giá'
@@ -57,9 +51,90 @@ function renderTab(tabId) {
     else if (tabId === 'employees')   renderAdminEmployees();
     else if (tabId === 'reviews')     renderAdminReviews();
     else if (tabId === 'vouchers')    renderAdminVouchers();
+    else if (tabId === 'articles')    renderAdminArticles();
     else if (tabId === 'promotions')  renderAdminPromotions();
     else if (tabId === 'revenue')     renderAdminRevenue();
 }
+
+// ── Articles ──────────────────────────────────────────────────
+function renderAdminArticles() {
+    const tbody = document.getElementById('adminArticleTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    articles.forEach(art => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <img src="${art.image}" alt="${art.title}" style="width:60px; height:60px; object-fit:cover; border-radius:4px;"/>
+            </td>
+            <td><strong>${art.id}</strong></td>
+            <td>
+                <div style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${art.title}">
+                    ${art.title}
+                </div>
+            </td>
+            <td>${art.date}</td>
+            <td><span class="badge badge--${art.status === 'XuatBan' ? 'success' : 'warning'}">${art.status === 'XuatBan' ? 'Xuất bản' : 'Bản nháp'}</span></td>
+            <td class="center">
+                <button class="btn-icon" onclick="editArticle('${art.id}')" title="Sửa bài viết">
+                    <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="btn-icon delete-icon" onclick="deleteArticle('${art.id}')" title="Xóa">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.openArticleModal = function() {
+    document.getElementById('articleForm').reset();
+    document.getElementById('articleAction').value = 'add';
+    document.getElementById('articleId').value = '';
+    document.getElementById('articleOldImage').value = '';
+    document.getElementById('articleModalTitle').innerText = 'Thêm Bài Viết';
+    document.getElementById('articleImagePreview').innerHTML = '';
+    document.getElementById('articleModal').classList.add('active');
+};
+
+window.closeArticleModal = function() {
+    document.getElementById('articleModal').classList.remove('active');
+};
+
+window.editArticle = function(id) {
+    const art = articles.find(a => a.id === id);
+    if (!art) return;
+    document.getElementById('articleForm').reset();
+    document.getElementById('articleAction').value = 'edit';
+    document.getElementById('articleId').value = art.id;
+    document.getElementById('articleTitle').value = art.title;
+    document.getElementById('articleSlug').value = art.slug;
+    document.getElementById('articleSummary').value = art.summary;
+    document.getElementById('articleContent').value = art.content;
+    document.getElementById('articleStatus').value = art.status;
+    document.getElementById('articleOldImage').value = art.image;
+    document.getElementById('articleImagePreview').innerHTML = `<img src="${art.image}" style="max-width:100%; border-radius:4px;"/>`;
+    document.getElementById('articleModalTitle').innerText = 'Sửa Bài Viết';
+    document.getElementById('articleModal').classList.add('active');
+};
+
+window.deleteArticle = function(id) {
+    if (confirm('Bạn có chắc muốn xóa bài viết này?')) {
+        document.getElementById('deleteArticleId').value = id;
+        document.getElementById('deleteArticleForm').submit();
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.has('tab')) {
+        switchTab(urlParams.get('tab'));
+    } else {
+        switchTab('revenue');
+    }
+});
 
 // ── Products ──────────────────────────────────────────────────
 function renderAdminProducts() {
@@ -97,21 +172,23 @@ function renderAdminProducts() {
 
 // ── Orders ────────────────────────────────────────────────────
 window.updateOrderStatus = function(orderId, newStatus) {
-    const formData = new FormData();
-    formData.append('id', orderId);
-    formData.append('status', newStatus);
-    
-    fetch('admin/index.php?action=update_order', {
+    fetch('../index.php?action=update_order_status', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId, status: newStatus })
     })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alert('Đã cập nhật trạng thái đơn hàng!');
-            location.reload();
+            // alert('Đã cập nhật trạng thái đơn hàng!');
+            // Update local dbOrders data to reflect change immediately without reload
+            const idx = window.dbOrders.findIndex(o => String(o.id) === String(orderId));
+            if (idx > -1) {
+                window.dbOrders[idx].status = newStatus;
+                renderAdminOrders();
+            }
         } else {
-            alert('Lỗi cập nhật: ' + (data.error || 'Unknown'));
+            alert('Lỗi cập nhật: ' + (data.message || 'Unknown'));
         }
     })
     .catch(err => {
@@ -120,12 +197,74 @@ window.updateOrderStatus = function(orderId, newStatus) {
     });
 };
 
+window.showOrderDetails = function(orderId) {
+    const order = window.dbOrders.find(o => String(o.id) === String(orderId));
+    if (!order) return;
+    
+    document.getElementById('orderModalTitle').innerText = 'Chi tiết Đơn Hàng #' + order.id;
+    let html = `
+        <div style="background: var(--surface-container-lowest); padding: 1.5rem 2rem; border-radius: 1rem; margin-bottom: 2rem; border: 1px solid var(--outline-variant); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+            <div>
+                <div style="font-size: 0.75rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;">Khách hàng</div>
+                <div style="font-size: 1.125rem; font-weight: 600; color: var(--on-surface); margin-top: 0.25rem;">${order.customerName}</div>
+                <div style="font-size: 0.875rem; color: var(--on-surface-variant); margin-top: 0.25rem;">@${order.customerUsername || 'guest'}</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.75rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;">Ngày đặt</div>
+                <div style="font-size: 1rem; font-weight: 500; color: var(--on-surface); margin-top: 0.5rem;">${order.date}</div>
+            </div>
+        </div>
+        
+        <h4 style="font-family: 'Geist', sans-serif; font-size: 1.125rem; margin-bottom: 1.25rem; color: var(--on-surface);">Sản phẩm đã mua</h4>
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2.5rem;">
+    `;
+    
+    if (order.items && order.items.length > 0) {
+        order.items.forEach(item => {
+            html += `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.25rem; background: #fff; border: 1px solid var(--outline-variant); border-radius: 0.75rem; box-shadow: 0 2px 10px rgba(0,0,0,0.02); transition: transform 0.2s; cursor: default;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="display: flex; align-items: center; gap: 1.5rem; flex-grow: 1;">
+                    <div style="width: 4.5rem; height: 4.5rem; background: var(--surface-container-low); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; padding: 0.5rem; flex-shrink: 0;">
+                        <img src="${item.image || ''}" style="max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: multiply;" />
+                    </div>
+                    <div style="text-align: left;">
+                        <div style="font-size: 1rem; font-weight: 600; color: var(--on-surface); margin-bottom: 0.25rem; line-height: 1.4;">${item.name}</div>
+                        <div style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-surface-variant);">${item.brand || 'N/A'}</div>
+                    </div>
+                </div>
+                <div style="text-align: right; min-width: 120px; flex-shrink: 0;">
+                    <div style="font-size: 0.875rem; color: var(--on-surface-variant); margin-bottom: 0.25rem;">SL: <strong style="color: var(--on-surface);">${item.quantity}</strong></div>
+                    <div style="font-family: 'Geist', sans-serif; font-size: 1.125rem; font-weight: 600; color: var(--on-surface);">${item.price}</div>
+                </div>
+            </div>
+            `;
+        });
+    } else {
+        html += `<div style="text-align:center; padding: 2rem; color: var(--on-surface-variant); background: var(--surface-container-lowest); border-radius: 0.75rem; border: 1px dashed var(--outline-variant);">Không có chi tiết sản phẩm.</div>`;
+    }
+    
+    html += `
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; background: var(--surface-container-lowest); border-radius: 1rem; border: 1px solid var(--outline-variant); box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+            <div style="font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--on-surface-variant);">Tổng thanh toán</div>
+            <div style="font-family: 'Geist', sans-serif; font-size: 1.75rem; font-weight: 700; color: var(--primary);">${order.total}</div>
+        </div>
+    `;
+    
+    document.getElementById('orderModalBody').innerHTML = html;
+    document.getElementById('orderModal').classList.add('open');
+};
+
+window.closeOrderModal = function() {
+    document.getElementById('orderModal').classList.remove('open');
+};
+
 function renderAdminOrders() {
     let orders   = window.dbOrders || [];
-    const statuses = ['ChoXacNhan', 'XacNhanDonHang', 'DangGiao', 'DaGiao', 'ThanhCong', 'Đã hủy'];
+    const statuses = ['Chờ Xác Nhận', 'Đang Xử Lý', 'Đang Giao', 'Đã Giao', 'Hoàn Thành', 'Đã hủy'];
 
     if (orders.length === 0) {
-        document.getElementById('adminOrderTableBody').innerHTML = `<tr><td colspan="5" class="td-muted" style="text-align:center;padding:2rem;">Chưa có đơn hàng nào.</td></tr>`;
+        document.getElementById('adminOrderTableBody').innerHTML = `<tr><td colspan="6" class="td-muted" style="text-align:center;padding:2rem;">Chưa có đơn hàng nào.</td></tr>`;
         document.getElementById('newOrdersBadge').innerText = '0';
         return;
     }
@@ -141,14 +280,19 @@ function renderAdminOrders() {
             <td class="td-mono">${o.total}</td>
             <td class="td-muted">${o.date}</td>
             <td class="center">
-                <select onchange="updateOrderStatus('${o.id}', this.value)" class="order-status-select">
+                <select onchange="updateOrderStatus('${o.id}', this.value)" class="order-status-select" style="padding: 0.25rem; border-radius:4px; border:1px solid var(--border-color);">
                     ${statuses.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
                 </select>
+            </td>
+            <td class="center">
+                <button class="btn-table-action btn-table-action--view" title="Xem chi tiết" onclick="showOrderDetails('${o.id}')">
+                    <span class="material-symbols-outlined" style="font-size:1.25rem;">visibility</span>
+                </button>
             </td>
         </tr>
     `).join('');
 
-    document.getElementById('newOrdersBadge').innerText = orders.filter(o => o.status === 'ChoXacNhan').length;
+    document.getElementById('newOrdersBadge').innerText = orders.length;
 }
 
 // ── Customers ─────────────────────────────────────────────────
@@ -306,6 +450,7 @@ function initModal() {
             e.preventDefault();
             const originalId = document.getElementById('originalProductId').value;
             const id         = document.getElementById('productId').value.trim();
+            const category   = document.getElementById('productCategory').value;
             const brand      = document.getElementById('productBrand').value;
             const name       = document.getElementById('productName').value;
             const price      = document.getElementById('productPrice').value;
@@ -319,6 +464,7 @@ function initModal() {
             const action = originalId ? 'edit_product' : 'add_product';
             const formData = new FormData();
             formData.append('id', id);
+            formData.append('category', category);
             formData.append('brand', brand);
             formData.append('name', name);
             formData.append('price', price);
@@ -378,6 +524,7 @@ function openProductModal(id = null) {
         const p = products.find(x => x.id == id);
         originalIdInput.value = p.id;
         idInput.value         = p.id;
+        document.getElementById('productCategory').value = p.category_id || 1;
         brandInput.value      = p.brand;
         nameInput.value       = p.name;
         document.getElementById('productPrice').value       = p.price || '';

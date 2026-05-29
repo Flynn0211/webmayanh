@@ -1,4 +1,4 @@
-﻿// File: js/giohang.js
+// File: js/giohang.js
 
 document.addEventListener("DOMContentLoaded", () => {
     const user = getCurrentUser();
@@ -110,31 +110,40 @@ document.addEventListener("DOMContentLoaded", () => {
         let total = 0;
         cart.forEach(item => { total += (parseInt(String(item.price).replace(/\D/g, '')) || 0) * item.quantity; });
 
-        const order = {
-            id: 'ORD' + Date.now(),
+        const checkoutData = {
             customerName: user.fullname,
             customerUsername: user.username,
             items: cart,
-            total: total.toLocaleString('vi-VN') + ' ₫',
-            status: 'Đang xử lý',
-            date: new Date().toLocaleString('vi-VN')
+            totalRaw: total
         };
 
-        let orders = JSON.parse(localStorage.getItem('orders')) || [];
-        orders.push(order);
-        localStorage.setItem('orders', JSON.stringify(orders));
+        fetch('index.php?action=checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(checkoutData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Trừ tồn kho local (vì trang chủ vẫn dùng localProducts)
+                let prods = JSON.parse(localStorage.getItem('products')) || [];
+                cart.forEach(ci => {
+                    const pi = prods.findIndex(p => p.id == ci.id);
+                    if (pi > -1) prods[pi].stock = Math.max(0, (prods[pi].stock || 10) - ci.quantity);
+                });
+                localStorage.setItem('products', JSON.stringify(prods));
 
-        // Trừ tồn kho
-        let prods = JSON.parse(localStorage.getItem('products')) || [];
-        cart.forEach(ci => {
-            const pi = prods.findIndex(p => p.id == ci.id);
-            if (pi > -1) prods[pi].stock = Math.max(0, (prods[pi].stock || 10) - ci.quantity);
+                localStorage.removeItem(cartKey);
+                alert("Đặt hàng thành công! Cảm ơn bạn đã mua sắm tại LENS & LIGHT. (Mã đơn: " + data.order_id + ")");
+                window.location.href = 'index.php?page=trangchu';
+            } else {
+                alert("Lỗi khi thanh toán: " + data.message);
+            }
+        })
+        .catch(err => {
+            alert("Đã xảy ra lỗi mạng. Vui lòng thử lại!");
+            console.error(err);
         });
-        localStorage.setItem('products', JSON.stringify(prods));
-
-        localStorage.removeItem(cartKey);
-        alert("Đặt hàng thành công! Cảm ơn bạn đã mua sắm tại LENS & LIGHT.");
-        window.location.href = 'index.php?page=trangchu';
     };
 
     renderCart();

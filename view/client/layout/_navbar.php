@@ -49,7 +49,7 @@ window.dbProducts = <?php echo json_encode($db_products, JSON_UNESCAPED_UNICODE)
             <a class="nav-link <?= $activeNav === 'mayanh'  ? 'nav-link--active' : '' ?>" href="index.php?page=mayanh">Máy ảnh</a>
             <a class="nav-link <?= $activeNav === 'ongkinh' ? 'nav-link--active' : '' ?>" href="index.php?page=ongkinh">Ống kính</a>
             <a class="nav-link" href="#">Phụ kiện</a>
-            <a class="nav-link" href="#">Bài viết</a>
+            <a class="nav-link <?= $activeNav === 'baiviet' ? 'nav-link--active' : '' ?>" href="index.php?page=baiviet">Bài viết</a>
             <a class="nav-link" href="#">Liên hệ</a>
         </div>
 

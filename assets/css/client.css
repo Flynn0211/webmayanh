@@ -1258,60 +1258,66 @@
 .tab-btn--active,
 .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-/* Order card */
+/* Order card Premium Redesign */
 .order-card {
-    margin-bottom: 2rem;
-    border: 1px solid rgba(228,190,188,.3);
-    border-radius: 0.75rem;
+    margin-bottom: 2.5rem;
+    background: #fff;
+    border: 1px solid var(--outline-variant);
+    border-radius: 1rem;
     overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    transition: box-shadow 0.3s ease;
 }
+.order-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
 .order-card__header {
-    background: var(--surface-container-low);
-    padding: 1rem 1.5rem;
+    background: var(--surface-container-lowest);
+    padding: 1.5rem 2rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    border-bottom: 1px solid rgba(228,190,188,.3);
+    border-bottom: 1px solid var(--outline-variant);
 }
 @media (min-width: 640px) { .order-card__header { flex-direction: row; justify-content: space-between; align-items: center; } }
-.order-card__id { font-family: 'Geist', sans-serif; font-weight: 700; color: var(--on-surface); }
-.order-card__date { font-size: 0.75rem; color: var(--on-surface-variant); margin-top: 0.25rem; }
-.order-card__body { padding: 1.5rem; }
+.order-card__id { font-family: 'Geist', sans-serif; font-size: 1.125rem; font-weight: 700; color: var(--on-surface); }
+.order-card__date { font-size: 0.875rem; color: var(--on-surface-variant); margin-top: 0.25rem; font-weight: 500; }
+.order-card__body { padding: 1rem 2rem; }
 .order-card__item {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding-block: 1rem;
-    border-bottom: 1px solid rgba(228,190,188,.1);
+    gap: 1.5rem;
+    padding-block: 1.5rem;
+    border-bottom: 1px dashed var(--outline-variant);
 }
 .order-card__item:last-child { border-bottom: none; }
 .order-card__item-img {
-    width: 4rem;
-    height: 4rem;
-    background: var(--surface-container-lowest);
-    border-radius: 0.375rem;
+    width: 5rem;
+    height: 5rem;
+    background: var(--surface-container-low);
+    border-radius: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.25rem;
+    padding: 0.5rem;
     flex-shrink: 0;
 }
 .order-card__item-img img { max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: multiply; }
 .order-card__item-info { flex-grow: 1; }
-.order-card__item-name { font-size: 0.875rem; font-weight: 500; color: var(--on-surface); }
-.order-card__item-brand { font-size: 0.75rem; color: var(--on-surface-variant); }
+.order-card__item-name { font-size: 1rem; font-weight: 600; color: var(--on-surface); margin-bottom: 0.25rem; }
+.order-card__item-brand { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-surface-variant); }
 .order-card__item-right { text-align: right; }
-.order-card__item-qty { font-size: 0.875rem; font-weight: 500; }
-.order-card__item-price { font-family: 'Geist', sans-serif; font-size: 0.875rem; color: var(--primary); }
+.order-card__item-qty { font-size: 0.875rem; font-weight: 500; color: var(--on-surface-variant); margin-bottom: 0.25rem;}
+.order-card__item-price { font-family: 'Geist', sans-serif; font-size: 1rem; font-weight: 600; color: var(--on-surface); }
 .order-card__footer {
-    background: var(--surface-container-lowest);
-    padding: 1rem 1.5rem;
-    border-top: 1px solid rgba(228,190,188,.3);
+    background: var(--surface-container-low);
+    padding: 1.25rem 2rem;
     text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
 }
-.order-card__total-label { font-size: 0.875rem; color: var(--on-surface-variant); margin-right: 1rem; }
-.order-card__total-val { font-family: 'Geist', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+.order-card__total-label { font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--on-surface-variant); }
+.order-card__total-val { font-family: 'Geist', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--primary); }
 
 /* Empty states */
 .empty-state {
@@ -1366,7 +1372,7 @@
     text-decoration: none;
 }
 .fav-card__img img { max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: multiply; }
-.fav-card__info { flex-grow: 1; }
+.fav-card__info { flex-grow: 1; padding-right: 2.5rem; }
 .fav-card__name { font-weight: 500; color: var(--on-surface); margin-bottom: 0.25rem; }
 .fav-card__name a { text-decoration: none; color: inherit; transition: color 0.2s; }
 .fav-card__name a:hover { color: var(--primary); }

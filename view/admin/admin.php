@@ -1,7 +1,9 @@
 <?php
 ob_start();
 require_once __DIR__ . '/../../model/database.php';
+require_once __DIR__ . '/../../control/ArticleController.php';
 
+ArticleController::handleAdminAction();
 if ($conn === false) {
     die("Kết nối cơ sở dữ liệu thất bại.");
 }
@@ -37,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     
     if ($action === 'add_product' || $action === 'edit_product') {
         $id = isset($_POST['id']) ? trim($_POST['id']) : '';
+        $categoryId = isset($_POST['category']) ? (int)$_POST['category'] : 1;
         $brand = isset($_POST['brand']) ? trim($_POST['brand']) : 'Generic';
         $name = isset($_POST['name']) ? trim($_POST['name']) : '';
         $price = isset($_POST['price']) ? trim($_POST['price']) : '0';
@@ -44,6 +47,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         $image = isset($_POST['image']) ? trim($_POST['image']) : '';
         $desc = isset($_POST['description']) ? trim($_POST['description']) : '';
         $specs = isset($_POST['specs']) ? trim($_POST['specs']) : '';
+        
+        // --- XỬ LÝ AUTO CHUYỂN PLAIN TEXT SANG JSON ---
+        $specs_json = '{}';
+        if (!empty($specs)) {
+            // Kiểm tra xem user có nhập chuẩn JSON hay không
+            json_decode($specs);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                // Nếu nhập chuẩn JSON (như ngoặc nhọn {}) -> Giữ nguyên
+                $specs_json = $specs;
+            } else {
+                // Nếu nhập văn bản thường -> Tự động chuyển đổi
+                $specs_array = [];
+                $lines = explode("\n", str_replace("\r", "", $specs));
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if (!empty($line)) {
+                        if (strpos($line, ':') !== false) {
+                            list($key, $val) = explode(':', $line, 2);
+                            $specs_array[trim($key)] = trim($val);
+                        } else {
+                            // Nếu không có dấu hai chấm, mặc định lưu thành Key
+                            $specs_array[$line] = "Có";
+                        }
+                    }
+                }
+                $specs_json = json_encode($specs_array, JSON_UNESCAPED_UNICODE);
+            }
+        }
         
         // 1. Process brand -> ma_ncc
         $ma_ncc = 1; // Default
@@ -61,13 +92,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             $ma_ncc = $conn->insert_id;
         }
         
+        // 1.5. Ensure at least one category exists (ma_dm)
+        $ma_dm = 1;
+        $stmt_cat = $conn->query("SELECT ma_dm FROM danh_muc LIMIT 1");
+        if ($row_cat = $stmt_cat->fetch_assoc()) {
+            $ma_dm = $row_cat['ma_dm'];
+        } else {
+            $conn->query("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES ('Máy ảnh', 'may-anh')");
+            $ma_dm = $conn->insert_id;
+        }
+        
         // 2. Clean price
         $price_cleaned = (float)preg_replace('/[^0-9.]/', '', $price);
         
         // 3. Process image
         $saved_image = $image;
         if (strpos($image, 'data:image') === 0) {
-            $saved_image = save_base64_image($image, 'c:/xampp/htdocs/webmayanh/uploads/products');
+            $upload_dir = __DIR__ . '/../../uploads/products';
+            $saved_image = save_base64_image($image, $upload_dir);
             if (!$saved_image) {
                 $saved_image = $image; // fallback
             }
@@ -77,8 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         
         if ($action === 'add_product') {
             // Insert
-            $stmt_add = $conn->prepare("INSERT INTO hang_hoa (ma_dm, ma_ncc, ten_hang_hoa, slug, anh, mo_ta, thong_so_ky_thuat, gia_hien_tai) VALUES (1, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt_add->bind_param("isssssd", $ma_ncc, $name, $slug, $saved_image, $desc, $specs, $price_cleaned);
+            $stmt_add = $conn->prepare("INSERT INTO hang_hoa (ma_dm, ma_ncc, ten_hang_hoa, slug, anh, mo_ta, thong_so_ky_thuat, gia_hien_tai) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt_add->bind_param("iisssssd", $categoryId, $ma_ncc, $name, $slug, $saved_image, $desc, $specs_json, $price_cleaned);
             if ($stmt_add->execute()) {
                 $new_id = $conn->insert_id;
                 // Add stock
@@ -92,8 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         } else {
             // Edit
             $original_id = (int)$id;
-            $stmt_edit = $conn->prepare("UPDATE hang_hoa SET ma_ncc = ?, ten_hang_hoa = ?, slug = ?, anh = ?, mo_ta = ?, thong_so_ky_thuat = ?, gia_hien_tai = ? WHERE ma_hh = ?");
-            $stmt_edit->bind_param("isssssdi", $ma_ncc, $name, $slug, $saved_image, $desc, $specs, $price_cleaned, $original_id);
+            $stmt_edit = $conn->prepare("UPDATE hang_hoa SET ma_dm = ?, ma_ncc = ?, ten_hang_hoa = ?, slug = ?, anh = ?, mo_ta = ?, thong_so_ky_thuat = ?, gia_hien_tai = ? WHERE ma_hh = ?");
+            $stmt_edit->bind_param("iisssssdi", $categoryId, $ma_ncc, $name, $slug, $saved_image, $desc, $specs_json, $price_cleaned, $original_id);
             if ($stmt_edit->execute()) {
                 // Update stock
                 $conn->query("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = $original_id");
@@ -151,9 +193,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 }
 
 // ── Load database collections ──────────────────────────────────
+// 0. Categories (Seed if empty)
+$res_check = $conn->query("SELECT COUNT(*) as cnt FROM danh_muc");
+$row_check = $res_check->fetch_assoc();
+if ($row_check['cnt'] == 0) {
+    $conn->query("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES ('Máy ảnh', 'may-anh'), ('Ống kính', 'ong-kinh'), ('Phụ kiện', 'phu-kien')");
+}
+$dbCategories = [];
+$res_c = $conn->query("SELECT ma_dm as id, ten_danh_muc as name FROM danh_muc");
+while ($row = $res_c->fetch_assoc()) {
+    $dbCategories[] = $row;
+}
+
 // 1. Products
 $dbProducts = [];
-$res_p = $conn->query("SELECT h.ma_hh as id, h.ten_hang_hoa as name, h.anh as image, n.ten_ncc as brand, h.gia_hien_tai as price_val, IFNULL(SUM(t.so_luong_ton), 0) as stock, h.mo_ta as description, h.thong_so_ky_thuat as specs
+$res_p = $conn->query("SELECT h.ma_hh as id, h.ma_dm as category_id, h.ten_hang_hoa as name, h.anh as image, n.ten_ncc as brand, h.gia_hien_tai as price_val, IFNULL(SUM(t.so_luong_ton), 0) as stock, h.mo_ta as description, h.thong_so_ky_thuat as specs
 FROM hang_hoa h
 LEFT JOIN nha_cung_cap n ON h.ma_ncc = n.ma_ncc
 LEFT JOIN ton_kho_chi_tiet t ON h.ma_hh = t.ma_hh
@@ -187,7 +241,32 @@ ORDER BY d.ma_dh DESC");
 while ($row = $res_o->fetch_assoc()) {
     $row['total'] = number_format($row['total_val']) . ' ₫';
     $row['date'] = date('d/m/Y', strtotime($row['date_val']));
+    $row['items'] = [];
+    
+    // Fetch items for this order
+    $stmt_item = $conn->prepare("SELECT c.ma_hh as id, h.ten_hang_hoa as name, h.anh as image, c.so_luong as quantity, c.gia_luc_mua as price_val, n.ten_ncc as brand FROM chi_tiet_don_hang c JOIN hang_hoa h ON c.ma_hh = h.ma_hh LEFT JOIN nha_cung_cap n ON h.ma_ncc = n.ma_ncc WHERE c.ma_dh = ?");
+    $stmt_item->bind_param("i", $row['id']);
+    $stmt_item->execute();
+    $res_item = $stmt_item->get_result();
+    while ($i = $res_item->fetch_assoc()) {
+        $i['price'] = number_format($i['price_val']) . ' ₫';
+        $row['items'][] = $i;
+    }
+    
     $dbOrders[] = $row;
+}
+
+// 4. Customers and Employees
+$dbCustomers = [];
+$dbEmployees = [];
+$res_u = $conn->query("SELECT ma_tk as id, ho_ten as name, username, email, sdt as phone, loai_tk as role, hang_thanh_vien as tier, trang_thai as status FROM tai_khoan");
+while ($row = $res_u->fetch_assoc()) {
+    $row['active'] = ($row['status'] === 'HoatDong');
+    if ($row['role'] === 'User') {
+        $dbCustomers[] = $row;
+    } else {
+        $dbEmployees[] = $row;
+    }
 }
 
 // 4. BI Stats Calculations
@@ -263,7 +342,7 @@ while ($row = $res_ch->fetch_assoc()) {
             <button onclick="switchTab('orders')" id="menu-orders" class="menu-item">
                 <span class="material-symbols-outlined">shopping_cart</span>
                 <span class="truncate">Quản lý đơn hàng</span>
-                <span class="menu-badge" id="newOrdersBadge">0</span>
+                <span class="menu-badge" id="newOrdersBadge"><?php echo count($dbOrders); ?></span>
             </button>
             <button onclick="switchTab('products')" id="menu-products" class="menu-item active-menu">
                 <span class="material-symbols-outlined">inventory_2</span>
@@ -276,6 +355,12 @@ while ($row = $res_ch->fetch_assoc()) {
             <button onclick="switchTab('vouchers')" id="menu-vouchers" class="menu-item">
                 <span class="material-symbols-outlined">confirmation_number</span>
                 <span class="truncate">Quản lý voucher</span>
+            </button>
+
+            <span class="admin-sidebar__group-label">Nội dung</span>
+            <button onclick="switchTab('articles')" id="menu-articles" class="menu-item">
+                <span class="material-symbols-outlined">article</span>
+                <span class="truncate">Quản lý Bài viết</span>
             </button>
 
             <span class="admin-sidebar__group-label">Người dùng</span>
@@ -375,6 +460,7 @@ while ($row = $res_ch->fetch_assoc()) {
                                         <th>Tổng tiền</th>
                                         <th>Ngày đặt</th>
                                         <th class="center">Trạng thái</th>
+                                        <th class="center">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody id="adminOrderTableBody"></tbody>
@@ -457,6 +543,31 @@ while ($row = $res_ch->fetch_assoc()) {
                     </div>
                 </div>
 
+                <!-- ── ARTICLES TAB ─────────────────────────── -->
+                <div id="tab-articles" class="admin-tab">
+                    <div class="admin-card">
+                        <div class="admin-section-header">
+                            <h2 class="admin-section-title">Danh sách bài viết</h2>
+                            <button onclick="openArticleModal()" class="btn-admin-add"><span class="material-symbols-outlined">add</span> Đăng bài mới</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Hình ảnh</th>
+                                        <th>Mã BV</th>
+                                        <th>Tiêu đề</th>
+                                        <th>Ngày đăng</th>
+                                        <th>Trạng thái</th>
+                                        <th class="center">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminArticleTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ── CUSTOMERS TAB ────────────────────────── -->
                 <div id="tab-customers" class="admin-tab">
                     <div class="admin-card">
@@ -522,6 +633,85 @@ while ($row = $res_ch->fetch_assoc()) {
         </div>
     </main>
 
+    <!-- ── Article Modal ───────────────────────────────────── -->
+    <div id="articleModal" class="admin-modal-overlay">
+        <div class="admin-modal admin-modal--large" id="articleModalContent" style="max-width:800px;">
+            <div class="admin-modal__header">
+                <h3 id="articleModalTitle" class="admin-modal__title">Thêm Bài Viết</h3>
+                <button onclick="closeArticleModal()" class="admin-modal__close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="admin-modal__body">
+                <form id="articleForm" method="POST" action="index.php?page=admin" enctype="multipart/form-data">
+                    <input type="hidden" name="article_action" id="articleAction" value="add"/>
+                    <input type="hidden" name="id" id="articleId" value=""/>
+                    <input type="hidden" name="old_image" id="articleOldImage" value=""/>
+
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                        <div>
+                            <label class="admin-label">Tiêu đề</label>
+                            <input type="text" name="title" id="articleTitle" required class="admin-input" onkeyup="document.getElementById('articleSlug').value = this.value.toLowerCase().replace(/ /g,'-').replace(/[^\w-]+/g,'')"/>
+                        </div>
+                        <div>
+                            <label class="admin-label">Đường dẫn (Slug)</label>
+                            <input type="text" name="slug" id="articleSlug" required class="admin-input admin-input--mono"/>
+                        </div>
+                        <div>
+                            <label class="admin-label">Ảnh bìa</label>
+                            <input type="file" name="image" id="articleImageFile" accept="image/*" class="admin-input"/>
+                            <div id="articleImagePreview" style="margin-top:0.5rem; max-width:200px;"></div>
+                        </div>
+                        <div>
+                            <label class="admin-label">Tóm tắt</label>
+                            <textarea name="summary" id="articleSummary" required class="admin-input" rows="3"></textarea>
+                        </div>
+                        <div>
+                            <label class="admin-label">Nội dung HTML</label>
+                            <textarea name="content" id="articleContent" required class="admin-input" rows="8"></textarea>
+                        </div>
+                        <div>
+                            <label class="admin-label">Trạng thái</label>
+                            <select name="status" id="articleStatus" required class="admin-input">
+                                <option value="XuatBan">Xuất bản</option>
+                                <option value="Nhao">Bản nháp</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-modal__footer" style="margin-top:1.5rem; justify-content:flex-end; display:flex; gap:1rem;">
+                        <button type="button" onclick="closeArticleModal()" class="btn-admin-cancel">Hủy</button>
+                        <button type="submit" class="btn-admin-save">Lưu Bài Viết</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Article Form -->
+    <form id="deleteArticleForm" method="POST" action="index.php?page=admin" style="display:none;">
+        <input type="hidden" name="article_action" value="delete"/>
+        <input type="hidden" name="id" id="deleteArticleId" value=""/>
+    </form>
+
+    <!-- ── Order Details Modal ──────────────────────────────── -->
+    <div id="orderModal" class="admin-modal-overlay">
+        <div class="admin-modal admin-modal--large" id="orderModalContent" style="max-width:700px;">
+            <div class="admin-modal__header">
+                <h3 id="orderModalTitle" class="admin-modal__title">Chi tiết Đơn Hàng</h3>
+                <button onclick="closeOrderModal()" class="admin-modal__close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="admin-modal__body" id="orderModalBody" style="max-height: 60vh; overflow-y:auto; padding-bottom: 2rem;">
+                <!-- Nội dung đơn hàng sẽ được render bằng JS -->
+            </div>
+            <div class="admin-modal__footer" style="padding-top:1rem; justify-content:flex-end; display:flex;">
+                <button type="button" onclick="closeOrderModal()" class="btn-ghost" style="background-color: var(--error); color: white;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ── Product Modal ───────────────────────────────────── -->
     <div id="productModal" class="admin-modal-overlay">
         <div class="admin-modal" id="productModalContent">
@@ -561,6 +751,14 @@ while ($row = $res_ch->fetch_assoc()) {
                             <div>
                                 <label class="admin-label" for="productId">Mã sản phẩm (ID)</label>
                                 <input type="text" id="productId" required placeholder="Ví dụ: SP001" class="admin-input admin-input--mono"/>
+                            </div>
+                            <div>
+                                <label class="admin-label" for="productCategory">Danh mục</label>
+                                <select id="productCategory" required class="admin-input">
+                                    <?php foreach ($dbCategories as $cat): ?>
+                                        <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div>
                                 <label class="admin-label" for="productBrand">Thương hiệu</label>
@@ -615,9 +813,13 @@ while ($row = $res_ch->fetch_assoc()) {
 </script>
 <script>
     // Live DB Injections
+    window.dbCategories = <?php echo json_encode($dbCategories); ?>;
     window.dbProducts = <?php echo json_encode($dbProducts); ?>;
     window.dbOrders = <?php echo json_encode($dbOrders); ?>;
     window.dbVouchers = <?php echo json_encode($dbVouchers); ?>;
+    window.dbArticles = <?php echo json_encode(ArticleController::getAllArticles()); ?>;
+    window.dbCustomers = <?php echo json_encode($dbCustomers); ?>;
+    window.dbEmployees = <?php echo json_encode($dbEmployees); ?>;
     window.dbStats = {
         totalOrders: <?php echo $total_orders; ?>,
         productsSold: <?php echo $products_sold; ?>,

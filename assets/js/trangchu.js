@@ -30,8 +30,8 @@ document.addEventListener("DOMContentLoaded", function() {
     if (productGrid) {
         productGrid.innerHTML = products.map(product => `
             <div class="product-card">
-                <button onclick="handleFavorite('${product.id}')" class="product-card__fav-btn" title="Yêu thích">
-                    <span class="material-symbols-outlined" style="font-size:1.25rem;">favorite</span>
+                <button onclick="handleFavorite('${product.id}', this)" class="product-card__fav-btn" title="Yêu thích">
+                    <span class="material-symbols-outlined" style="font-size:1.25rem; color: ${isFavorited(product.id) ? 'var(--error)' : 'inherit'}; font-variation-settings: 'FILL' ${isFavorited(product.id) ? '1' : '0'};">favorite</span>
                 </button>
 
                 <a href="index.php?page=chitietsanpham&id=${product.id}" class="product-card__img-wrap">
@@ -56,19 +56,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ── Yêu thích ────────────────────────────────────────────────
-window.handleFavorite = function(productId) {
-    const user = getCurrentUser();
-    if (!user) { alert("Vui lòng đăng nhập để thêm vào Yêu thích!"); window.location.href = 'index.php?page=login'; return; }
-    const favKey = `favorites_${user.username}`;
-    let favs = JSON.parse(localStorage.getItem(favKey)) || [];
-    if (!favs.includes(String(productId))) {
-        favs.push(String(productId));
-        localStorage.setItem(favKey, JSON.stringify(favs));
-        alert("Đã thêm sản phẩm vào danh sách yêu thích!");
-    } else {
-        alert("Sản phẩm này đã có trong danh sách yêu thích của bạn!");
-    }
-};
+// (Global handleFavorite from auth.js is used)
 
 // ── Giỏ hàng ─────────────────────────────────────────────────
 window.getCart = function() {

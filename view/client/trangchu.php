@@ -29,8 +29,8 @@
             <h1 class="hero-title">GÓI TRỌN TINH XẢO</h1>
             <p class="hero-desc">Công cụ quang học đỉnh cao dành cho những người thợ ảnh khắt khe nhất thế giới.</p>
             <div class="hero-actions">
-                <button class="btn-hero-primary">Khám Phá Bộ Sưu Tập</button>
-                <button class="btn-hero-ghost">Tìm hiểu thêm</button>
+                <button class="btn-hero-primary" onclick="window.location.href='index.php?page=ongkinh'">Khám Phá Bộ Sưu Tập</button>
+                <button class="btn-hero-ghost" onclick="window.location.href='index.php?page=ongkinh'">Tìm hiểu thêm</button>
             </div>
         </div>
     </section>
@@ -59,7 +59,7 @@
                 <p class="editorial-section__journal">JOURNAL NO. 12</p>
                 <h2 class="editorial-section__title">Nghệ Thuật Của Sự Tối Giản Trong Nhiếp Ảnh Phong Cảnh</h2>
                 <p class="editorial-section__body">Khám phá cách sử dụng không gian âm và những thiết bị tinh gọn nhất để truyền tải cảm xúc mạnh mẽ qua từng khung hình tối giản.</p>
-                <a class="editorial-section__link" href="#">
+                <a class="editorial-section__link" href="index.php?page=chitietbaiviet&slug=nghe-thuat-cua-su-toi-gian-trong-nhiep-anh-phong-canh">
                     ĐỌC BÀI VIẾT
                     <span class="material-symbols-outlined">east</span>
                 </a>

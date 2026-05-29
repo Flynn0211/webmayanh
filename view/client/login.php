@@ -6,6 +6,12 @@ if (session_status() === PHP_SESSION_NONE) {
 // Load database connection
 require_once __DIR__ . '/../../model/database.php';
 
+// If already logged in via PHP session, redirect home immediately
+if (!empty($_SESSION['client_logged_in'])) {
+    header("Location: index.php?page=trangchu");
+    exit;
+}
+
 // Load Auth Controller to comply with MVC structure
 require_once __DIR__ . '/../../control/AuthController.php';
 
@@ -129,10 +135,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_register'])) {
         setTab('register');
         <?php endif; ?>
 
-        // If a valid currentUser session is active, go home
-        if (getCurrentUser() && !<?php echo isset($_POST['action_login']) || isset($_POST['action_register']) ? 'true' : 'false'; ?>) {
-            window.location.href = 'index.php?page=trangchu';
-        }
     });
     </script>
 </body>

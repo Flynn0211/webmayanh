@@ -1,4 +1,4 @@
-﻿// File: js/donhang.js
+// File: js/donhang.js
 
 document.addEventListener("DOMContentLoaded", () => {
     const user = getCurrentUser();
@@ -79,73 +79,92 @@ document.addEventListener("DOMContentLoaded", () => {
         favoritesContainer.innerHTML = html;
     }
 
-    // ── Render Orders ─────────────────────────────────────────
+    // ── Fetch and Render Orders from Database ─────────────────────────────────────────
     function renderOrders() {
-        let allOrders  = JSON.parse(localStorage.getItem('orders')) || [];
-        let userOrders = allOrders.filter(o => o.customerUsername === user.username);
+        ordersContainer.innerHTML = '<div style="text-align:center; padding: 2rem;">Đang tải đơn hàng...</div>';
 
-        if (userOrders.length === 0) {
-            ordersContainer.innerHTML = `
-            <div class="empty-state">
-                <span class="material-symbols-outlined">receipt_long</span>
-                <p>Bạn chưa có đơn hàng nào.</p>
-                <a href="index.php?page=trangchu" class="btn-cta">Mua sắm ngay</a>
-            </div>`;
-            return;
-        }
+        fetch('index.php?action=get_orders')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    ordersContainer.innerHTML = `<div class="empty-state">
+                        <p>${data.message || 'Có lỗi xảy ra khi tải đơn hàng.'}</p>
+                    </div>`;
+                    return;
+                }
 
-        const products = JSON.parse(localStorage.getItem('products')) || [];
-        let html = '';
+                let userOrders = data.orders || [];
 
-        userOrders.reverse().forEach(order => {
-            const st = (order.status || '').toLowerCase();
-            let badgeClass = 'status-badge--warn';
-            let badgeText  = 'Đang Xử Lý';
-            if (st.includes('thành công') || st.includes('đã giao')) { badgeClass = 'status-badge--success'; badgeText = 'Đã Giao'; }
-            else if (st.includes('đang giao'))                        { badgeClass = 'status-badge--info';    badgeText = 'Đang Giao'; }
+                if (userOrders.length === 0) {
+                    ordersContainer.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-symbols-outlined">receipt_long</span>
+                        <p>Bạn chưa có đơn hàng nào.</p>
+                        <a href="index.php?page=trangchu" class="btn-cta">Mua sắm ngay</a>
+                    </div>`;
+                    return;
+                }
 
-            html += `
-            <div class="order-card">
-                <div class="order-card__header">
-                    <div>
-                        <div class="order-card__id">Mã ĐH: ${order.id}</div>
-                        <div class="order-card__date">Ngày đặt: ${order.date}</div>
-                    </div>
-                    <span class="status-badge ${badgeClass}">${badgeText}</span>
-                </div>
-                <div class="order-card__body">`;
+                let html = '';
 
-            if (order.items && order.items.length > 0) {
-                order.items.forEach(item => {
-                    const origProd     = products.find(p => p.id == item.id);
-                    const displayImage = origProd ? origProd.image : (item.image || '');
+                userOrders.forEach(order => {
+                    const st = (order.status || '').toLowerCase();
+                    let badgeClass = 'status-badge--warn';
+                    let badgeText  = order.status || 'Chờ Xác Nhận';
+                    if (st.includes('thành công') || st.includes('đã giao') || st.includes('hoàn thành')) { 
+                        badgeClass = 'status-badge--success'; 
+                    } else if (st.includes('đang giao')) { 
+                        badgeClass = 'status-badge--info'; 
+                    } else if (st.includes('hủy')) {
+                        badgeClass = 'status-badge--danger';
+                    }
+
                     html += `
-                    <div class="order-card__item">
-                        <div class="order-card__item-img">
-                            <img src="${displayImage}" alt="${item.name}">
+                    <div class="order-card">
+                        <div class="order-card__header">
+                            <div>
+                                <div class="order-card__id">Mã ĐH: #${order.id}</div>
+                                <div class="order-card__date">Ngày đặt: ${order.date}</div>
+                            </div>
+                            <span class="status-badge ${badgeClass}">${badgeText}</span>
                         </div>
-                        <div class="order-card__item-info">
-                            <div class="order-card__item-name">${item.name}</div>
-                            <div class="order-card__item-brand">Thương hiệu: ${item.brand}</div>
+                        <div class="order-card__body">`;
+
+                    if (order.items && order.items.length > 0) {
+                        order.items.forEach(item => {
+                            const displayImage = item.image || '';
+                            html += `
+                            <div class="order-card__item">
+                                <div class="order-card__item-img">
+                                    <img src="${displayImage}" alt="${item.name}">
+                                </div>
+                                <div class="order-card__item-info">
+                                    <div class="order-card__item-name">${item.name}</div>
+                                    <div class="order-card__item-brand">Thương hiệu: ${item.brand || 'N/A'}</div>
+                                </div>
+                                <div class="order-card__item-right">
+                                    <div class="order-card__item-qty">SL: ${item.quantity}</div>
+                                    <div class="order-card__item-price">${item.price}</div>
+                                </div>
+                            </div>`;
+                        });
+                    }
+
+                    html += `
                         </div>
-                        <div class="order-card__item-right">
-                            <div class="order-card__item-qty">SL: ${item.quantity}</div>
-                            <div class="order-card__item-price">${item.price}</div>
+                        <div class="order-card__footer">
+                            <span class="order-card__total-label">Tổng cộng:</span>
+                            <span class="order-card__total-val">${order.total}</span>
                         </div>
                     </div>`;
                 });
-            }
 
-            html += `
-                </div>
-                <div class="order-card__footer">
-                    <span class="order-card__total-label">Tổng cộng:</span>
-                    <span class="order-card__total-val">${order.total}</span>
-                </div>
-            </div>`;
-        });
-
-        ordersContainer.innerHTML = html;
+                ordersContainer.innerHTML = html;
+            })
+            .catch(error => {
+                console.error("Error fetching orders:", error);
+                ordersContainer.innerHTML = '<div style="text-align:center; padding: 2rem;">Lỗi tải dữ liệu.</div>';
+            });
     }
 
     renderOrders();

@@ -1,19 +1,18 @@
 <?php $activeNav = 'ongkinh'; ?>
 <!DOCTYPE html>
-<html class="light" lang="vi">
+<html lang="vi">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>LENS & LIGHT - Danh mục Ống Kính</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Bộ sưu tập ống kính cao cấp từ Sony, Canon, Nikon, Leica, Fujifilm, Hasselblad."/>
+    <title>LENS &amp; LIGHT - Danh mục Ống Kính</title>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script src="assets/js/tailwind.config.js"></script>
-    <link href="assets/css/base.css" rel="stylesheet" />
-    <link href="assets/css/client.css" rel="stylesheet" />
-    <link href="assets/css/responsive.css" rel="stylesheet" />
+    <link href="assets/css/base.css" rel="stylesheet"/>
+    <link href="assets/css/client.css" rel="stylesheet"/>
+    <link href="assets/css/responsive.css" rel="stylesheet"/>
 </head>
-<body class="bg-surface text-on-surface font-body-md antialiased selection:bg-primary selection:text-on-primary">
+<body>
 
 <?php include 'view/client/layout/_navbar.php'; ?>
 

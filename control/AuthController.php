@@ -128,7 +128,27 @@ class AuthController {
                             $_SESSION['admin_username'] = $row['username'];
                             $_SESSION['admin_fullname'] = $row['ho_ten'];
                             
-                            header("Location: index.php");
+                            // Đồng thời cấp session cho phía Client để đồng bộ trạng thái đăng nhập
+                            $_SESSION['client_logged_in'] = true;
+                            $_SESSION['client_username']  = $row['username'];
+                            $_SESSION['client_fullname']  = $row['ho_ten'];
+                            $_SESSION['client_role']      = 'admin';
+                            $_SESSION['client_email']     = $row['email'];
+                            $_SESSION['client_phone']     = $row['sdt'];
+
+                            $user_data = [
+                                'username' => $row['username'],
+                                'fullname' => $row['ho_ten'],
+                                'role'     => 'admin',
+                                'email'    => $row['email'],
+                                'phone'    => $row['sdt']
+                            ];
+
+                            // Trả về HTML chứa script set localStorage rồi mới redirect
+                            echo "<script>
+                                localStorage.setItem('currentUser', JSON.stringify(" . json_encode($user_data, JSON_UNESCAPED_UNICODE) . "));
+                                window.location.href = 'index.php';
+                            </script>";
                             exit;
                         } else {
                             $login_error = "Mật khẩu đăng nhập không chính xác.";
