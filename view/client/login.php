@@ -1,4 +1,32 @@
-﻿<!DOCTYPE html>
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Load database connection
+require_once __DIR__ . '/../../model/database.php';
+
+// Load Auth Controller to comply with MVC structure
+require_once __DIR__ . '/../../control/AuthController.php';
+
+$login_error = "";
+$js_login_success = "";
+
+// 1. Process client login
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_login'])) {
+    $res = AuthController::handleLogin($conn);
+    $login_error = $res['error'];
+    $js_login_success = $res['success'];
+}
+
+// 2. Process client registration
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_register'])) {
+    $res = AuthController::handleRegister($conn);
+    $login_error = $res['error'];
+    $js_login_success = $res['success'];
+}
+?>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8"/>
@@ -10,6 +38,8 @@
     <link href="assets/css/client.css" rel="stylesheet"/>
 </head>
 <body style="min-height:100vh;display:flex;flex-direction:column;position:relative;">
+
+    <?php if (!empty($js_login_success)) echo $js_login_success; ?>
 
     <a href="index.php?page=trangchu" class="auth-back-btn">
         <span class="material-symbols-outlined" style="font-size:1.125rem;">arrow_back</span>
@@ -32,41 +62,45 @@
             </div>
 
             <!-- Form Đăng nhập -->
-            <form id="loginForm" class="auth-form">
+            <form id="loginForm" action="" method="POST" class="auth-form">
                 <div class="form-group">
                     <label class="form-label" for="loginUsername">Tên đăng nhập</label>
-                    <input type="text" id="loginUsername" required placeholder="admin hoặc user" class="form-input"/>
+                    <input type="text" name="username" id="loginUsername" required placeholder="admin hoặc user" class="form-input"/>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="loginPassword">Mật khẩu</label>
-                    <input type="password" id="loginPassword" required placeholder="Nhập mật khẩu" class="form-input"/>
+                    <input type="password" name="password" id="loginPassword" required placeholder="Nhập mật khẩu" class="form-input"/>
                 </div>
-                <button type="submit" class="btn-auth btn-auth--primary">ĐĂNG NHẬP</button>
+                <button type="submit" name="action_login" class="btn-auth btn-auth--primary">ĐĂNG NHẬP</button>
             </form>
 
             <!-- Form Đăng ký -->
-            <form id="registerForm" class="auth-form hidden">
+            <form id="registerForm" action="" method="POST" class="auth-form hidden">
                 <div class="form-group">
                     <label class="form-label" for="regFullname">Họ và tên</label>
-                    <input type="text" id="regFullname" required placeholder="Nguyễn Văn A" class="form-input"/>
+                    <input type="text" name="fullname" id="regFullname" required placeholder="Nguyễn Văn A" class="form-input"/>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="regUsername">Tên đăng nhập</label>
-                    <input type="text" id="regUsername" required placeholder="Nhập tên đăng nhập viết liền" class="form-input"/>
+                    <input type="text" name="username" id="regUsername" required placeholder="Nhập tên đăng nhập viết liền" class="form-input"/>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="regPassword">Mật khẩu</label>
-                    <input type="password" id="regPassword" required placeholder="Tạo mật khẩu" class="form-input"/>
+                    <input type="password" name="password" id="regPassword" required placeholder="Tạo mật khẩu" class="form-input"/>
                 </div>
-                <button type="submit" class="btn-auth btn-auth--secondary">TẠO TÀI KHOẢN</button>
+                <button type="submit" name="action_register" class="btn-auth btn-auth--secondary">TẠO TÀI KHOẢN</button>
             </form>
 
             <!-- Thông báo lỗi -->
-            <div id="authError" class="auth-error hidden">Sai tên đăng nhập hoặc mật khẩu!</div>
+            <?php if (!empty($login_error)): ?>
+                <div id="authError" class="auth-error"><?php echo htmlspecialchars($login_error); ?></div>
+            <?php else: ?>
+                <div id="authError" class="auth-error hidden">Sai tên đăng nhập hoặc mật khẩu!</div>
+            <?php endif; ?>
         </div>
     </div>
 
-    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/auth.js?v=2.0"></script>
     <script>
     document.addEventListener("DOMContentLoaded", () => {
         const tabLogin     = document.getElementById('tabLogin');
@@ -81,41 +115,28 @@
             tabRegister.classList.toggle('auth-tab-btn--active', !isLogin);
             loginForm.classList.toggle('hidden', !isLogin);
             registerForm.classList.toggle('hidden', isLogin);
-            authError.classList.add('hidden');
+            
+            // Do not hide php generated error on initial load unless tab switches
+            if (event && event.type === 'click') {
+                authError.classList.add('hidden');
+            }
         }
-        tabLogin.onclick    = () => setTab('login');
-        tabRegister.onclick = () => setTab('register');
+        tabLogin.onclick    = (e) => setTab('login');
+        tabRegister.onclick = (e) => setTab('register');
 
-        loginForm.onsubmit = (e) => {
-            e.preventDefault();
-            const u = document.getElementById('loginUsername').value.trim();
-            const p = document.getElementById('loginPassword').value.trim();
-            if (login(u, p)) {
-                const user = getCurrentUser();
-                window.location.href = (user && user.role === 'admin') ? 'index.php?page=admin' : 'index.php?page=trangchu';
-            } else {
-                authError.innerText = "Sai tên đăng nhập hoặc mật khẩu!";
-                authError.classList.remove('hidden');
-            }
-        };
+        // Handle error states preservation
+        <?php if (isset($_POST['action_register'])): ?>
+        setTab('register');
+        <?php endif; ?>
 
-        registerForm.onsubmit = (e) => {
-            e.preventDefault();
-            const fn = document.getElementById('regFullname').value;
-            const u  = document.getElementById('regUsername').value;
-            const p  = document.getElementById('regPassword').value;
-            if (register(fn, u, p)) {
-                window.location.href = 'index.php?page=trangchu';
-            } else {
-                authError.innerText = "Tên đăng nhập đã tồn tại!";
-                authError.classList.remove('hidden');
-            }
-        };
-
-        if (getCurrentUser()) window.location.href = 'index.php?page=trangchu';
+        // If a valid currentUser session is active, go home
+        if (getCurrentUser() && !<?php echo isset($_POST['action_login']) || isset($_POST['action_register']) ? 'true' : 'false'; ?>) {
+            window.location.href = 'index.php?page=trangchu';
+        }
     });
     </script>
 </body>
 </html>
+
 
 

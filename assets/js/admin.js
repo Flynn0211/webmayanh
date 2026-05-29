@@ -1,11 +1,8 @@
-﻿// ====== DATA ======
-let products = JSON.parse(localStorage.getItem('products')) || [];
+// ====== DATA ======
+let products = window.dbProducts || [];
+let orders = window.dbOrders || [];
+let vouchers = window.dbVouchers || [];
 
-let mockOrders = [
-    { id: 'DH001', customer: 'Nguyễn Văn A', total: '239,000,000 ₫', date: '28/05/2026', status: 'chờ xác nhận' },
-    { id: 'DH002', customer: 'Trần Thị B', total: '43,000,000 ₫', date: '27/05/2026', status: 'đang giao' },
-    { id: 'DH003', customer: 'Lê Văn C', total: '90,000,000 ₫', date: '26/05/2026', status: 'thành công' }
-];
 let mockCustomers = [
     { id: 'KH01', name: 'Nguyễn Văn A', tier: 'diamond', active: true },
     { id: 'KH02', name: 'Trần Thị B', tier: 'gold', active: true },
@@ -19,10 +16,6 @@ let mockEmployees = [
 let mockReviews = [
     { id: 1, product: 'Leica M11 Monochrom', user: 'Nguyễn Văn A', content: 'Chất lượng ảnh đen trắng tuyệt vời, thiết kế rất cổ điển.' },
     { id: 2, product: 'Sony Alpha 7R V', user: 'Trần Thị B', content: 'Lấy nét tự động cực nhanh, rất đáng tiền!' }
-];
-let mockVouchers = [
-    { code: 'WELCOME10', discount: '10%', quantity: 100, expire: '31/12/2026' },
-    { code: 'SUMMER20', discount: '20%', quantity: 50, expire: '30/06/2026' }
 ];
 let mockPromos = [
     { product: 'Sony Alpha 7R V', discount: '15%' },
@@ -104,19 +97,32 @@ function renderAdminProducts() {
 
 // ── Orders ────────────────────────────────────────────────────
 window.updateOrderStatus = function(orderId, newStatus) {
-    let orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const index = orders.findIndex(o => o.id === orderId);
-    if (index > -1) {
-        orders[index].status = newStatus;
-        localStorage.setItem('orders', JSON.stringify(orders));
-        alert('Đã cập nhật trạng thái đơn hàng!');
-        renderAdminOrders();
-    }
+    const formData = new FormData();
+    formData.append('id', orderId);
+    formData.append('status', newStatus);
+    
+    fetch('admin/index.php?action=update_order', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Đã cập nhật trạng thái đơn hàng!');
+            location.reload();
+        } else {
+            alert('Lỗi cập nhật: ' + (data.error || 'Unknown'));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Lỗi mạng không thể cập nhật đơn hàng.');
+    });
 };
 
 function renderAdminOrders() {
-    let orders   = JSON.parse(localStorage.getItem('orders')) || [];
-    const statuses = ['Đang xử lý', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Thành công', 'Đã hủy'];
+    let orders   = window.dbOrders || [];
+    const statuses = ['ChoXacNhan', 'XacNhanDonHang', 'DangGiao', 'DaGiao', 'ThanhCong', 'Đã hủy'];
 
     if (orders.length === 0) {
         document.getElementById('adminOrderTableBody').innerHTML = `<tr><td colspan="5" class="td-muted" style="text-align:center;padding:2rem;">Chưa có đơn hàng nào.</td></tr>`;
@@ -124,13 +130,13 @@ function renderAdminOrders() {
         return;
     }
 
-    const sortedOrders = [...orders].reverse();
+    const sortedOrders = [...orders];
     document.getElementById('adminOrderTableBody').innerHTML = sortedOrders.map(o => `
         <tr>
-            <td class="td-primary td-mono">${o.id}</td>
+            <td class="td-primary td-mono">#${o.id}</td>
             <td>
-                ${o.customerName}
-                <div class="td-muted" style="margin-top:0.25rem;">@${o.customerUsername}</div>
+                ${o.customerName || 'Khách vãng lai'}
+                <div class="td-muted" style="margin-top:0.25rem;">@${o.customerUsername || 'guest'}</div>
             </td>
             <td class="td-mono">${o.total}</td>
             <td class="td-muted">${o.date}</td>
@@ -142,7 +148,7 @@ function renderAdminOrders() {
         </tr>
     `).join('');
 
-    document.getElementById('newOrdersBadge').innerText = orders.filter(o => o.status === 'Đang xử lý').length;
+    document.getElementById('newOrdersBadge').innerText = orders.filter(o => o.status === 'ChoXacNhan').length;
 }
 
 // ── Customers ─────────────────────────────────────────────────
@@ -209,16 +215,16 @@ function renderAdminReviews() {
 
 // ── Vouchers ──────────────────────────────────────────────────
 function renderAdminVouchers() {
-    document.getElementById('adminVoucherTableBody').innerHTML = mockVouchers.map(v => `
+    document.getElementById('adminVoucherTableBody').innerHTML = vouchers.map(v => `
         <tr>
             <td class="td-primary td-mono td-bold">${v.code}</td>
             <td>${v.discount}</td>
-            <td class="td-muted">${v.quantity}</td>
+            <td class="td-muted">${v.so_luong !== undefined ? v.so_luong : v.quantity}</td>
             <td class="td-error">${v.expire}</td>
             <td class="center">
-                <button class="btn-table-action btn-table-action--edit" title="Sửa">
-                    <span class="material-symbols-outlined" style="font-size:1.25rem;">edit_square</span>
-                </button>
+                <span class="inline-block px-2 py-1 text-xs border border-tertiary text-tertiary rounded font-label-caps" style="text-transform: uppercase;">
+                    ${v.trang_thai || 'HoatDong'}
+                </span>
             </td>
         </tr>
     `).join('');
@@ -309,22 +315,36 @@ function initModal() {
             const specs      = document.getElementById('productSpecs').value;
 
             if (!image) { alert('Vui lòng chọn hình ảnh cho sản phẩm!'); return; }
-            if (!id)    { alert('Vui lòng nhập Mã sản phẩm!'); return; }
 
-            if (originalId) {
-                const index = products.findIndex(p => p.id == originalId);
-                if (index > -1) {
-                    products[index] = { ...products[index], id, brand, name, price, stock, description: desc, specs, image };
-                    alert('Cập nhật sản phẩm thành công!');
+            const action = originalId ? 'edit_product' : 'add_product';
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('brand', brand);
+            formData.append('name', name);
+            formData.append('price', price);
+            formData.append('stock', stock);
+            formData.append('image', image);
+            formData.append('description', desc);
+            formData.append('specs', specs);
+
+            fetch(`admin/index.php?action=${action}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(originalId ? 'Cập nhật sản phẩm thành công!' : 'Thêm sản phẩm thành công!');
+                    closeProductModal();
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + (data.error || 'Không thể lưu sản phẩm'));
                 }
-            } else {
-                if (products.some(p => p.id == id)) { alert('Mã sản phẩm này đã tồn tại!'); return; }
-                products.unshift({ id, brand, name, price, stock, description: desc, specs, image });
-                alert('Thêm sản phẩm thành công!');
-            }
-            localStorage.setItem('products', JSON.stringify(products));
-            closeProductModal();
-            renderAdminProducts();
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Lỗi mạng không thể lưu sản phẩm.');
+            });
         });
     }
 }
@@ -388,9 +408,22 @@ function closeProductModal() {
 
 function deleteProduct(id) {
     if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-        products = products.filter(p => String(p.id) !== String(id));
-        localStorage.setItem('products', JSON.stringify(products));
-        renderAdminProducts();
+        fetch(`admin/index.php?action=delete_product&id=${id}`, {
+            method: 'POST'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Xóa sản phẩm thành công!');
+                location.reload();
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể xóa'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Lỗi mạng không thể xóa sản phẩm.');
+        });
     }
 }
 function editProduct(id) { openProductModal(id); }
@@ -399,6 +432,41 @@ window.openProductModal  = openProductModal;
 window.closeProductModal = closeProductModal;
 window.deleteProduct     = deleteProduct;
 window.editProduct       = editProduct;
+
+window.addVoucherPrompt = function() {
+    const code = prompt("Nhập mã Voucher mới (ví dụ: SALE50):");
+    if (!code) return;
+    const discount = prompt("Nhập mức giảm (ví dụ: 15% hoặc 500000):");
+    if (!discount) return;
+    const qty = prompt("Nhập số lượng phát hành (ví dụ: 100):");
+    if (!qty) return;
+    const expire = prompt("Nhập ngày hết hạn (định dạng: YYYY-MM-DD):", "2026-12-31");
+    if (!expire) return;
+    
+    const formData = new FormData();
+    formData.append('code', code.trim().toUpperCase());
+    formData.append('discount', discount.trim());
+    formData.append('quantity', qty);
+    formData.append('expire', expire);
+    
+    fetch('admin/index.php?action=add_voucher', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Thêm voucher thành công!');
+            location.reload();
+        } else {
+            alert('Lỗi: ' + (data.error || 'Không thể tạo voucher'));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Lỗi mạng không thể tạo voucher.');
+    });
+};
 
 // ====== INITIALIZATION ======
 document.addEventListener("DOMContentLoaded", function() {

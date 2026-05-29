@@ -1,4 +1,4 @@
-﻿<?php $activeNav = 'trangchu'; ?>
+<?php $activeNav = 'trangchu'; ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <link href="assets/css/base.css" rel="stylesheet"/>
-    <link href="assets/css/client.css" rel="stylesheet"/>
+    <link href="assets/css/client.css?v=1.3" rel="stylesheet"/>
     <link href="assets/css/responsive.css" rel="stylesheet"/>
 </head>
 <body>
@@ -87,7 +87,7 @@
 
 <?php include 'view/client/layout/_footer_dark.php'; ?>
 
-<script src="assets/js/auth.js"></script>
+<script src="assets/js/auth.js?v=2.0"></script>
 <script src="assets/js/trangchu.js"></script>
 </body>
 </html>

@@ -57,7 +57,8 @@
 .site-nav__actions {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 1.25rem;
+    margin-left: 2rem;
 }
 
 .nav-link {
@@ -76,6 +77,16 @@
 .nav-link--active {
     border-bottom: 2px solid var(--primary);
     padding-bottom: 2px;
+}
+
+/* ── Custom Auth Buttons Alignment ── */
+.auth-logout-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.375rem;
+}
+.auth-logout-btn .material-symbols-outlined {
+    font-size: 1rem !important;
 }
 
 .nav-icon-btn {
@@ -1573,3 +1584,415 @@
 .gallery-scroll::-webkit-scrollbar { height: 4px; }
 .gallery-scroll::-webkit-scrollbar-track { background: var(--surface-container-low); }
 .gallery-scroll::-webkit-scrollbar-thumb { background: var(--on-surface); }
+
+
+/* ============================================================
+   USER PROFILE PAGE (taikhoan)
+   ============================================================ */
+.account-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding: 4rem var(--margin-mobile);
+}
+
+@media (min-width: 992px) {
+    .account-layout {
+        grid-template-columns: 3fr 9fr;
+        padding: 6rem var(--margin-desktop);
+    }
+}
+
+/* Sidebar Left */
+.account-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.account-sidebar__title {
+    font-family: 'Geist', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--on-surface);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.account-sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.account-sidebar__link {
+    font-family: 'Geist', sans-serif;
+    font-size: var(--fs-label-caps);
+    font-weight: var(--fw-label-caps);
+    letter-spacing: var(--ls-label-caps);
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--on-surface-variant);
+    transition: color 0.2s, border-color 0.2s;
+    padding-left: 1rem;
+    border-left: 2px solid transparent;
+    text-align: left;
+}
+
+.account-sidebar__link:hover,
+.account-sidebar__link--active {
+    color: var(--on-surface);
+    font-weight: 700;
+    border-left-color: var(--on-surface);
+}
+
+.account-sidebar__link--logout {
+    color: var(--error);
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    margin-top: 1.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid transparent;
+}
+
+.account-sidebar__link--logout:hover {
+    color: var(--primary);
+    border-left-color: var(--primary);
+}
+
+/* Main Canvas Right */
+.account-canvas {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.account-canvas__header {
+    border-bottom: 1px solid var(--outline-variant);
+    padding-bottom: 1.5rem;
+}
+
+.account-canvas__title {
+    font-family: 'Geist', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--on-surface);
+    text-transform: uppercase;
+    margin: 0;
+}
+
+/* Bento Grid */
+.profile-bento {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background-color: var(--outline-variant);
+    border: 1px solid var(--outline-variant);
+}
+
+@media (min-width: 768px) {
+    .profile-bento {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.profile-card {
+    background-color: var(--surface-container-lowest);
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-card--full {
+    grid-column: 1 / -1;
+}
+
+.profile-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.profile-card__title {
+    font-family: 'Geist', sans-serif;
+    font-size: var(--fs-label-caps);
+    font-weight: 600;
+    letter-spacing: var(--ls-label-caps);
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
+    margin: 0;
+}
+
+.profile-card__edit-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--on-surface);
+    padding: 0.25rem;
+    display: flex;
+    transition: opacity 0.2s;
+}
+
+.profile-card__edit-btn:hover {
+    opacity: 0.7;
+}
+
+/* Info Items */
+.profile-info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profile-info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-info-label {
+    font-family: 'Geist', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--outline);
+    margin-bottom: 0.25rem;
+}
+
+.profile-info-val {
+    font-family: 'Geist', sans-serif;
+    font-size: 0.875rem;
+    color: var(--on-surface);
+}
+
+/* Membership Badge */
+.membership-tier {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--on-surface);
+    padding: 0.5rem 1rem;
+    margin-bottom: 1.5rem;
+    width: fit-content;
+}
+
+.membership-tier .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+.membership-tier__name {
+    font-family: 'Geist', sans-serif;
+    font-size: var(--fs-label-caps);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.membership-desc {
+    font-size: 0.875rem;
+    color: var(--on-surface-variant);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.membership-link {
+    margin-top: auto;
+    padding-top: 2rem;
+}
+
+.membership-link__btn {
+    font-family: 'Geist', sans-serif;
+    font-size: var(--fs-label-caps);
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--on-surface);
+    text-decoration: none;
+    border-bottom: 1px solid var(--on-surface);
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.membership-link__btn:hover {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* Address Block */
+.profile-address {
+    font-family: 'Geist', sans-serif;
+    font-size: 0.875rem;
+    color: var(--on-surface);
+    line-height: 1.6;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+/* Order Section */
+.recent-orders {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.recent-orders__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--outline-variant);
+    padding-bottom: 1rem;
+}
+
+.recent-orders__title {
+    font-family: 'Geist', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--on-surface);
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.recent-orders__link {
+    font-family: 'Geist', sans-serif;
+    font-size: var(--fs-label-caps);
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--on-surface);
+    text-decoration: none;
+    border-bottom: 1px solid var(--on-surface);
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.recent-orders__link:hover {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* Minimalist Table */
+.order-spec-table {
+    width: 100%;
+    border: 1px solid var(--outline-variant);
+    border-collapse: collapse;
+}
+
+.order-spec-table__header {
+    display: none;
+    background-color: var(--surface-container-low);
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+@media (min-width: 768px) {
+    .order-spec-table__header {
+        display: grid;
+        grid-template-columns: 2fr 2fr 5fr 3fr;
+        padding: 1rem 1.5rem;
+    }
+}
+
+.order-spec-table__th {
+    font-family: 'Geist', sans-serif;
+    font-size: var(--fs-label-caps);
+    font-weight: 600;
+    letter-spacing: var(--ls-label-caps);
+    text-transform: uppercase;
+    color: var(--outline);
+    text-align: left;
+}
+
+.order-spec-table__th.right {
+    text-align: right;
+}
+
+.order-spec-table__row {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--outline-variant);
+    background-color: var(--surface-container-lowest);
+    transition: background-color 0.2s;
+}
+
+.order-spec-table__row:last-child {
+    border-bottom: none;
+}
+
+.order-spec-table__row:hover {
+    background-color: var(--surface-container-low);
+}
+
+@media (min-width: 768px) {
+    .order-spec-table__row {
+        display: grid;
+        grid-template-columns: 2fr 2fr 5fr 3fr;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+    }
+}
+
+.order-spec-table__cell {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.75rem;
+}
+
+@media (min-width: 768px) {
+    .order-spec-table__cell {
+        display: block;
+        margin-bottom: 0;
+    }
+}
+
+.order-spec-table__cell-label {
+    font-family: 'Geist', sans-serif;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--outline);
+    margin-bottom: 0.25rem;
+}
+
+@media (min-width: 768px) {
+    .order-spec-table__cell-label {
+        display: none;
+    }
+}
+
+.order-spec-table__cell-val {
+    font-family: 'Geist', sans-serif;
+    font-size: 0.875rem;
+    color: var(--on-surface);
+}
+
+.order-spec-table__cell-val--name {
+    font-family: 'Inter', sans-serif;
+}
+
+.order-spec-table__cell-val--status {
+    font-family: 'Geist', sans-serif;
+    font-size: var(--fs-label-caps);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background-color: var(--on-surface);
+    color: var(--surface-container-lowest);
+    padding: 0.25rem 0.5rem;
+    width: fit-content;
+}
+
+@media (min-width: 768px) {
+    .order-spec-table__cell-val--status {
+        margin-left: auto;
+    }
+    .order-spec-table__cell.right {
+        text-align: right;
+    }
+}
+

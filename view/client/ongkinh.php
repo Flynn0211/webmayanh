@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+<?php $activeNav = 'ongkinh'; ?>
+<!DOCTYPE html>
 <html class="light" lang="vi">
 <head>
     <meta charset="utf-8"/>
@@ -13,178 +14,62 @@
     <link href="assets/css/responsive.css" rel="stylesheet" />
 </head>
 <body class="bg-surface text-on-surface font-body-md antialiased selection:bg-primary selection:text-on-primary">
-<!-- TopNavBar -->
-<nav class="bg-surface/80 backdrop-blur-md w-full top-0 sticky border-b border-outline-variant/30 z-50">
-    <div class="max-w-container-max mx-auto flex items-center justify-between h-20 px-margin-mobile md:px-margin-desktop">
-        <!-- Brand -->
-        <a class="font-display-lg text-headline-md md:text-display-lg tracking-tighter text-on-surface hover:text-primary transition-colors duration-300" href="#">
-            LENS & LIGHT
-        </a>
-        <!-- Links (Desktop) -->
-        <div class="hidden md:flex space-x-gutter items-center">
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="index.php?page=trangchu">Trang chủ</a>
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="index.php?page=mayanh">Máy ảnh</a>
-            <a class="font-label-caps text-label-caps text-primary border-b-2 border-primary pb-1 cursor-pointer transition-all duration-300" href="index.php?page=ongkinh">Ống kính</a>
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Phụ kiện</a>
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Bài viết</a>
-            <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary cursor-pointer transition-all duration-300" href="#">Liên hệ</a>
-        </div>
-        <!-- Actions -->
-        <div class="flex items-center space-x-2">
-            <a class="auth-admin-btn hidden font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors mr-4" href="index.php?page=admin">Quản trị</a>
-            <a class="auth-login-btn font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors mr-4 flex items-center" href="index.php?page=login">Đăng nhập</a>
-            
-            <a href="index.php?page=donhang" aria-label="order_history" class="p-2 text-on-surface-variant hover:text-primary transition-colors relative flex items-center mr-2" title="Đơn hàng của tôi">
-                <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
-            </a>
 
-            <a href="index.php?page=giohang" aria-label="shopping_cart" class="p-2 text-on-surface-variant hover:text-primary transition-colors relative flex items-center">
-                <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
-                <span class="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full hidden" id="cartBadge"></span>
-            </a>
-            <button aria-label="menu" class="md:hidden p-2 text-on-surface-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">menu</span>
-            </button>
+<?php include 'view/client/layout/_navbar.php'; ?>
+
+
+<main>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header__inner">
+            <h1 class="page-header__title">BỘ SƯU TẬP ỐNG KÍNH</h1>
+            <p class="page-header__desc">Định nghĩa lại độ sắc nét và màu sắc với những ống kính đỉnh cao thế giới.</p>
         </div>
     </div>
-</nav>
 
-<main class="w-full bg-surface">
-    <!-- Page Header -->
-    <section class="w-full bg-surface-container-lowest pt-20 pb-12 px-margin-mobile md:px-margin-desktop border-b border-outline-variant/30">
-        <div class="max-w-container-max mx-auto text-center">
-            <h1 class="font-display-lg text-3xl md:text-5xl text-on-background uppercase tracking-tight mb-4">BỘ SƯU TẬP ỐNG KÍNH</h1>
-            <p class="font-body-md text-on-surface-variant max-w-2xl mx-auto">Định nghĩa lại độ sắc nét và màu sắc với những ống kính đỉnh cao thế giới.</p>
-        </div>
-    </section>
-
-    <!-- Toolbar & Filter -->
-    <section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 border-b border-outline-variant/30 sticky top-16 bg-surface/90 backdrop-blur-md z-20">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-            
-            <!-- Brand Filter -->
-            <div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar" id="brandFilterContainer">
-                <button class="brand-btn bg-primary text-on-primary font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="all">Tất cả</button>
-                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="sony">Sony</button>
-                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="canon">Canon</button>
-                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="nikon">Nikon</button>
-                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="fujifilm">Fujifilm</button>
-                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="leica">Leica</button>
-                <button class="brand-btn bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase px-6 py-2 rounded-full whitespace-nowrap transition-all" data-brand="hasselblad">Hasselblad</button>
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-bar__inner">
+            <!-- Brand Filters -->
+            <div class="brand-filters" id="brandFilterContainer">
+                <button class="brand-btn brand-btn--active" data-brand="all">Tất cả</button>
+                <button class="brand-btn" data-brand="sony">Sony</button>
+                <button class="brand-btn" data-brand="canon">Canon</button>
+                <button class="brand-btn" data-brand="nikon">Nikon</button>
+                <button class="brand-btn" data-brand="fujifilm">Fujifilm</button>
+                <button class="brand-btn" data-brand="leica">Leica</button>
+                <button class="brand-btn" data-brand="hasselblad">Hasselblad</button>
             </div>
 
-            <div class="flex items-center gap-4 w-full md:w-auto">
+            <div class="filter-controls">
                 <!-- Search -->
-                <div class="relative flex-grow md:flex-grow-0">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-                    <input type="text" id="searchInput" placeholder="Tìm tên ống kính..." class="w-full md:w-48 bg-surface-container-low border border-outline-variant/50 focus:border-primary rounded-full py-2 pl-10 pr-4 text-sm font-body-md outline-none transition-all">
+                <div class="filter-search">
+                    <span class="material-symbols-outlined filter-search__icon">search</span>
+                    <input type="text" id="searchInput" placeholder="Tìm tên ống kính..." class="filter-search__input"/>
                 </div>
-
                 <!-- Sort -->
-                <select id="sortSelect" class="bg-surface-container-low border border-outline-variant/50 text-on-surface-variant font-label-caps text-[11px] tracking-widest uppercase rounded-full py-2 px-4 outline-none focus:border-primary cursor-pointer transition-all appearance-none pr-8 relative">
+                <select id="sortSelect" class="filter-sort">
                     <option value="default">Mặc định</option>
                     <option value="price_asc">Giá: Thấp - Cao</option>
                     <option value="price_desc">Giá: Cao - Thấp</option>
                 </select>
             </div>
         </div>
-    </section>
+    </div>
 
     <!-- Product Grid -->
-    <section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12 min-h-[500px]">
-        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-            <!-- JS Rendered Products Here -->
-            <div class="col-span-full text-center py-20 text-on-surface-variant hidden" id="noProductsMsg">
-                Không tìm thấy sản phẩm nào phù hợp.
-            </div>
+    <div class="catalog-grid">
+        <div id="productGrid" class="catalog-grid__inner">
+            <p class="no-products-msg hidden" id="noProductsMsg">Không tìm thấy sản phẩm nào phù hợp.</p>
         </div>
-    </section>
-
-
-
-
+    </div>
 </main>
 
-<!-- Footer -->
-<footer class="bg-inverse-surface text-surface-container-lowest border-t border-white/10 w-full">
-    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
-        
-        <!-- Cột 1: Thông tin thương hiệu (chiếm 2 cột) -->
-        <div class="lg:col-span-2 flex flex-col space-y-5">
-            <h2 class="font-display-lg text-2xl tracking-tight text-white flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary text-[28px]">camera</span> LENS & LIGHT
-            </h2>
-            <p class="font-body-md text-surface-variant/70 max-w-sm leading-relaxed text-sm">
-                Nơi khởi nguồn cảm hứng cho những tâm hồn đam mê nghệ thuật nhiếp ảnh và ánh sáng chuyên nghiệp hàng đầu.
-            </p>
-            <div class="flex space-x-3 pt-3">
-                <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-variant hover:bg-primary hover:text-on-primary hover:-translate-y-1 transition-all" href="#" title="Facebook">
-                    <span class="material-symbols-outlined text-[20px]">public</span>
-                </a>
-                <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-variant hover:bg-primary hover:text-on-primary hover:-translate-y-1 transition-all" href="#" title="Instagram">
-                    <span class="material-symbols-outlined text-[20px]">photo_camera</span>
-                </a>
-                <a class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-variant hover:bg-primary hover:text-on-primary hover:-translate-y-1 transition-all" href="#" title="Youtube">
-                    <span class="material-symbols-outlined text-[20px]">smart_display</span>
-                </a>
-            </div>
-        </div>
+<?php include 'view/client/layout/_footer_dark.php'; ?>
 
-        <!-- Cột 2: Về Chúng Tôi -->
-        <div class="flex flex-col space-y-5">
-            <h3 class="font-label-caps text-xs text-white uppercase tracking-[0.15em] font-semibold">Về Chúng Tôi</h3>
-            <ul class="flex flex-col space-y-3">
-                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Câu chuyện thương hiệu</a></li>
-                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Sản phẩm tuyển chọn</a></li>
-                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Đội ngũ chuyên gia</a></li>
-            </ul>
-        </div>
-
-        <!-- Cột 3: Hỗ Trợ -->
-        <div class="flex flex-col space-y-5">
-            <h3 class="font-label-caps text-xs text-white uppercase tracking-[0.15em] font-semibold">Hỗ Trợ</h3>
-            <ul class="flex flex-col space-y-3">
-                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Chính sách bảo hành</a></li>
-                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Giao hàng & Đổi trả</a></li>
-                <li><a class="text-sm text-surface-variant/70 hover:text-primary hover:translate-x-1 inline-block transition-all" href="#">Hỗ trợ kỹ thuật</a></li>
-            </ul>
-        </div>
-
-        <!-- Cột 4: Liên Hệ -->
-        <div class="flex flex-col space-y-5">
-            <h3 class="font-label-caps text-xs text-white uppercase tracking-[0.15em] font-semibold">Liên Hệ</h3>
-            <ul class="flex flex-col space-y-3">
-                <li class="flex items-start gap-3 text-sm text-surface-variant/70">
-                    <span class="material-symbols-outlined text-[18px] text-primary/80 mt-0.5">location_on</span>
-                    <span>123 Ánh Sáng, Quận 1, HCM</span>
-                </li>
-                <li class="flex items-center gap-3 text-sm text-surface-variant/70">
-                    <span class="material-symbols-outlined text-[18px] text-primary/80">mail</span>
-                    <span>hi@lensandlight.com</span>
-                </li>
-                <li class="flex items-center gap-3 text-sm text-surface-variant/70">
-                    <span class="material-symbols-outlined text-[18px] text-primary/80">call</span>
-                    <span class="text-primary font-medium">+84 (0) 28 3822 0000</span>
-                </li>
-            </ul>
-        </div>
-    </div>
-    
-    <!-- Footer Bottom -->
-    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-6 border-t border-white/5">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p class="text-surface-variant/50 text-xs text-center md:text-left tracking-wide">© 2024 LENS & LIGHT OPTICS. All rights reserved.</p>
-            <div class="flex space-x-3">
-                <span class="text-surface-variant/40 text-[10px] uppercase tracking-widest border border-white/10 px-2 py-1 rounded">Mastercard</span>
-                <span class="text-surface-variant/40 text-[10px] uppercase tracking-widest border border-white/10 px-2 py-1 rounded">Visa</span>
-                <span class="text-surface-variant/40 text-[10px] uppercase tracking-widest border border-white/10 px-2 py-1 rounded">Amex</span>
-            </div>
-        </div>
-    </div>
-</footer>
-
-<script src="assets/js/auth.js"></script>
+<script src="assets/js/auth.js?v=2.0"></script>
 <script src="assets/js/ongkinh.js"></script>
 </body>
 </html>
+
 

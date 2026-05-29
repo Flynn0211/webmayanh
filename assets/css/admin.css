@@ -675,10 +675,238 @@
 
 .modal-form-full { margin-top: 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
 .admin-modal__footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    padding-top: 1.5rem;
-    margin-top: 2rem;
     border-top: 1px solid rgba(228,190,188,.3);
 }
+
+/* ============================================================
+   ADMIN LOGIN PORTAL – Glassmorphic admin authorization style
+   ============================================================ */
+.admin-login-body {
+    --primary: #e63946; /* Leica Red */
+    --bg-dark: #0a0a0a;
+    --card-bg: rgba(22, 22, 22, 0.75);
+    --border-color: rgba(228, 190, 188, 0.15);
+    --text-primary: #fcf9f8;
+    --text-secondary: #a0a0a0;
+
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at center, #1a1a1a 0%, var(--bg-dark) 100%) !important;
+    color: var(--text-primary) !important;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.admin-login-body * {
+    box-sizing: border-box;
+}
+
+/* Ambient glows */
+.admin-login-body .ambient-glow {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(230, 57, 70, 0.08) 0%, transparent 70%);
+    top: 10%;
+    left: 10%;
+    z-index: 1;
+    pointer-events: none;
+}
+.admin-login-body .ambient-glow-2 {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(230, 57, 70, 0.05) 0%, transparent 70%);
+    bottom: 5%;
+    right: 5%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Translucent glass card */
+.admin-login-body .login-card {
+    width: 100%;
+    max-width: 26rem;
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    padding: 3rem 2.5rem;
+    border-radius: 0; /* Premium sharp corners matching system shapes */
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+    position: relative;
+    z-index: 10;
+    animation: fadeInScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.96) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.admin-login-body .login-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.admin-login-body .login-logo {
+    font-family: 'Geist', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.admin-login-body .login-logo .material-symbols-outlined {
+    font-size: 2.25rem;
+    color: var(--primary);
+}
+
+.admin-login-body .login-subtitle {
+    font-family: 'Geist', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.admin-login-body .form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.admin-login-body .form-label {
+    display: block;
+    font-family: 'Geist', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 0.625rem;
+}
+
+.admin-login-body .input-wrapper {
+    position: relative;
+}
+
+.admin-login-body .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 1.25rem;
+    pointer-events: none;
+    transition: color 0.25s;
+}
+
+.admin-login-body .form-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s, background-color 0.25s;
+}
+
+.admin-login-body .form-input:focus {
+    border-color: var(--primary);
+    background-color: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 15px rgba(230, 57, 70, 0.15);
+}
+
+.admin-login-body .form-input:focus + .input-icon {
+    color: var(--primary);
+}
+
+/* Error Label */
+.admin-login-body .error-message {
+    background: rgba(186, 26, 26, 0.15);
+    border: 1px solid rgba(186, 26, 26, 0.3);
+    color: #ffb4ab;
+    font-size: 0.8125rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-login-body .error-message .material-symbols-outlined {
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+
+/* CTA Button */
+.admin-login-body .btn-login {
+    width: 100%;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    font-family: 'Geist', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(230, 57, 70, 0.3);
+    transition: background-color 0.25s, transform 0.2s, box-shadow 0.25s;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.admin-login-body .btn-login:hover {
+    background: #ff4d5a;
+    box-shadow: 0 6px 30px rgba(230, 57, 70, 0.45);
+}
+
+.admin-login-body .btn-login:active {
+    transform: scale(0.98);
+}
+
+.admin-login-body .btn-login .material-symbols-outlined {
+    font-size: 1.125rem;
+}
+
+.admin-login-body .footer-links {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.admin-login-body .footer-link {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.admin-login-body .footer-link:hover {
+    color: var(--text-primary);
+}
+
+.admin-login-body .footer-link .material-symbols-outlined {
+    font-size: 1rem;
+}
+

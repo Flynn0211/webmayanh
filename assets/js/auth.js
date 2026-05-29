@@ -1,4 +1,4 @@
-﻿// File: js/auth.js
+// File: js/auth.js
 
 // Khởi tạo dữ liệu mặc định khi script load
 (function initAuthData() {
@@ -68,23 +68,38 @@ function logout() {
 
 function getCurrentUser() {
     const userStr = localStorage.getItem('currentUser');
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr || userStr === '[object Object]') {
+        localStorage.removeItem('currentUser');
+        return null;
+    }
+    try {
+        return JSON.parse(userStr);
+    } catch (e) {
+        localStorage.removeItem('currentUser');
+        return null;
+    }
 }
 
 // Cập nhật giao diện thanh Navbar dựa theo trạng thái Đăng nhập
 function updateAuthUI() {
     const currentUser = getCurrentUser();
-    // Các phần tử cần gắn class 'auth-login-btn' để JS tự tìm và thay đổi nội dung
     const loginBtns = document.querySelectorAll('.auth-login-btn'); 
-    // Các phần tử cần gắn class 'auth-admin-btn' để JS tự tìm và ẩn/hiện
     const adminBtns = document.querySelectorAll('.auth-admin-btn');
+    const profileBtns = document.querySelectorAll('.auth-profile-btn');
+    const logoutBtns = document.querySelectorAll('.auth-logout-btn');
     
     if (currentUser) {
-        // Trạng thái đã đăng nhập
+        // Trạng thái đã đăng nhập: ẩn nút Đăng nhập, hiện nút Tài khoản & Đăng xuất
         loginBtns.forEach(btn => {
-            btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">logout</span> Đăng xuất`;
+            btn.classList.add('hidden');
+        });
+        profileBtns.forEach(btn => {
+            btn.classList.remove('hidden');
+            btn.title = `Tài khoản của ${currentUser.fullname}`;
+        });
+        logoutBtns.forEach(btn => {
+            btn.classList.remove('hidden');
             btn.title = `Đang đăng nhập: ${currentUser.fullname}`;
-            btn.href = "#";
             btn.onclick = (e) => {
                 e.preventDefault();
                 logout();
@@ -94,26 +109,35 @@ function updateAuthUI() {
         // Kiểm tra quyền Admin
         adminBtns.forEach(btn => {
             if (currentUser.role === 'admin') {
-                btn.style.display = ''; // Hiện
+                btn.classList.remove('hidden'); // Hiện
             } else {
-                btn.style.display = 'none'; // Ẩn
+                btn.classList.add('hidden'); // Ẩn
             }
         });
     } else {
-        // Trạng thái chưa đăng nhập
+        // Trạng thái chưa đăng nhập: hiện nút Đăng nhập, ẩn các nút còn lại
         loginBtns.forEach(btn => {
-            btn.innerHTML = "Đăng nhập";
-            btn.href = "index.php?page=login";
-            btn.onclick = null;
+            btn.classList.remove('hidden');
+        });
+        profileBtns.forEach(btn => {
+            btn.classList.add('hidden');
+        });
+        logoutBtns.forEach(btn => {
+            btn.classList.add('hidden');
         });
         
         // Luôn ẩn nút Quản trị nếu chưa login
         adminBtns.forEach(btn => {
-            btn.style.display = 'none';
+            btn.classList.add('hidden');
         });
     }
 }
 
-// Tự động chạy cập nhật UI khi Load xong HTML
-document.addEventListener("DOMContentLoaded", updateAuthUI);
+// Chạy updateAuthUI() ngay khi DOM sẵn sàng.
+// Nếu script load sau DOMContentLoaded (cuối body), gọi trực tiếp luôn.
+if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", updateAuthUI);
+} else {
+    updateAuthUI();
+}
 

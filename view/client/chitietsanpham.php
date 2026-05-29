@@ -1,4 +1,4 @@
-﻿<?php $activeNav = 'mayanh'; ?>
+<?php $activeNav = 'mayanh'; ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -84,7 +84,7 @@
 
 <?php include 'view/client/layout/_footer_dark.php'; ?>
 
-<script src="assets/js/auth.js"></script>
+<script src="assets/js/auth.js?v=2.0"></script>
 <script src="assets/js/chitietsanpham.js"></script>
 </body>
 </html>

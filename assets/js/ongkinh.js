@@ -1,4 +1,4 @@
-// File: js/mayanh.js
+// File: assets/js/ongkinh.js
 
 document.addEventListener("DOMContentLoaded", function() {
     const productGrid   = document.getElementById('productGrid');
@@ -7,12 +7,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const sortSelect    = document.getElementById('sortSelect');
     const brandBtns     = document.querySelectorAll('.brand-btn');
 
-    // Load dynamically from database injection, fallback to local storage if empty
-    let allProducts = (window.dbProducts && window.dbProducts.length > 0) ? window.dbProducts : (JSON.parse(localStorage.getItem('products')) || []);
+    // ── Complete Catalog Dataset (Cameras & Lenses) ───────────
+    // Fetch products directly from live MySQL database records injected via window.dbProducts
+    let liveProducts = (window.dbProducts && window.dbProducts.length > 0) ? window.dbProducts : (JSON.parse(localStorage.getItem('products')) || []);
     
-    // Sync local storage with latest database records
-    localStorage.setItem('products', JSON.stringify(allProducts));
+    // Sync local storage with latest database records for consistent detail pages, cart, and wishlist behavior
+    localStorage.setItem('products', JSON.stringify(liveProducts));
 
+    let allProducts  = liveProducts;
     let currentBrand = 'all';
 
     updateCartBadge();
@@ -41,8 +43,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // ── Render ────────────────────────────────────────────────
     function renderProducts() {
-        // Exclude lens items and show only cameras precisely
-        let filtered = allProducts.filter(p => p.category === 'camera');
+        // Filter out only lenses
+        let filtered = allProducts.filter(p => p.category === 'lens');
 
         // 1. Filter brand
         if (currentBrand !== 'all') {
@@ -139,4 +141,3 @@ window.updateCartBadge = function() {
         else { badge.classList.add('hidden'); }
     }
 };
-

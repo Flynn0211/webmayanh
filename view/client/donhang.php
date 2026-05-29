@@ -1,4 +1,4 @@
-﻿<?php $activeNav = 'donhang'; ?>
+<?php $activeNav = 'donhang'; ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -35,7 +35,7 @@
 
 <?php include 'view/client/layout/_footer_light.php'; ?>
 
-<script src="assets/js/auth.js"></script>
+<script src="assets/js/auth.js?v=2.0"></script>
 <script src="assets/js/donhang.js"></script>
 </body>
 </html>
