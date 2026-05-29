@@ -24,8 +24,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
 
-    // Get products from localStorage
-    const products = JSON.parse(localStorage.getItem('products')) || [];
+    const products = window.dbProducts || [];
     
     const errorState = document.getElementById('errorState');
     const detailContainer = document.getElementById('productDetailContainer');

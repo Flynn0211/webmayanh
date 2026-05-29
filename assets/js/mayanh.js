@@ -7,11 +7,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const sortSelect    = document.getElementById('sortSelect');
     const brandBtns     = document.querySelectorAll('.brand-btn');
 
-    // Load dynamically from database injection, fallback to local storage if empty
-    let allProducts = (window.dbProducts && window.dbProducts.length > 0) ? window.dbProducts : (JSON.parse(localStorage.getItem('products')) || []);
-    
-    // Sync local storage with latest database records
-    localStorage.setItem('products', JSON.stringify(allProducts));
+    let allProducts = window.dbProducts || [];
 
     let currentBrand = 'all';
 

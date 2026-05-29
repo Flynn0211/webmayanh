@@ -8,13 +8,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const brandBtns     = document.querySelectorAll('.brand-btn');
 
     // ── Complete Catalog Dataset (Cameras & Lenses) ───────────
-    // Fetch products directly from live MySQL database records injected via window.dbProducts
-    let liveProducts = (window.dbProducts && window.dbProducts.length > 0) ? window.dbProducts : (JSON.parse(localStorage.getItem('products')) || []);
-    
-    // Sync local storage with latest database records for consistent detail pages, cart, and wishlist behavior
-    localStorage.setItem('products', JSON.stringify(liveProducts));
-
-    let allProducts  = liveProducts;
+    let allProducts = window.dbProducts || [];
     let currentBrand = 'all';
 
     updateCartBadge();

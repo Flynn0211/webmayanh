@@ -1,11 +1,7 @@
 // File: js/trangchu.js
 
 document.addEventListener("DOMContentLoaded", function() {
-    // Fetch products directly from live MySQL database records injected via window.dbProducts
-    let liveProducts = (window.dbProducts && window.dbProducts.length > 0) ? window.dbProducts : (JSON.parse(localStorage.getItem('products')) || []);
-    
-    // Sync local storage with latest database records for consistent detail pages, cart, and wishlist behavior
-    localStorage.setItem('products', JSON.stringify(liveProducts));
+    let liveProducts = window.dbProducts || [];
 
     const products    = liveProducts.filter(p => p.category === 'camera');
     const productGrid = document.getElementById('productGrid');

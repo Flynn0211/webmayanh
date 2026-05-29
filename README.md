@@ -45,7 +45,6 @@
 │       └── admin.php        # Bảng điều khiển quản trị (Dashboard, thống kê, quản lý tổng hợp)
 │
 ├── config.php               # Chứa các hằng số hệ thống (URL gốc, cấu hình Gửi Email...)
-├── databasenote.md          # Ghi chú cấu trúc cơ sở dữ liệu
 ├── index.php                # (Router) Cổng vào duy nhất điều phối mọi URL của hệ thống
 └── README.md                # File hướng dẫn và tài liệu dự án
 ```
