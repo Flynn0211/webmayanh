@@ -16,7 +16,26 @@ class AuthController {
 
             $row = UserModel::getUserByUsername($conn, $username);
             if ($row) {
-                if ($password === $row['mat_khau']) {
+                // Check if the password matches using password_verify
+                // Note: We also fallback to plain text check and rehash for existing users seamlessly if needed,
+                // but since we want to enforce hash, let's just use password_verify or handle migration.
+                $is_password_correct = false;
+                if (password_verify($password, $row['mat_khau'])) {
+                    $is_password_correct = true;
+                } elseif ($password === $row['mat_khau']) {
+                    // Fallback for old plain-text passwords: if it matches plain text, we should ideally rehash it
+                    // but for now we'll let them in.
+                    $is_password_correct = true;
+                    // Auto-upgrade password to hash
+                    $newHash = password_hash($password, PASSWORD_DEFAULT);
+                    $upgradeStmt = $conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
+                    if ($upgradeStmt) {
+                        $upgradeStmt->bind_param("ss", $newHash, $username);
+                        $upgradeStmt->execute();
+                    }
+                }
+
+                if ($is_password_correct) {
                     // Create user profile snapshot
                     $user_data = [
                         'username' => $row['username'],
@@ -40,15 +59,11 @@ class AuthController {
                         $_SESSION['admin_username']  = $row['username'];
                         $_SESSION['admin_fullname']  = $row['ho_ten'];
 
-                        $js_login_success = "<script>
-                            localStorage.setItem('currentUser', JSON.stringify(" . json_encode($user_data, JSON_UNESCAPED_UNICODE) . "));
-                            window.location.href = 'admin/index.php';
-                        </script>";
+                        header("Location: admin/index.php");
+                        exit;
                     } else {
-                        $js_login_success = "<script>
-                            localStorage.setItem('currentUser', JSON.stringify(" . json_encode($user_data, JSON_UNESCAPED_UNICODE) . "));
-                            window.location.href = 'index.php?page=trangchu';
-                        </script>";
+                        header("Location: index.php?page=trangchu");
+                        exit;
                     }
                 } else {
                     $login_error = "Sai mật khẩu đăng nhập!";
@@ -58,7 +73,7 @@ class AuthController {
             }
         }
 
-        return ['error' => $login_error, 'success' => $js_login_success];
+        return ['error' => $login_error, 'success' => ''];
     }
 
     /**
@@ -94,17 +109,15 @@ class AuthController {
                     $_SESSION['client_email']     = '';
                     $_SESSION['client_phone']     = '';
 
-                    $js_login_success = "<script>
-                        localStorage.setItem('currentUser', JSON.stringify(" . json_encode($user_data, JSON_UNESCAPED_UNICODE) . "));
-                        window.location.href = 'index.php?page=trangchu';
-                    </script>";
+                    header("Location: index.php?page=trangchu");
+                    exit;
                 } else {
                     $login_error = "Lỗi khi tạo tài khoản mới.";
                 }
             }
         }
 
-        return ['error' => $login_error, 'success' => $js_login_success];
+        return ['error' => $login_error, 'success' => ''];
     }
 
     /**
@@ -123,7 +136,20 @@ class AuthController {
                 $row = UserModel::getUserByUsername($conn, $username);
                 if ($row) {
                     if ($row['loai_tk'] === 'Admin') {
-                        if ($password === $row['mat_khau']) {
+                        $is_password_correct = false;
+                        if (password_verify($password, $row['mat_khau'])) {
+                            $is_password_correct = true;
+                        } elseif ($password === $row['mat_khau']) {
+                            $is_password_correct = true;
+                            $newHash = password_hash($password, PASSWORD_DEFAULT);
+                            $upgradeStmt = $conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
+                            if ($upgradeStmt) {
+                                $upgradeStmt->bind_param("ss", $newHash, $username);
+                                $upgradeStmt->execute();
+                            }
+                        }
+
+                        if ($is_password_correct) {
                             $_SESSION['admin_logged_in'] = true;
                             $_SESSION['admin_username'] = $row['username'];
                             $_SESSION['admin_fullname'] = $row['ho_ten'];
@@ -136,19 +162,7 @@ class AuthController {
                             $_SESSION['client_email']     = $row['email'];
                             $_SESSION['client_phone']     = $row['sdt'];
 
-                            $user_data = [
-                                'username' => $row['username'],
-                                'fullname' => $row['ho_ten'],
-                                'role'     => 'admin',
-                                'email'    => $row['email'],
-                                'phone'    => $row['sdt']
-                            ];
-
-                            // Trả về HTML chứa script set localStorage rồi mới redirect
-                            echo "<script>
-                                localStorage.setItem('currentUser', JSON.stringify(" . json_encode($user_data, JSON_UNESCAPED_UNICODE) . "));
-                                window.location.href = 'index.php';
-                            </script>";
+                            header("Location: index.php");
                             exit;
                         } else {
                             $login_error = "Mật khẩu đăng nhập không chính xác.";
@@ -175,8 +189,7 @@ class AuthController {
         unset($_SESSION['client_role']);
         unset($_SESSION['client_email']);
         unset($_SESSION['client_phone']);
-        // Clear localStorage via JS then redirect
-        echo "<script>localStorage.removeItem('currentUser'); window.location.href='index.php?page=trangchu';</script>";
+        header("Location: index.php?page=trangchu");
         exit;
     }
 
@@ -205,6 +218,10 @@ class AuthController {
      */
     public static function getProfile() {
         global $conn;
+        if ($conn === false) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
+            return;
+        }
         if (session_status() === PHP_SESSION_NONE) session_start();
         $username = isset($_SESSION['client_username']) ? $_SESSION['client_username'] : '';
         if (!$username) {
@@ -228,6 +245,10 @@ class AuthController {
      */
     public static function updateProfile() {
         global $conn;
+        if ($conn === false) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
+            return;
+        }
         if (session_status() === PHP_SESSION_NONE) session_start();
         $username = isset($_SESSION['client_username']) ? $_SESSION['client_username'] : '';
         if (!$username) {
@@ -265,6 +286,10 @@ class AuthController {
      */
     public static function changePassword() {
         global $conn;
+        if ($conn === false) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
+            return;
+        }
         if (session_status() === PHP_SESSION_NONE) session_start();
         $username = isset($_SESSION['client_username']) ? $_SESSION['client_username'] : '';
         if (!$username) {

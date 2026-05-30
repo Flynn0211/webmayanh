@@ -7,6 +7,9 @@ class ProductController {
      * Fetch active database products and clean/format them for frontend JSON consumption.
      */
     public static function getAllActiveProducts($conn) {
+        if ($conn === false) {
+            return [];
+        }
         $rawProducts = ProductModel::getActiveProducts($conn);
         $db_products = [];
 
@@ -51,6 +54,10 @@ class ProductController {
      */
     public static function getReviews() {
         global $conn;
+        if ($conn === false) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
+            return;
+        }
         if (!isset($_GET['ma_hh'])) return;
         $ma_hh = (int)$_GET['ma_hh'];
         
@@ -64,6 +71,10 @@ class ProductController {
      */
     public static function handleAddReview() {
         global $conn;
+        if ($conn === false) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
+            return;
+        }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
         if (session_status() === PHP_SESSION_NONE) session_start();
         
