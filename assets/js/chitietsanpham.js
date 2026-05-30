@@ -52,7 +52,14 @@ document.addEventListener("DOMContentLoaded", function() {
         brandElem.className = `font-label-caps text-label-caps block mb-2 tracking-[0.2em] ${getBrandColor(product.brand)}`;
         
         document.getElementById('detailName').innerText = product.name;
-        document.getElementById('detailPrice').innerText = formatPrice(product.price);
+        
+        const priceElem = document.getElementById('detailPrice');
+        if (product.raw_original_price > product.raw_price) {
+            priceElem.innerHTML = `<span style="text-decoration: line-through; color: #888; font-size: 0.7em; margin-right: 12px; font-weight: normal;">${product.original_price}</span>${formatPrice(product.price)}`;
+        } else {
+            priceElem.innerText = formatPrice(product.price);
+        }
+
         document.getElementById('detailImage').src = product.image;
         document.getElementById('detailImage').alt = product.name;
         
@@ -148,6 +155,72 @@ document.addEventListener("DOMContentLoaded", function() {
                 badge.classList.add('hidden');
             }
         }
+    }
+    
+    // Reviews Logic
+    function loadReviews() {
+        fetch(`index.php?action=get_reviews&ma_hh=${product.id}`)
+        .then(res => res.json())
+        .then(data => {
+            const list = document.getElementById('reviewsList');
+            if (data.success && data.reviews.length > 0) {
+                list.innerHTML = data.reviews.map(r => `
+                    <div style="padding: 1rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 4px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <strong>${r.ho_ten} (@${r.username})</strong>
+                            <span style="color: #888; font-size: 0.85rem;">${r.ngay_bl}</span>
+                        </div>
+                        <div style="color: #fbbf24; margin-bottom: 0.5rem;">${'★'.repeat(r.so_sao)}${'☆'.repeat(5 - r.so_sao)}</div>
+                        <p style="margin: 0; line-height: 1.5;">${r.noi_dung}</p>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<p style="color: #888;">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá sản phẩm này!</p>';
+            }
+        })
+        .catch(err => {
+            document.getElementById('reviewsList').innerHTML = '<p style="color: red;">Lỗi tải đánh giá.</p>';
+        });
+    }
+
+    if (product) {
+        loadReviews();
+
+        document.getElementById('btnSubmitReview').onclick = function() {
+            const content = document.getElementById('reviewContent').value.trim();
+            const stars = document.getElementById('reviewStars').value;
+
+            if (!content) {
+                alert("Vui lòng nhập nội dung đánh giá!");
+                return;
+            }
+
+            const payload = {
+                ma_hh: product.id,
+                so_sao: stars,
+                noi_dung: content
+            };
+
+            fetch('index.php?action=add_review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    document.getElementById('reviewContent').value = '';
+                    loadReviews();
+                } else {
+                    alert(data.message || "Lỗi khi gửi đánh giá.");
+                    if (data.message && data.message.includes("đăng nhập")) {
+                        window.location.href = 'index.php?page=login';
+                    }
+                }
+            })
+            .catch(err => alert("Lỗi mạng. Vui lòng thử lại sau!"));
+        };
     }
 });
 

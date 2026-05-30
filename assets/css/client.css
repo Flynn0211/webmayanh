@@ -1280,13 +1280,19 @@
 @media (min-width: 640px) { .order-card__header { flex-direction: row; justify-content: space-between; align-items: center; } }
 .order-card__id { font-family: 'Geist', sans-serif; font-size: 1.125rem; font-weight: 700; color: var(--on-surface); }
 .order-card__date { font-size: 0.875rem; color: var(--on-surface-variant); margin-top: 0.25rem; font-weight: 500; }
-.order-card__body { padding: 1rem 2rem; }
+.order-card__body {
+    padding: 1.5rem 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
 .order-card__item {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    padding-block: 1.5rem;
-    border-bottom: 1px dashed var(--outline-variant);
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px dashed var(--outline-variant);
+    border-radius: 8px;
 }
 .order-card__item:last-child { border-bottom: none; }
 .order-card__item-img {
@@ -1599,9 +1605,7 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 3rem;
-    max-width: var(--container-max);
-    margin-inline: auto;
-    padding: 4rem var(--margin-mobile);
+    padding: 4rem 5%;
 }
 
 @media (min-width: 992px) {

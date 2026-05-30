@@ -82,8 +82,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
         cartContainer.innerHTML  = html;
         subtotalElem.innerText   = formatPriceLocal(total);
-        totalElem.innerText      = formatPriceLocal(total);
+        
+        let finalTotal = total;
+        const discountRow = document.getElementById('cartDiscountRow');
+        
+        if (window.discountPercent && window.discountPercent > 0) {
+            const discountAmt = total * (window.discountPercent / 100);
+            finalTotal = total - discountAmt;
+            
+            if (!discountRow) {
+                const row = document.createElement('div');
+                row.className = 'cart-summary__row';
+                row.id = 'cartDiscountRow';
+                row.innerHTML = `<span class="cart-summary__row-label" style="color: var(--primary);">GIẢM THÀNH VIÊN (${window.userTier} -${window.discountPercent}%)</span>
+                                 <span class="text-mono-spec" style="color: var(--primary);">- ${formatPriceLocal(discountAmt)}</span>`;
+                const divider = document.querySelector('.cart-summary__divider');
+                divider.parentNode.insertBefore(row, divider);
+            } else {
+                discountRow.innerHTML = `<span class="cart-summary__row-label" style="color: var(--primary);">GIẢM THÀNH VIÊN (${window.userTier} -${window.discountPercent}%)</span>
+                                         <span class="text-mono-spec" style="color: var(--primary);">- ${formatPriceLocal(discountAmt)}</span>`;
+                discountRow.style.display = 'flex';
+            }
+        }
+        
+        totalElem.innerText = formatPriceLocal(finalTotal);
     }
+    
+    // Fetch user profile to get membership tier before initial render
+    window.discountPercent = 0;
+    window.userTier = 'None';
+    fetch('index.php?action=get_profile')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.profile) {
+                window.userTier = data.profile.hang_thanh_vien;
+                if (window.userTier === 'Silver') window.discountPercent = 2;
+                if (window.userTier === 'Gold') window.discountPercent = 5;
+                if (window.userTier === 'Diamond') window.discountPercent = 10;
+            }
+            renderCart();
+        })
+        .catch(() => renderCart());
 
     window.changeQty = function(index, delta) {
         let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
@@ -110,9 +149,21 @@ document.addEventListener("DOMContentLoaded", () => {
         let total = 0;
         cart.forEach(item => { total += (parseInt(String(item.price).replace(/\D/g, '')) || 0) * item.quantity; });
 
+        const phoneInput = document.getElementById('customerPhone');
+        const voucherInput = document.getElementById('voucherCode');
+        
+        let phone = phoneInput ? phoneInput.value.trim() : '';
+        if (!phone) {
+            alert("Vui lòng nhập số điện thoại giao hàng.");
+            if (phoneInput) phoneInput.focus();
+            return;
+        }
+
         const checkoutData = {
             customerName: user.fullname,
             customerUsername: user.username,
+            customerPhone: phone,
+            voucherCode: voucherInput ? voucherInput.value.trim() : '',
             items: cart,
             totalRaw: total
         };
@@ -146,6 +197,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    renderCart();
+    // Initial render is now called after fetching profile data (see above)
 });
 

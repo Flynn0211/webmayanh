@@ -79,6 +79,34 @@
             <h2>THÔNG SỐ KỸ THUẬT</h2>
             <div id="detailSpecs" class="detail-specs-box">Đang tải thông số kỹ thuật...</div>
         </div>
+
+        <!-- Reviews -->
+        <div class="detail-specs-section" style="margin-top: 3rem;">
+            <h2>ĐÁNH GIÁ SẢN PHẨM</h2>
+            
+            <div id="reviewFormContainer" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 4px;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem; font-weight: 500;">Viết đánh giá của bạn</h3>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display:block; margin-bottom:0.5rem; font-size:0.9rem;">Số sao:</label>
+                    <select id="reviewStars" style="padding: 0.5rem; background: var(--surface); color: var(--on-surface); border: 1px solid var(--border); border-radius: 4px;">
+                        <option value="5">5 Sao (Tuyệt vời)</option>
+                        <option value="4">4 Sao (Tốt)</option>
+                        <option value="3">3 Sao (Khá)</option>
+                        <option value="2">2 Sao (Tệ)</option>
+                        <option value="1">1 Sao (Rất tệ)</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display:block; margin-bottom:0.5rem; font-size:0.9rem;">Nội dung:</label>
+                    <textarea id="reviewContent" rows="4" placeholder="Nhập đánh giá của bạn..." style="width: 100%; padding: 0.75rem; background: var(--surface); color: var(--on-surface); border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 0.95rem; resize: vertical;"></textarea>
+                </div>
+                <button id="btnSubmitReview" style="background: var(--primary); color: var(--on-primary); border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: 500; letter-spacing: 0.5px;">GỬI ĐÁNH GIÁ</button>
+            </div>
+
+            <div id="reviewsList" style="display: flex; flex-direction: column; gap: 1rem;">
+                <p style="color: #888;">Đang tải đánh giá...</p>
+            </div>
+        </div>
     </div>
 </main>
 

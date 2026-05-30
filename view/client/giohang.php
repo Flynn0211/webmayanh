@@ -58,6 +58,16 @@
                     <span id="cartTotal" class="cart-summary__total-val text-mono-spec">0 ₫</span>
                 </div>
 
+                <div class="cart-summary__form-group" style="margin-top: 1rem;">
+                    <label for="customerPhone" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.5rem; letter-spacing: 0.5px;">SỐ ĐIỆN THOẠI GIAO HÀNG *</label>
+                    <input type="text" id="customerPhone" placeholder="Nhập số điện thoại..." style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit;" required>
+                </div>
+
+                <div class="cart-summary__form-group" style="margin-top: 1rem; margin-bottom: 1.5rem;">
+                    <label for="voucherCode" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.5rem; letter-spacing: 0.5px;">MÃ GIẢM GIÁ (NẾU CÓ)</label>
+                    <input type="text" id="voucherCode" placeholder="Nhập mã voucher..." style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit; text-transform: uppercase;">
+                </div>
+
                 <button id="btnCheckout" class="btn-checkout">TIẾN HÀNH THANH TOÁN</button>
 
                 <p class="cart-secure-note">THANH TOÁN AN TOÀN VỚI SSL 256-BIT</p>

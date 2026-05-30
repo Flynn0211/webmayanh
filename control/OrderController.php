@@ -29,39 +29,70 @@ class OrderController {
         $customerUsername = isset($data['customerUsername']) ? trim($data['customerUsername']) : '';
         $totalRaw = isset($data['totalRaw']) ? (float)$data['totalRaw'] : 0;
         
+        $customerPhone = isset($data['customerPhone']) && !empty(trim($data['customerPhone'])) ? trim($data['customerPhone']) : '0900000000';
+        $voucherCode = isset($data['voucherCode']) ? trim($data['voucherCode']) : '';
+        
         // Lookup customer ID from tai_khoan based on username
         $ma_khach_hang = null;
+        $hang_thanh_vien = 'None';
+        $email_khach_hang = null;
         if (!empty($customerUsername)) {
-            $stmt = $conn->prepare("SELECT ma_tk FROM tai_khoan WHERE username = ?");
+            $stmt = $conn->prepare("SELECT ma_tk, hang_thanh_vien, email FROM tai_khoan WHERE username = ?");
             if ($stmt) {
                 $stmt->bind_param("s", $customerUsername);
                 $stmt->execute();
                 $res = $stmt->get_result();
                 if ($row = $res->fetch_assoc()) {
                     $ma_khach_hang = $row['ma_tk'];
+                    $hang_thanh_vien = $row['hang_thanh_vien'];
+                    $email_khach_hang = $row['email'];
                 }
             }
         }
+
+        // Validate Voucher
+        $giam_gia = 0;
+        $ma_voucher = null;
+        if (!empty($voucherCode)) {
+            require_once __DIR__ . '/../model/VoucherModel.php';
+            $voucherData = VoucherModel::validateVoucher($conn, $voucherCode, $totalRaw);
+            if ($voucherData['valid']) {
+                $giam_gia = $voucherData['discount'];
+                $ma_voucher = $voucherData['id'];
+            }
+        }
+
+        // Membership Discount
+        $membership_discount_percent = 0;
+        if ($hang_thanh_vien === 'Silver') $membership_discount_percent = 2;
+        if ($hang_thanh_vien === 'Gold') $membership_discount_percent = 5;
+        if ($hang_thanh_vien === 'Diamond') $membership_discount_percent = 10;
+        
+        $membership_discount_amount = ($totalRaw - $giam_gia) * ($membership_discount_percent / 100);
+        $totalThanhToan = max(0, $totalRaw - $giam_gia - $membership_discount_amount);
 
         // Begin Transaction
         $conn->begin_transaction();
         try {
             // 1. Insert into don_hang
-            // ma_dh, ma_khach_hang, ten_nguoi_nhan, sdt_nguoi_nhan, tong_tien_hang, phi_van_chuyen, giam_gia_voucher, tong_thanh_toan, phuong_thuc_thanh_toan, trang_thai_don, dia_chi_giao
-            $sdt = '0900000000'; // Default or fetch from user
             $phi_vc = 0;
-            $giam_gia = 0;
-            $trang_thai = 'Chờ Xác Nhận';
+            $trang_thai = 'ChoXacNhan';
             
-            $stmt_order = $conn->prepare("INSERT INTO don_hang (ma_khach_hang, ten_nguoi_nhan, sdt_nguoi_nhan, tong_tien_hang, phi_van_chuyen, giam_gia_voucher, tong_thanh_toan, phuong_thuc_thanh_toan, trang_thai_don) VALUES (?, ?, ?, ?, ?, ?, ?, 'COD', ?)");
-            $stmt_order->bind_param("issdddds", $ma_khach_hang, $customerName, $sdt, $totalRaw, $phi_vc, $giam_gia, $totalRaw, $trang_thai);
+            $stmt_order = $conn->prepare("INSERT INTO don_hang (ma_khach_hang, ma_voucher, ten_nguoi_nhan, sdt_nguoi_nhan, tong_tien_hang, phi_van_chuyen, giam_gia_voucher, tong_thanh_toan, phuong_thuc_thanh_toan, trang_thai_don) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'COD', ?)");
+            $stmt_order->bind_param("iissdddds", $ma_khach_hang, $ma_voucher, $customerName, $customerPhone, $totalRaw, $phi_vc, $giam_gia, $totalThanhToan, $trang_thai);
             $stmt_order->execute();
             
             $ma_dh = $conn->insert_id;
 
-            // 2. Insert items into chi_tiet_don_hang and deduct stock
+            // 1b. Insert initial history
+            $stmt_history = $conn->prepare("INSERT INTO lich_su_giao_hang (ma_dh, trang_thai, mo_ta) VALUES (?, ?, 'Đơn hàng mới được tạo')");
+            $stmt_history->bind_param("is", $ma_dh, $trang_thai);
+            $stmt_history->execute();
+
+            // 2. Insert items into chi_tiet_don_hang and deduct stock smartly
             $stmt_item = $conn->prepare("INSERT INTO chi_tiet_don_hang (ma_dh, ma_hh, so_luong, gia_luc_mua) VALUES (?, ?, ?, ?)");
-            $stmt_stock = $conn->prepare("UPDATE ton_kho_chi_tiet SET so_luong_ton = GREATEST(0, so_luong_ton - ?) WHERE ma_hh = ?");
+            $stmt_get_stock = $conn->prepare("SELECT ma_kho, so_luong_ton FROM ton_kho_chi_tiet WHERE ma_hh = ? AND so_luong_ton > 0 ORDER BY so_luong_ton DESC");
+            $stmt_update_stock = $conn->prepare("UPDATE ton_kho_chi_tiet SET so_luong_ton = ? WHERE ma_hh = ? AND ma_kho = ?");
 
             foreach ($items as $item) {
                 $ma_hh = (int)$item['id'];
@@ -75,12 +106,67 @@ class OrderController {
                 $stmt_item->bind_param("iiid", $ma_dh, $ma_hh, $qty, $priceRaw);
                 $stmt_item->execute();
 
-                // Deduct stock
-                $stmt_stock->bind_param("ii", $qty, $ma_hh);
-                $stmt_stock->execute();
+                // Smart Multi-warehouse Deduct stock
+                $stmt_get_stock->bind_param("i", $ma_hh);
+                $stmt_get_stock->execute();
+                $res_stock = $stmt_get_stock->get_result();
+                $qty_to_deduct = $qty;
+                
+                while ($qty_to_deduct > 0 && $row = $res_stock->fetch_assoc()) {
+                    $kho_id = $row['ma_kho'];
+                    $stock_avail = $row['so_luong_ton'];
+                    
+                    if ($stock_avail >= $qty_to_deduct) {
+                        $new_stock = $stock_avail - $qty_to_deduct;
+                        $stmt_update_stock->bind_param("iii", $new_stock, $ma_hh, $kho_id);
+                        $stmt_update_stock->execute();
+                        $qty_to_deduct = 0;
+                    } else {
+                        $new_stock = 0;
+                        $stmt_update_stock->bind_param("iii", $new_stock, $ma_hh, $kho_id);
+                        $stmt_update_stock->execute();
+                        $qty_to_deduct -= $stock_avail;
+                    }
+                }
             }
 
             $conn->commit();
+
+            // After commit: Add user points and insert email notification
+            if ($ma_khach_hang) {
+                $points = floor($totalThanhToan / 10000); // 1 point for every 10,000 VND
+                
+                // Get current points
+                $res_pt = $conn->query("SELECT diem_tich_luy FROM tai_khoan WHERE ma_tk = $ma_khach_hang");
+                $curr_pt = $res_pt->fetch_assoc()['diem_tich_luy'] + $points;
+                
+                // Determine tier
+                $new_tier = 'None';
+                if ($curr_pt >= 10000) $new_tier = 'Diamond';
+                elseif ($curr_pt >= 5000) $new_tier = 'Gold';
+                elseif ($curr_pt >= 1000) $new_tier = 'Silver';
+                
+                $conn->query("UPDATE tai_khoan SET diem_tich_luy = $curr_pt, hang_thanh_vien = '$new_tier' WHERE ma_tk = $ma_khach_hang");
+                
+                $msg = "Đơn hàng #$ma_dh của bạn đã được đặt thành công. Tổng thanh toán: " . number_format($totalThanhToan) . " VND.";
+                $stmt_email = $conn->prepare("INSERT INTO thong_bao_email (ma_tk_nhan, tieu_de, noi_dung) VALUES (?, 'Đặt hàng thành công', ?)");
+                if ($stmt_email) {
+                    $stmt_email->bind_param("is", $ma_khach_hang, $msg);
+                    $stmt_email->execute();
+                }
+
+                // Call SmtpMailer if available
+                if ($email_khach_hang && file_exists(__DIR__ . '/../model/SmtpMailer.php')) {
+                    require_once __DIR__ . '/../model/SmtpMailer.php';
+                    SmtpMailer::sendMail($email_khach_hang, "Đặt hàng thành công #$ma_dh", $msg);
+                }
+            }
+
+            // Deduct voucher usage if applied
+            if ($ma_voucher) {
+                $conn->query("UPDATE voucher SET so_luong = GREATEST(0, so_luong - 1) WHERE ma_voucher = $ma_voucher");
+            }
+
             echo json_encode(['success' => true, 'order_id' => $ma_dh]);
         } catch (Exception $e) {
             $conn->rollback();
@@ -182,6 +268,12 @@ class OrderController {
         $stmt->bind_param("si", $status, $orderId);
         
         if ($stmt->execute()) {
+            // Log to lich_su_giao_hang
+            $stmt_history = $conn->prepare("INSERT INTO lich_su_giao_hang (ma_dh, trang_thai, mo_ta) VALUES (?, ?, 'Cập nhật bởi Admin')");
+            if ($stmt_history) {
+                $stmt_history->bind_param("is", $orderId, $status);
+                $stmt_history->execute();
+            }
             echo json_encode(['success' => true]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Lỗi khi cập nhật trạng thái.']);

@@ -10,82 +10,240 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    // 2. Điền thông tin cá nhân
     const profileName = document.getElementById('profileName');
     const profileEmail = document.getElementById('profileEmail');
     const profilePhone = document.getElementById('profilePhone');
     const profileTier = document.getElementById('profileTier');
-    const profileAddress = document.getElementById('profileAddress');
 
-    if (profileName) profileName.textContent = user.fullname || user.username;
-    if (profileEmail) profileEmail.textContent = user.email || 'Chưa cập nhật email';
-    if (profilePhone) profilePhone.textContent = user.phone || 'Chưa cập nhật SĐT';
-    
-    // Tự động phân hạng thành viên theo role
-    if (profileTier) {
-        if (user.role === 'admin') {
-            profileTier.textContent = 'Leica Professional';
-        } else {
-            profileTier.textContent = 'Leica Member';
-        }
-    }
+    // 2. Fetch Profile from Backend
+    function loadProfile() {
+        fetch('index.php?action=get_profile')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const p = data.profile;
+                    if (profileName) profileName.textContent = p.ho_ten || user.username;
+                    if (profileEmail) profileEmail.textContent = p.email || 'Chưa cập nhật email';
+                    if (profilePhone) profilePhone.textContent = p.sdt || 'Chưa cập nhật SĐT';
+                    if (profileTier) profileTier.textContent = `${p.hang_thanh_vien} MEMBER (${p.diem_tich_luy} PTS)`;
 
-    // Nếu đã đăng nhập, thiết lập địa chỉ demo cho đồng bộ thiết kế
-    if (profileAddress) {
-        profileAddress.innerHTML = `
-            <strong>Studio của ${user.fullname || user.username}</strong><br/>
-            15 Lê Lợi, Phường Bến Nghé<br/>
-            Quận 1, Thành phố Hồ Chí Minh<br/>
-            Việt Nam
-        `;
-    }
+                    // Render Total Spent and Next Tier
+                    const profileSpent = document.getElementById('profileSpent');
+                    const profileNextTier = document.getElementById('profileNextTier');
+                    const nextTierLabel = document.getElementById('nextTierLabel');
+                    
+                    // New Premium Card Elements
+                    const membershipCard = document.getElementById('membershipCard');
+                    const tierProgressBar = document.getElementById('tierProgressBar');
+                    const currentTierName = document.getElementById('currentTierName');
+                    const nextTierName = document.getElementById('nextTierName');
+                    
+                    if (profileSpent && profileNextTier && nextTierLabel) {
+                        const pts = parseInt(p.diem_tich_luy) || 0;
+                        const totalSpent = pts * 10000;
+                        profileSpent.textContent = new Intl.NumberFormat('vi-VN').format(totalSpent) + 'đ';
 
-    // 3. Render danh sách 3 đơn hàng gần đây nhất
-    const recentOrdersBody = document.getElementById('recentOrdersBody');
-    const recentOrdersContainer = document.getElementById('recentOrdersContainer');
+                        let nextTierPts = 0;
+                        let progress = 0;
 
-    if (recentOrdersBody) {
-        const allOrders = JSON.parse(localStorage.getItem('orders')) || [];
-        const userOrders = allOrders.filter(o => o.customerUsername === user.username);
-
-        if (userOrders.length === 0) {
-            recentOrdersBody.innerHTML = `
-                <div style="padding: 3rem; text-align: center; color: var(--on-surface-variant); font-size: 0.875rem;">
-                    <span class="material-symbols-outlined" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: var(--outline);">receipt_long</span>
-                    Bạn chưa có đơn hàng nào gần đây.
-                </div>
-            `;
-        } else {
-            // Lấy 3 đơn hàng mới nhất (đảo ngược mảng)
-            const recentOrders = [...userOrders].reverse().slice(0, 3);
-            let html = '';
-
-            recentOrders.forEach(order => {
-                const status = order.status || 'Đang Xử Lý';
-                html += `
-                    <div class="order-spec-table__row">
-                        <div class="order-spec-table__cell">
-                            <span class="order-spec-table__cell-label">Mã đơn</span>
-                            <span class="order-spec-table__cell-val" style="font-family: 'Geist', sans-serif; font-weight: 500;">#${order.id}</span>
-                        </div>
-                        <div class="order-spec-table__cell">
-                            <span class="order-spec-table__cell-label">Ngày đặt</span>
-                            <span class="order-spec-table__cell-val">${order.date}</span>
-                        </div>
-                        <div class="order-spec-table__cell">
-                            <span class="order-spec-table__cell-label">Người nhận</span>
-                            <span class="order-spec-table__cell-val order-spec-table__cell-val--name">${order.customerName || user.fullname}</span>
-                        </div>
-                        <div class="order-spec-table__cell right">
-                            <span class="order-spec-table__cell-label">Trạng thái</span>
-                            <span class="order-spec-table__cell-val order-spec-table__cell-val--status">${status}</span>
-                        </div>
-                    </div>
-                `;
+                        if (pts < 1000) {
+                            nextTierLabel.textContent = 'Lên hạng Silver:';
+                            const needed = (1000 - pts) * 10000;
+                            profileNextTier.textContent = `Cần mua thêm ${new Intl.NumberFormat('vi-VN').format(needed)}đ`;
+                            
+                            // Card Style: None -> Silver
+                            if (membershipCard) membershipCard.style.background = 'linear-gradient(135deg, #434343 0%, #000000 100%)';
+                            if (tierProgressBar) {
+                                progress = (pts / 1000) * 100;
+                                tierProgressBar.style.width = `${progress}%`;
+                                tierProgressBar.style.background = 'linear-gradient(90deg, #e0e0e0, #9e9e9e)';
+                            }
+                            if (currentTierName) currentTierName.textContent = 'NONE';
+                            if (nextTierName) nextTierName.textContent = 'SILVER (1k)';
+                            
+                        } else if (pts < 5000) {
+                            nextTierLabel.textContent = 'Lên hạng Gold:';
+                            const needed = (5000 - pts) * 10000;
+                            profileNextTier.textContent = `Cần mua thêm ${new Intl.NumberFormat('vi-VN').format(needed)}đ`;
+                            
+                            // Card Style: Silver -> Gold
+                            if (membershipCard) membershipCard.style.background = 'linear-gradient(135deg, #757f9a 0%, #d7dde8 100%)';
+                            if (tierProgressBar) {
+                                progress = ((pts - 1000) / 4000) * 100;
+                                tierProgressBar.style.width = `${progress}%`;
+                                tierProgressBar.style.background = 'linear-gradient(90deg, #ffd700, #ff8c00)';
+                            }
+                            if (currentTierName) currentTierName.textContent = 'SILVER';
+                            if (nextTierName) nextTierName.textContent = 'GOLD (5k)';
+                            // Change text color for light card
+                            if (membershipCard) membershipCard.style.color = '#333';
+                            
+                        } else if (pts < 10000) {
+                            nextTierLabel.textContent = 'Lên hạng Diamond:';
+                            const needed = (10000 - pts) * 10000;
+                            profileNextTier.textContent = `Cần mua thêm ${new Intl.NumberFormat('vi-VN').format(needed)}đ`;
+                            
+                            // Card Style: Gold -> Diamond
+                            if (membershipCard) {
+                                membershipCard.style.background = 'linear-gradient(135deg, #ffd700 0%, #ff8c00 100%)';
+                                membershipCard.style.color = '#000';
+                            }
+                            if (tierProgressBar) {
+                                progress = ((pts - 5000) / 5000) * 100;
+                                tierProgressBar.style.width = `${progress}%`;
+                                tierProgressBar.style.background = 'linear-gradient(90deg, #b9f2ff, #00d2ff)';
+                            }
+                            if (currentTierName) currentTierName.textContent = 'GOLD';
+                            if (nextTierName) nextTierName.textContent = 'DIAMOND (10k)';
+                            
+                        } else {
+                            nextTierLabel.textContent = 'Thăng hạng tiếp theo:';
+                            profileNextTier.textContent = 'Đã đạt cấp bậc tối đa';
+                            
+                            // Card Style: Diamond
+                            if (membershipCard) {
+                                membershipCard.style.background = 'linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%)';
+                                membershipCard.style.color = '#fff';
+                            }
+                            if (tierProgressBar) {
+                                tierProgressBar.style.width = '100%';
+                                tierProgressBar.style.background = 'linear-gradient(90deg, #fff, #f0f0f0)';
+                            }
+                            if (currentTierName) currentTierName.textContent = 'DIAMOND';
+                            if (nextTierName) nextTierName.textContent = 'MAX LEVEL';
+                        }
+                        
+                        // Force sub-elements color adjustment if light background
+                        if (membershipCard && pts >= 1000 && pts < 10000) {
+                            document.querySelectorAll('#membershipCard span:not(#tierIcon), #membershipCard strong').forEach(el => {
+                                el.style.color = '#1c1b1b';
+                                el.style.textShadow = 'none';
+                            });
+                        }
+                    }
+                    
+                    // Update user info in localStorage just in case
+                    user.fullname = p.ho_ten;
+                    user.email = p.email;
+                    user.phone = p.sdt;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                } else {
+                    // Fallback
+                    if (profileName) profileName.textContent = user.fullname || user.username;
+                    if (profileTier) profileTier.textContent = 'None Member (0 pts)';
+                }
             });
+    }
 
-            recentOrdersBody.innerHTML = html;
-        }
+    loadProfile();
+
+    // Edit Profile Logic
+    const editBtn = document.querySelector('.profile-card__edit-btn');
+    const editModal = document.getElementById('editProfileModal');
+    const cancelEditBtn = document.getElementById('btnCancelEdit');
+    const editForm = document.getElementById('editProfileForm');
+
+    if (editBtn && editModal) {
+        editBtn.addEventListener('click', () => {
+            document.getElementById('editName').value = user.fullname || '';
+            document.getElementById('editEmail').value = user.email || '';
+            document.getElementById('editPhone').value = user.phone || '';
+            editModal.classList.add('active');
+        });
+
+        cancelEditBtn.addEventListener('click', () => {
+            editModal.classList.remove('active');
+        });
+
+        editForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const payload = {
+                ho_ten: document.getElementById('editName').value,
+                email: document.getElementById('editEmail').value,
+                sdt: document.getElementById('editPhone').value
+            };
+
+            fetch('index.php?action=update_profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    editModal.classList.remove('active');
+                    loadProfile();
+                } else {
+                    alert(data.message || 'Lỗi cập nhật');
+                }
+            })
+            .catch(err => alert('Lỗi kết nối'));
+        });
+    }
+
+
+
+    // Perks Modal Logic
+    const btnOpenPerks = document.getElementById('btnOpenPerks');
+    const perksModal = document.getElementById('perksModal');
+    const btnClosePerks = document.getElementById('btnClosePerks');
+
+    if (btnOpenPerks && perksModal) {
+        btnOpenPerks.addEventListener('click', (e) => {
+            e.preventDefault();
+            perksModal.classList.add('active');
+        });
+
+        btnClosePerks.addEventListener('click', () => {
+            perksModal.classList.remove('active');
+        });
+    }
+
+    // 3. Render danh sách 3 đơn hàng gần đây nhất từ Backend
+    const recentOrdersBody = document.getElementById('recentOrdersBody');
+    if (recentOrdersBody) {
+        fetch('index.php?action=get_orders')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.orders.length > 0) {
+                    const recentOrders = data.orders.slice(0, 3);
+                    let html = '';
+                    recentOrders.forEach(order => {
+                        html += `
+                            <div class="order-spec-table__row">
+                                <div class="order-spec-table__cell">
+                                    <span class="order-spec-table__cell-label">Mã đơn</span>
+                                    <span class="order-spec-table__cell-val" style="font-family: 'Geist', sans-serif; font-weight: 500;">#${order.id}</span>
+                                </div>
+                                <div class="order-spec-table__cell">
+                                    <span class="order-spec-table__cell-label">Ngày đặt</span>
+                                    <span class="order-spec-table__cell-val">${order.date}</span>
+                                </div>
+                                <div class="order-spec-table__cell">
+                                    <span class="order-spec-table__cell-label">Tổng tiền</span>
+                                    <span class="order-spec-table__cell-val">${order.total}</span>
+                                </div>
+                                <div class="order-spec-table__cell right">
+                                    <span class="order-spec-table__cell-label">Trạng thái</span>
+                                    <span class="order-spec-table__cell-val order-spec-table__cell-val--status">${order.status}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    recentOrdersBody.innerHTML = html;
+                } else {
+                    recentOrdersBody.innerHTML = `
+                        <div style="padding: 3rem; text-align: center; color: var(--on-surface-variant); font-size: 0.875rem;">
+                            <span class="material-symbols-outlined" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: var(--outline);">receipt_long</span>
+                            Bạn chưa có đơn hàng nào gần đây.
+                        </div>
+                    `;
+                }
+            })
+            .catch(() => {
+                recentOrdersBody.innerHTML = '<p style="color:red; text-align:center; padding:1rem;">Lỗi tải dữ liệu đơn hàng.</p>';
+            });
     }
 
     // 4. Gắn sự kiện nút Đăng xuất sidebar

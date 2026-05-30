@@ -15,7 +15,7 @@
 
 <?php include 'view/client/layout/_navbar.php'; ?>
 
-<main class="section-wrap" style="flex:1;padding-top:3rem;padding-bottom:3rem;">
+<main style="flex:1; padding-top:3rem; padding-bottom:3rem; padding-inline: 5%;">
     <h1 class="order-page__title">Đơn hàng của tôi</h1>
 
     <div class="tab-panel">

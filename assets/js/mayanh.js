@@ -83,7 +83,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     <h3 class="catalog-card__name">
                         <a href="index.php?page=chitietsanpham&id=${product.id}">${product.name}</a>
                     </h3>
-                    <p class="catalog-card__price">${formatPrice(product.price)}</p>
+                    <p class="catalog-card__price">
+                        ${product.raw_original_price > product.raw_price ? `<span style="text-decoration: line-through; color: #888; font-size: 0.85em; margin-right: 8px;">${product.original_price}</span>` : ''}
+                        ${formatPrice(product.price)}
+                    </p>
                 </div>
             </div>`;
         }).join('');

@@ -199,6 +199,114 @@ class AuthController {
         header("Location: ../index.php?page=trangchu");
         exit;
     }
+
+    /**
+     * Get user profile details as JSON
+     */
+    public static function getProfile() {
+        global $conn;
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $username = isset($_SESSION['client_username']) ? $_SESSION['client_username'] : '';
+        if (!$username) {
+            echo json_encode(['success' => false, 'message' => 'Not logged in']);
+            return;
+        }
+
+        $stmt = $conn->prepare("SELECT ho_ten, email, sdt, hang_thanh_vien, diem_tich_luy FROM tai_khoan WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($row = $res->fetch_assoc()) {
+            echo json_encode(['success' => true, 'profile' => $row]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'User not found']);
+        }
+    }
+
+    /**
+     * Update user profile details
+     */
+    public static function updateProfile() {
+        global $conn;
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $username = isset($_SESSION['client_username']) ? $_SESSION['client_username'] : '';
+        if (!$username) {
+            echo json_encode(['success' => false, 'message' => 'Not logged in']);
+            return;
+        }
+
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+
+        if (!$data) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data']);
+            return;
+        }
+
+        $ho_ten = isset($data['ho_ten']) ? trim($data['ho_ten']) : '';
+        $email = isset($data['email']) ? trim($data['email']) : '';
+        $sdt = isset($data['sdt']) ? trim($data['sdt']) : '';
+
+        $stmt = $conn->prepare("UPDATE tai_khoan SET ho_ten = ?, email = ?, sdt = ? WHERE username = ?");
+        $stmt->bind_param("ssss", $ho_ten, $email, $sdt, $username);
+        if ($stmt->execute()) {
+            // Update session values
+            $_SESSION['client_fullname'] = $ho_ten;
+            $_SESSION['client_email'] = $email;
+            $_SESSION['client_phone'] = $sdt;
+            echo json_encode(['success' => true, 'message' => 'Cập nhật thành công']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Lỗi cập nhật CSDL']);
+        }
+    }
+
+    /**
+     * Change user password
+     */
+    public static function changePassword() {
+        global $conn;
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $username = isset($_SESSION['client_username']) ? $_SESSION['client_username'] : '';
+        if (!$username) {
+            echo json_encode(['success' => false, 'message' => 'Not logged in']);
+            return;
+        }
+
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+
+        if (!$data || !isset($data['old_password']) || !isset($data['new_password'])) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu dữ liệu']);
+            return;
+        }
+
+        $oldPwd = $data['old_password'];
+        $newPwd = $data['new_password'];
+
+        // Get current hash
+        $stmt = $conn->prepare("SELECT mat_khau FROM tai_khoan WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        
+        if ($row = $res->fetch_assoc()) {
+            if (password_verify($oldPwd, $row['mat_khau'])) {
+                // old password correct, hash new password
+                $newHash = password_hash($newPwd, PASSWORD_DEFAULT);
+                $updateStmt = $conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
+                $updateStmt->bind_param("ss", $newHash, $username);
+                if ($updateStmt->execute()) {
+                    echo json_encode(['success' => true, 'message' => 'Đổi mật khẩu thành công']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Đổi mật khẩu thất bại trên CSDL']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Mật khẩu cũ không chính xác']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy tài khoản']);
+        }
+    }
 }
 ?>
 

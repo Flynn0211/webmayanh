@@ -25,6 +25,31 @@ if ($action === 'client_logout') {
     require_once 'control/OrderController.php';
     OrderController::handleUpdateStatus();
     exit;
+} elseif ($action === 'get_reviews') {
+    require_once 'model/database.php';
+    require_once 'control/ProductController.php';
+    ProductController::getReviews();
+    exit;
+} elseif ($action === 'add_review') {
+    require_once 'model/database.php';
+    require_once 'control/ProductController.php';
+    ProductController::handleAddReview();
+    exit;
+} elseif ($action === 'get_profile') {
+    require_once 'model/database.php';
+    require_once 'control/AuthController.php';
+    AuthController::getProfile();
+    exit;
+} elseif ($action === 'update_profile') {
+    require_once 'model/database.php';
+    require_once 'control/AuthController.php';
+    AuthController::updateProfile();
+    exit;
+} elseif ($action === 'change_password') {
+    require_once 'model/database.php';
+    require_once 'control/AuthController.php';
+    AuthController::changePassword();
+    exit;
 }
 
 // Basic routing mapping

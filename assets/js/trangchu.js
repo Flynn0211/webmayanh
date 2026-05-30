@@ -38,7 +38,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     <span class="product-card__brand ${getBrandClass(product.brand)}">${product.brand}</span>
                     <a href="index.php?page=chitietsanpham&id=${product.id}" class="product-card__name">${product.name}</a>
                     <div class="product-card__footer">
-                        <span class="product-card__price">${formatPrice(product.price)}</span>
+                        <span class="product-card__price">
+                            ${product.raw_original_price > product.raw_price ? `<span style="text-decoration: line-through; color: #888; font-size: 0.85em; margin-right: 8px;">${product.original_price}</span>` : ''}
+                            ${formatPrice(product.price)}
+                        </span>
                         <a href="index.php?page=chitietsanpham&id=${product.id}" class="product-card__link">
                             Xem <span class="material-symbols-outlined">arrow_forward</span>
                         </a>
