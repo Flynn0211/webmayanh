@@ -1,6 +1,9 @@
-﻿# BÁO CÁO CẬP NHẬT GIAO DIỆN & TÍNH NĂNG (GẦN NHẤT)
+# BÁO CÁO CẬP NHẬT GIAO DIỆN & TÍNH NĂNG (GẦN NHẤT)
 
 File này tóm tắt toàn bộ những thay đổi mới nhất về Frontend, Backend và Cơ sở dữ liệu để team dễ dàng nắm bắt trước khi thực hiện Git Commit.
+
+## Bản Cập Nhật Ngày 30/05/2026 (16:50)
+- **Lộ trình Phát triển 3 Tuần Tới**: Tạo file [features_3_weeks.md](file:///c:/xampp/htdocs/webmayanh/features_3_weeks.md) phác thảo chi tiết lộ trình xây dựng và phát triển các tính năng (Thanh toán VNPAY, Tìm kiếm nâng cao, Đánh giá có ảnh, Điểm tích lũy thành viên, Admin Analytics, SEO & Security) theo đúng mô hình MVC và quy chuẩn của dự án.
 
 ## Bản Cập Nhật Ngày 30/05/2026 (16:45)
 - **Hệ thống Đăng nhập & Mật khẩu**: Chuyển đổi mã hóa mật khẩu sang password_hash() với cơ chế "tự động chuyển đổi" cho người dùng cũ. Sửa lại luồng redirect chuẩn thay vì in mã JavaScript thẻ <script>.
