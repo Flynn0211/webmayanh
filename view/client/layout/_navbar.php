@@ -34,6 +34,17 @@ if (isset($conn) && $conn) {
 ?>
 <script>
 window.dbProducts = <?php echo json_encode($db_products, JSON_UNESCAPED_UNICODE); ?>;
+<?php if ($_nav_logged_in): ?>
+    localStorage.setItem('currentUser', JSON.stringify({
+        username: "<?= addslashes($_SESSION['client_username'] ?? '') ?>",
+        fullname: "<?= addslashes($_SESSION['client_fullname'] ?? '') ?>",
+        role: "<?= addslashes($_SESSION['client_role'] ?? 'user') ?>",
+        email: "<?= addslashes($_SESSION['client_email'] ?? '') ?>",
+        phone: "<?= addslashes($_SESSION['client_phone'] ?? '') ?>"
+    }));
+<?php else: ?>
+    localStorage.removeItem('currentUser');
+<?php endif; ?>
 </script>
 
 

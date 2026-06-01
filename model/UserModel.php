@@ -26,7 +26,8 @@ class UserModel {
         }
         $stmt = $conn->prepare("INSERT INTO tai_khoan (username, mat_khau, ho_ten, loai_tk, hang_thanh_vien, diem_tich_luy, trang_thai) VALUES (?, ?, ?, 'User', 'None', 0, 'HoatDong')");
         if ($stmt) {
-            $stmt->bind_param("sss", $username, $password, $fullname);
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $stmt->bind_param("sss", $username, $hashed_password, $fullname);
             return $stmt->execute();
         }
         return false;
