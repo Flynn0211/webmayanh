@@ -28,7 +28,7 @@ while ($row = $res_c->fetch_assoc()) {
 
 // 1. Products
 $dbProducts = [];
-$res_p = $conn->query("SELECT h.ma_hh as id, h.ma_dm as category_id, h.ten_hang_hoa as name, h.anh as image, n.ten_ncc as brand, h.gia_hien_tai as price_val, IFNULL(SUM(t.so_luong_ton), 0) as stock, h.mo_ta as description, h.thong_so_ky_thuat as specs
+$res_p = $conn->query("SELECT h.ma_hh as id, h.ma_dm as category_id, h.ten_hang_hoa as name, h.anh as image, h.anh_phu as additional_images, n.ten_ncc as brand, h.gia_hien_tai as price_val, IFNULL(SUM(t.so_luong_ton), 0) as stock, h.mo_ta as description, h.thong_so_ky_thuat as specs
 FROM hang_hoa h
 LEFT JOIN nha_cung_cap n ON h.ma_ncc = n.ma_ncc
 LEFT JOIN ton_kho_chi_tiet t ON h.ma_hh = t.ma_hh
@@ -155,6 +155,14 @@ while ($row = $res_ch->fetch_assoc()) {
     <link href="assets/css/base.css" rel="stylesheet" />
     <link href="assets/css/admin.css" rel="stylesheet" />
     <link href="assets/css/responsive.css" rel="stylesheet" />
+    <script>
+        // Đồng bộ cứng localStorage cho phiên Admin ngay khi tải trang
+        localStorage.setItem('currentUser', JSON.stringify({
+            username: <?php echo json_encode($_SESSION['admin_username'] ?? 'admin'); ?>,
+            fullname: <?php echo json_encode($_SESSION['admin_fullname'] ?? 'Quản trị viên'); ?>,
+            role: 'admin'
+        }));
+    </script>
 </head>
 
 <body class="admin-body">
@@ -667,6 +675,15 @@ while ($row = $res_ch->fetch_assoc()) {
                                     title="Chọn ảnh sản phẩm" />
                             </div>
                             <input type="hidden" id="productImage" value="" />
+
+                            <!-- Upload ảnh phụ -->
+                            <div style="margin-top: 1.5rem;">
+                                <label class="admin-label">Ảnh phụ khác (tải lên nhiều ảnh)</label>
+                                <div id="additionalImagesPreview" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <!-- JS-generated thumbnail previews will be added here -->
+                                </div>
+                                <input type="file" id="productAdditionalImagesFile" accept="image/*" class="admin-input" multiple style="font-size: 0.85rem;" />
+                            </div>
                         </div>
 
                         <!-- Cột phải: Thông tin -->

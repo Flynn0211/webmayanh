@@ -1,19 +1,34 @@
 <?php
-// Load product model layer
+/**
+ * Lớp ProductController điều phối toàn bộ các xử lý nghiệp vụ liên quan đến hàng hóa
+ * bao gồm: hiển thị sản phẩm, nạp đánh giá (AJAX GET) và thêm mới đánh giá (AJAX POST) kiểm tra trùng lặp.
+ */
+
+// Nạp tầng nghiệp vụ Model của Hàng hóa
 require_once __DIR__ . '/../model/ProductModel.php';
 
 class ProductController {
     /**
-     * Fetch active database products and clean/format them for frontend JSON consumption.
+     * Lấy toàn bộ danh sách sản phẩm đang bán, chuẩn hóa và định dạng dữ liệu cho Frontend tiêu thụ dưới dạng JSON.
+     *
+     * @param mysqli|false $conn Kết nối CSDL
+     * @return array Danh sách sản phẩm được định dạng chuẩn
      */
     public static function getAllActiveProducts($conn) {
         if ($conn === false) {
             return [];
         }
+        
+        // Gọi tầng Model lấy danh sách gốc từ CSDL
         $rawProducts = ProductModel::getActiveProducts($conn);
         $db_products = [];
 
         foreach ($rawProducts as $row) {
+            $main_image = $row['image'];
+            // Phục vụ cơ chế đa ảnh (Option 2): Phân tích mảng JSON ảnh phụ lưu trữ trong cột anh_phu
+            $additional_images = $row['additional_images'] ? $row['additional_images'] : '[]';
+
+            // Phân loại danh mục máy ảnh, ống kính, phụ kiện dựa trên slug
             $slug = $row['category_slug'];
             if ($slug === 'ong-kinh') {
                 $cat = 'lens';
@@ -22,9 +37,12 @@ class ProductController {
             } else {
                 $cat = 'camera';
             }
+            
+            // Định dạng hiển thị tiền tệ VNĐ (VD: 34,900,000 ₫)
             $price_formatted = number_format($row['price'], 0, '', ',') . ' ₫';
             $original_price_formatted = isset($row['original_price']) ? number_format($row['original_price'], 0, '', ',') . ' ₫' : $price_formatted;
 
+            // Xử lý chuyển đổi thông số kỹ thuật dạng JSON lưu trữ trong CSDL sang chuỗi dễ đọc
             $specs_raw = $row['specs'];
             $specs_formatted = '';
             $specs_arr = json_decode($specs_raw, true);
@@ -38,6 +56,7 @@ class ProductController {
                 $specs_formatted = $specs_raw;
             }
 
+            // Đóng gói mảng dữ liệu hoàn thiện
             $db_products[] = [
                 'id' => (int)$row['id'],
                 'brand' => $row['brand'],
@@ -48,7 +67,8 @@ class ProductController {
                 'raw_original_price' => isset($row['original_price']) ? $row['original_price'] : $row['price'],
                 'description' => $row['description'],
                 'specs' => $specs_formatted,
-                'image' => $row['image'],
+                'image' => $main_image,
+                'additional_images' => $additional_images,
                 'category' => $cat
             ];
         }
@@ -57,7 +77,7 @@ class ProductController {
     }
 
     /**
-     * Handle fetching reviews via AJAX GET
+     * Xử lý lấy danh sách đánh giá của sản phẩm qua AJAX GET
      */
     public static function getReviews() {
         global $conn;
@@ -68,13 +88,15 @@ class ProductController {
         if (!isset($_GET['ma_hh'])) return;
         $ma_hh = (int)$_GET['ma_hh'];
         
+        // Nạp tầng Model Đánh giá
         require_once __DIR__ . '/../model/ReviewModel.php';
         $reviews = ReviewModel::getReviewsByProduct($conn, $ma_hh);
         echo json_encode(['success' => true, 'reviews' => $reviews]);
     }
 
     /**
-     * Handle submitting a review via AJAX POST
+     * Xử lý gửi đánh giá sản phẩm mới qua AJAX POST
+     * Có tích hợp cơ chế ngăn chặn mỗi tài khoản chỉ được đánh giá mỗi sản phẩm 1 lần duy nhất.
      */
     public static function handleAddReview() {
         global $conn;
@@ -83,14 +105,18 @@ class ProductController {
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
+        
+        // Bật session nếu chưa có
         if (session_status() === PHP_SESSION_NONE) session_start();
         
+        // Kiểm tra xem khách hàng đã đăng nhập chưa
         $username = isset($_SESSION['client_username']) ? $_SESSION['client_username'] : '';
         if (!$username) {
             echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập để đánh giá.']);
             return;
         }
 
+        // Đọc dữ liệu JSON từ body request
         $input = file_get_contents('php://input');
         $data = json_decode($input, true);
 
@@ -99,7 +125,7 @@ class ProductController {
             return;
         }
 
-        // Get ma_tk
+        // Lấy mã tài khoản (ma_tk) từ tên đăng nhập đang đăng nhập
         $stmt = $conn->prepare("SELECT ma_tk FROM tai_khoan WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
@@ -114,6 +140,22 @@ class ProductController {
             return;
         }
 
+        // --- CƠ CHẾ CHẶN ĐÁNH GIÁ TRÙNG LẶP ---
+        // Truy vấn trực tiếp từ bảng binh_luan_danh_gia để đếm số lượng đánh giá của tài khoản này cho sản phẩm này
+        $stmt_check = $conn->prepare("SELECT COUNT(*) as cnt FROM binh_luan_danh_gia WHERE ma_tk = ? AND ma_hh = ?");
+        $product_id = (int)$data['ma_hh'];
+        $stmt_check->bind_param("ii", $ma_tk, $product_id);
+        $stmt_check->execute();
+        $res_check = $stmt_check->get_result();
+        if ($row_check = $res_check->fetch_assoc()) {
+            if ($row_check['cnt'] > 0) {
+                // Đã tồn tại đánh giá, trả về từ chối lịch sự
+                echo json_encode(['success' => false, 'message' => 'Bạn đã đánh giá sản phẩm này rồi! Mỗi sản phẩm chỉ được đánh giá một lần.']);
+                return;
+            }
+        }
+
+        // Nạp tầng Model Đánh giá và lưu bản ghi mới
         require_once __DIR__ . '/../model/ReviewModel.php';
         $success = ReviewModel::addReview($conn, $ma_tk, (int)$data['ma_hh'], (int)$data['so_sao'], trim($data['noi_dung']));
         
@@ -124,5 +166,3 @@ class ProductController {
         }
     }
 }
-?>
-

@@ -1,36 +1,46 @@
 <?php
+/**
+ * Lớp VoucherModel xử lý các truy vấn và kiểm tra điều kiện áp dụng mã giảm giá (voucher).
+ */
 class VoucherModel {
     /**
-     * Validate a voucher code against cart total and constraints.
+     * Xác thực mã giảm giá dựa trên tổng tiền giỏ hàng và các giới hạn đi kèm.
+     *
+     * @param mysqli|false $conn Đối tượng kết nối CSDL
+     * @param string $voucherCode Chuỗi mã giảm giá (VD: WELCOME10, KM200)
+     * @param float $totalRaw Tổng giá trị tiền hàng trước giảm giá
+     * @return array Kết quả trả về gồm: valid (hợp lệ), discount (tiền giảm), message (thông điệp), id (mã voucher)
      */
     public static function validateVoucher($conn, $voucherCode, $totalRaw) {
+        // Kiểm tra kết nối CSDL và dữ liệu đầu vào
         if ($conn === false || empty($voucherCode)) {
-            return ['valid' => false, 'discount' => 0, 'message' => 'Lỗi kết nối hoặc mã trống'];
+            return ['valid' => false, 'discount' => 0, 'message' => 'Lỗi kết nối hoặc mã giảm giá trống.'];
         }
 
+        // Truy vấn tìm kiếm voucher đang hoạt động
         $stmt = $conn->prepare("SELECT * FROM voucher WHERE ma_code = ? AND trang_thai = 'HoatDong'");
         if ($stmt) {
             $stmt->bind_param("s", $voucherCode);
             $stmt->execute();
             $res = $stmt->get_result();
             if ($row = $res->fetch_assoc()) {
-                // Check quantity
+                // 1. Kiểm tra số lượng lượt sử dụng còn lại
                 if ($row['so_luong'] <= 0) {
                     return ['valid' => false, 'discount' => 0, 'message' => 'Mã giảm giá đã hết lượt sử dụng.'];
                 }
                 
-                // Check date
+                // 2. Kiểm tra thời hạn hiệu lực của voucher
                 $now = date('Y-m-d H:i:s');
                 if ($now < $row['ngay_bat_dau'] || $now > $row['ngay_het_han']) {
                     return ['valid' => false, 'discount' => 0, 'message' => 'Mã giảm giá không trong thời gian sử dụng.'];
                 }
                 
-                // Check minimum order amount
+                // 3. Kiểm tra giá trị đơn hàng tối thiểu có đạt yêu cầu hay không
                 if ($totalRaw < $row['don_toi_thieu']) {
-                    return ['valid' => false, 'discount' => 0, 'message' => 'Đơn hàng chưa đạt mức tối thiểu để dùng mã này.'];
+                    return ['valid' => false, 'discount' => 0, 'message' => 'Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã giảm giá này.'];
                 }
                 
-                // Calculate discount
+                // 4. Tính toán số tiền được chiết khấu giảm giá
                 $discountAmount = 0;
                 if ($row['loai_giam_gia'] === 'PhanTram') {
                     $discountAmount = ($totalRaw * $row['gia_tri_giam']) / 100;
@@ -46,7 +56,6 @@ class VoucherModel {
                 ];
             }
         }
-        return ['valid' => false, 'discount' => 0, 'message' => 'Mã giảm giá không tồn tại hoặc đã bị khóa.'];
+        return ['valid' => false, 'discount' => 0, 'message' => 'Mã giảm giá không tồn tại hoặc đã bị vô hiệu hóa.'];
     }
 }
-?>

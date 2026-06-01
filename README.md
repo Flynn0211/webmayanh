@@ -1,96 +1,111 @@
-# Cấu trúc dự án
+# Hệ thống Website Máy ảnh & Ống kính (LENS & LIGHT)
+
+Đây là mã nguồn dự án Website kinh doanh máy ảnh, ống kính và phụ kiện nhiếp ảnh được xây dựng theo mô hình **MVC (Model-View-Controller)** tinh gọn, sử dụng PHP thuần kết hợp CSDL MySQL và các kỹ thuật AJAX tương tác động cao cấp.
+
+---
+
+## 📁 Cấu trúc thư mục dự án
 
 ```text
-📁 webmayanh
-├── 📁 assets/               # Chứa tài nguyên tĩnh (Client-side) tự viết hoặc thư viện (Bootstrap)
+📁 LapTrinhWebNangCao
+├── 📁 assets/               # Tài nguyên tĩnh (Client-side) tự viết hoặc thư viện
 │   ├── 📁 css/              # Giao diện tĩnh phân chia rõ ràng
-│   │   ├── admin.css
-│   │   ├── base.css
-│   │   ├── client.css
-│   │   └── responsive.css
-│   └── 📁 js/               # Xử lý AJAX thêm giỏ hàng, check form, tương tác động...
-│       ├── admin.js
-│       ├── auth.js
-│       ├── mayanh.js
-│       └── giohang.js
+│   │   ├── admin.css        # Giao diện bảng điều khiển Admin Premium
+│   │   ├── base.css         # Hệ thống biến CSS (Color Palette HSL, Typography)
+│   │   ├── client.css       # Giao diện trang khách hàng (Home, Detail, Cart...)
+│   │   └── responsive.css   # Xử lý tương thích đa màn hình (Mobile, Tablet, Desktop)
+│   └── 📁 js/               # Tương tác AJAX động, giỏ hàng tạm, quản lý yêu thích
+│       ├── admin.js         # AJAX tương tác nghiệp vụ Admin
+│       ├── auth.js          # AJAX Đăng nhập/Đăng ký & nút Yêu thích Global
+│       └── chitietsanpham.js# AJAX Nạp bài đánh giá, tính năng bình chọn sao
 │
-├── 📁 uploads/              # Thư mục lưu file động (Cần bảo mật chống upload mã độc)
-│   ├── 📁 products/         # Ảnh sản phẩm (máy ảnh, ống kính...) do Admin tải lên
-│   └── 📁 avatars/          # Ảnh đại diện của người dùng
+├── 📁 uploads/              # Lưu trữ dữ liệu động (Ảnh tải lên an toàn)
+│   ├── 📁 products/         # Ảnh sản phẩm do Admin tải lên (chính + ảnh phụ)
+│   └── 📁 articles/         # Ảnh minh họa bài viết CMS
 │
-├── 📁 model/                # TẦNG DỮ LIỆU (Thực thi truy vấn MySQL)
-│   ├── database.php         # Kết nối CSDL (mysqli, $conn)
-│   ├── ProductModel.php     # Truy vấn: Sản phẩm, đánh giá, khuyến mãi
-│   ├── UserModel.php        # Truy vấn: Đăng ký, đăng nhập, phân loại User (Diamond/Gold/Silver)
-│   └── OrderModel.php       # Truy vấn: Tạo đơn hàng, cập nhật trạng thái, voucher
+├── 📁 model/                # TẦNG DỮ LIỆU (Thực thi truy vấn CSDL MySQL)
+│   ├── database.php         # Khởi tạo kết nối MySQLi ($conn) bảo mật cao
+│   ├── ProductModel.php     # Truy vấn hàng hóa và khuyến mãi đang diễn ra
+│   ├── ReviewModel.php      # Quản lý bình luận, thêm đánh giá sản phẩm
+│   ├── UserModel.php        # Quản lý đăng ký, đăng nhập & nâng cấp mật khẩu hash
+│   ├── VoucherModel.php     # Xác thực điều kiện sử dụng mã giảm giá
+│   └── SmtpMailer.php       # Thư viện gửi mail qua Socket thô độc lập
 │
-├── 📁 control/              # TẦNG ĐIỀU KHIỂN & BẢO MẬT (Xử lý logic, quyết định luồng)
-│   ├── ProductController.php# Xử lý logic hiển thị sản phẩm ra các trang ngoài
-│   ├── AuthController.php   # Xử lý logic Đăng nhập/Đăng xuất/Phân quyền (User vs Admin)
-│   ├── CartController.php   # Xử lý: Thêm/sửa/xóa giỏ hàng, check voucher, thanh toán
-│   └── AdminController.php  # Xử lý logic thống kê doanh thu, quản lý riêng cho luồng Admin
+├── 📁 control/              # TẦNG ĐIỀU KHIỂN & BẢO MẬT (Xử lý logic hệ thống)
+│   ├── ProductController.php# Xử lý hiển thị sản phẩm, chặn trùng lặp đánh giá
+│   ├── AuthController.php   # Quản lý Session đồng bộ, Đăng nhập/Đăng ký/Đổi mật khẩu
+│   ├── OrderController.php  # Quy trình thanh toán Transaction an toàn, trừ kho thông minh
+│   ├── ArticleController.php# Quản lý tin tức/bài viết CMS (CSDL articles.json)
+│   └── AdminController.php  # Xử lý upload ảnh base64, thêm/sửa/xóa sản phẩm
 │
-├── 📁 view/                 # TẦNG HIỂN THỊ (Chỉ chứa HTML + PHP in dữ liệu)
-│   ├── 📁 client/           # KHU VỰC DÀNH CHO USER (Khách hàng)
-│   │   ├── 📁 layout/       # Chứa các thành phần dùng chung (_navbar.php, _footer.php...)
-│   │   ├── trangchu.php         # Trang chủ
-│   │   ├── chitietsanpham.php   # Chi tiết sản phẩm & form bình luận
-│   │   ├── giohang.php          # Trang giỏ hàng, nhập voucher, thanh toán
-│   │   ├── donhang.php          # Xem lịch sử mua hàng, quá trình giao hàng
-│   │   ├── mayanh.php           # Trang hiển thị danh mục máy ảnh
-│   │   └── login.php            # Trang đăng ký / đăng nhập
+├── 📁 view/                 # TẦNG HIỂN THỊ (HTML + PHP in dữ liệu)
+│   ├── 📁 client/           # Layout & trang dành cho Khách hàng
+│   │   ├── 📁 layout/       # Thành phần chung (_navbar.php, _footer.php...)
+│   │   ├── trangchu.php     # Trang chủ hiển thị banner và sản phẩm nổi bật
+│   │   ├── chitietsanpham.php # Chi tiết sản phẩm, slideshow ảnh & đánh giá
+│   │   ├── giohang.php      # Trang giỏ hàng, áp dụng voucher & thanh toán
+│   │   └── donhang.php      # Lịch sử đơn hàng và cập nhật hành trình
 │   │
-│   └── 📁 admin/            # KHU VỰC DÀNH CHO ADMIN (Ban quản trị)
-│       ├── 📁 layout/       # Chứa khung giao diện Admin tách biệt (sidebar, topbar...)
-│       └── admin.php        # Bảng điều khiển quản trị (Dashboard, thống kê, quản lý tổng hợp)
+│   └── 📁 admin/            # Layout & trang dành cho Quản trị viên
+│       ├── 📁 layout/       # Sidebar, Topbar quản trị
+│       ├── admin.php        # Giao diện tổng hợp quản trị nâng cao
+│       └── login.php        # Trang đăng nhập quản trị
 │
-├── config.php               # Chứa các hằng số hệ thống (URL gốc, cấu hình Gửi Email...)
+├── config.php               # Lưu trữ cấu hình toàn hệ thống (Database, SMTP Email...)
 ├── index.php                # (Router) Cổng vào duy nhất điều phối mọi URL của hệ thống
-└── README.md                # File hướng dẫn và tài liệu dự án
+└── README.md                # File hướng dẫn này
 ```
 
 ---
 
-# GHI CHÚ & NHẮC NHỞ CHO PHÁT TRIỂN (DEVELOPMENT NOTES & REMINDERS)
+## 🛠️ Các Cơ Chế & Tính Năng Nổi Bật Gần Đây
 
-> [!IMPORTANT]
-> Đây là các nguyên tắc cốt lõi của dự án. Tất cả thành viên phát triển phải đọc kỹ và tuân thủ nghiêm ngặt để đảm bảo code sạch, đồng bộ và không bị xung đột.
+### 1. Cơ chế nhiều ảnh phụ sản phẩm (Option 2 - `anh_phu` JSON)
+- **Database:** Bảng `hang_hoa` bổ sung thêm cột `anh_phu` kiểu dữ liệu `TEXT` để lưu trữ một danh sách các ảnh phụ dạng mảng JSON (ví dụ: `["uploads/products/image1.jpg", "uploads/products/image2.jpg"]`).
+- **Admin:** Khi Thêm/Sửa sản phẩm, Admin có thể kéo thả tải lên cùng lúc nhiều hình ảnh phụ. Phía server (`AdminController::handleAjaxAction()`) sẽ tự động giải mã các chuỗi ảnh base64, lưu file an toàn vào thư mục `uploads/products/` và đóng gói thành chuỗi JSON để lưu trữ trực tiếp vào cột `anh_phu`.
+- **Client:** Trong trang chi tiết sản phẩm, hệ thống tự động giải mã mảng JSON này để hiển thị thành danh sách các ảnh nhỏ (thumbnail) ngay dưới ảnh chính, hỗ trợ click chuyển đổi hiển thị ảnh chính động mượt mà.
 
-## 1. Quy tắc về Giao diện & Styling (CSS)
-*   **TUYỆT ĐỐI KHÔNG sử dụng Tailwind CSS.** Dự án đã gỡ bỏ hoàn toàn Tailwind CSS.
-*   **Sử dụng Vanilla CSS tự viết** phân chia rõ ràng trong thư mục `assets/css/`:
-    *   `base.css`: Định nghĩa hệ thống màu sắc (Color Palette), typography, biến CSS (CSS Variables) và các reset CSS cơ bản.
-    *   `client.css`: Toàn bộ CSS dành cho trang khách hàng (Client).
-    *   `admin.css`: Toàn bộ CSS dành cho bảng điều khiển quản trị (Admin Dashboard).
-    *   `responsive.css`: Chứa các `@media` queries để xử lý responsive giao diện trên điện thoại, máy tính bảng.
-*   **Khuyến khích:** Sử dụng phương pháp đặt tên BEM (Block-Element-Modifier) và sử dụng biến CSS `--color-primary`, `--font-main`... đã khai báo trong `base.css` để giữ tính đồng bộ cho giao diện.
+### 2. Kiểm tra chặn trùng lặp đánh giá sản phẩm
+- **Nghiệp vụ:** Để đảm bảo tính trung thực và ngăn chặn spam, **mỗi tài khoản khách hàng chỉ được đánh giá mỗi sản phẩm tối đa một lần duy nhất**.
+- **Kỹ thuật:** Phía server (`ProductController::handleAddReview()`) sẽ thực hiện kiểm tra kiểm soát lỗi trước khi ghi nhận đánh giá mới bằng cách đếm số lượng bản ghi tương ứng của tài khoản hiện hành trên bảng `binh_luan_danh_gia` (tên bảng chính xác trong CSDL). Nếu đã tồn tại đánh giá, hệ thống sẽ trả về phản hồi JSON thông báo lịch sự từ chối ghi nhận.
 
-## 2. Quy tắc Điều hướng & Routing (URL)
-*   Dự án áp dụng mô hình **Single Entry Point** (Một điểm truy cập duy nhất) thông qua `index.php`.
-*   **Không bao giờ** liên kết trực tiếp đến các file `.php` trong thư mục `view/` hoặc `control/`. Mọi liên kết điều hướng phải trỏ qua `index.php` sử dụng tham số `page`.
-    *   ✅ **Đúng:** `<a href="index.php?page=giohang">Giỏ hàng</a>` hoặc `<a href="index.php?page=chitietsanpham&id=5">Xem sản phẩm</a>`
-    *   ❌ **Sai:** `<a href="view/client/giohang.php">Giỏ hàng</a>`
-*   Nếu cần thêm trang mới:
-    1. Đăng ký trang đó vào mảng `$clientPages` hoặc điều kiện đặc biệt trong `index.php`.
-    2. Tạo file giao diện tương ứng tại `view/client/` hoặc `view/admin/`.
+### 3. Chia ngăn quản lý đơn hàng động trong Admin Panel
+- **Trải nghiệm:** Bảng quản trị đơn hàng được tách làm 2 ngăn rõ rệt: **Đơn đang xử lý** (Chờ xác nhận, Đang xử lý, Đang giao...) và **Đã hoàn thành** (Đơn đã hoàn thành, Đã hủy).
+- **Real-time:** Khi Admin bấm chuyển trạng thái đơn hàng sang "Hoàn thành", hệ thống sẽ sử dụng AJAX gửi yêu cầu cập nhật xuống CSDL, đồng thời **tự động di chuyển dòng đơn hàng đó sang ngăn Đã hoàn thành** trên giao diện ngay lập tức mà không cần tải lại toàn bộ trang.
 
-## 3. Quy tắc Kết nối Cơ sở dữ liệu (Database)
-*   Sử dụng kết nối từ file `model/database.php`.
-*   **Công nghệ sử dụng:** Sử dụng thư viện `mysqli` truyền thống dưới dạng đối tượng kết nối trực tiếp `$conn` (không dùng PDO hay Class bao ngoài).
-*   **Bảo mật & Xử lý lỗi:**
-    *   Cảnh báo lỗi mặc định đã được tắt qua `mysqli_report(MYSQLI_REPORT_OFF);` nhằm bảo mật thông tin máy chủ.
-    *   Khi kết nối CSDL lỗi, biến `$conn` sẽ tự động chuyển thành `false` (thay vì làm sập trang web).
-    *   **Nhắc nhở:** Khi sử dụng biến kết nối `$conn` ở các file Model, luôn luôn thực hiện kiểm tra kiểm soát lỗi trước khi truy vấn:
-        ```php
-        if ($conn === false) {
-            // Xử lý lỗi hoặc thông báo mất kết nối CSDL
-            return [];
-        }
-        ```
+### 4. Đồng bộ trạng thái Session và bảo mật băm mật khẩu
+- **Session:** Đồng bộ triệt để trạng thái đăng nhập giữa Client và Admin Portal. Khi Admin đăng nhập, hệ thống cũng tự động kích hoạt Session Client tương ứng để tránh bị đá văng về trang chủ hoặc mất quyền truy cập.
+- **Bảo mật:** Toàn bộ mật khẩu của tài khoản đều được băm bảo mật bằng thuật toán băm chuẩn `password_hash()` (bcrypt). Hệ thống có tích hợp sẵn cơ chế **tự động nâng cấp mật khẩu** (khi tài khoản cũ dùng mật khẩu thô đăng nhập thành công, mật khẩu đó sẽ lập tức được băm và ghi đè an toàn vào CSDL).
 
-## 4. Quy trình thêm tính năng mới (MVC Workflow)
-Khi bạn muốn thêm một tính năng mới (ví dụ: bình luận, mã giảm giá, quản lý bài viết...):
-1.  **Bước 1 (Database & Model):** Tạo các bảng trong CSDL (nếu cần), sau đó tạo hoặc cập nhật file Model tương ứng trong thư mục `model/` để viết các hàm thực thi truy vấn SQL.
-2.  **Bước 2 (Controller):** Tạo hoặc cập nhật file Controller trong thư mục `control/` để xử lý logic, kiểm tra dữ liệu đầu vào và phân quyền truy cập.
-3.  **Bước 3 (View):** Tạo giao diện hiển thị trong `view/client/` hoặc `view/admin/`. Chỉ in dữ liệu từ PHP (`echo`) và nhận biến từ Controller truyền xuống, tuyệt đối không truy vấn DB trực tiếp từ View.
-4.  **Bước 4 (Routing):** Khai báo trang mới trong `index.php`. 
+### 5. Kỹ thuật hoạt họa FLIP bằng GPU & Micro-interactions 60fps cao cấp
+- **Thanh trượt ngang động (FLIP Underline):** Áp dụng thuật toán **FLIP (First, Last, Invert, Play)** cho thanh kẻ đỏ trượt ngang chỉ mục menu `.nav-indicator`. Chuyển đổi toàn bộ quá trình biến đổi từ thay đổi `left`/`width` (gây lag do CPU) sang **CSS transforms (`translateX` và `scaleX`)** tận dụng tăng tốc phần cứng từ GPU thông qua `will-change: transform`. Giúp thanh kẻ lướt êm ái 60fps/120fps trên mọi thiết bị khi chuyển tiếp trang.
+- **Tương tác phản hồi lực (Micro-interactions):** Đồng bộ các hiệu ứng hover nâng nổi, đổ bóng mờ ảo cho các nút bấm (`.btn-hero-primary`, `.btn-hero-ghost`...) và các icon trên thanh Navbar với các bước nhấn nhả đàn hồi vô cùng chuyên nghiệp.
+- **Đồng bộ hóa nhịp độ chuyển động:** Toàn bộ thẻ sản phẩm (`.product-card`, `.catalog-card`) sử dụng chung đường cong chuyển động Cubic Bezier `cubic-bezier(0.16, 1, 0.3, 1)` cho hiệu ứng phóng to ảnh và nhấc thẻ, tạo nên trải nghiệm người dùng cực kỳ đồng bộ, tinh tế và sang trọng.
+
+---
+
+## 🚀 Hướng dẫn Cấu hình & Sử dụng
+
+### 1. Cấu hình hệ thống (config.php)
+Tạo hoặc mở file `config.php` ở thư mục gốc và điền các thông tin kết nối CSDL cũng như tài khoản gửi mail của bạn:
+```php
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'webmayanh');
+
+// Cấu hình gửi mail tự động qua SMTP
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_PORT', 587);
+define('SMTP_USER', 'your_email@gmail.com'); // Điền Email của bạn
+define('SMTP_PASS', 'your_app_password');    // Điền Mật khẩu ứng dụng (App Password)
+define('SMTP_FROM_NAME', 'LENS & LIGHT');
+```
+
+### 2. Khởi chạy
+- Bạn có thể chạy ứng dụng qua phần mềm XAMPP bằng cách đưa dự án vào thư mục `htdocs` và truy cập `http://localhost/LapTrinhWebNangCao`.
+- Hoặc sử dụng máy chủ PHP tích hợp sẵn bằng cách mở terminal tại thư mục gốc và chạy lệnh:
+  ```bash
+  php -S localhost:8000
+  ```
+  Sau đó truy cập `http://localhost:8000` trên trình duyệt.

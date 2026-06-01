@@ -1,8 +1,16 @@
 <?php
+/**
+ * Lớp ArticleController quản lý toàn bộ các bài viết (blog/tin tức) của hệ thống CMS
+ * bao gồm: đọc/ghi dữ liệu từ tệp JSON articles.json làm CSDL tạm, upload hình ảnh bài viết và xử lý các hành động thêm/sửa/xóa bài viết trong Admin.
+ */
 
 class ArticleController {
+    // Đường dẫn trỏ tới tệp JSON cơ sở dữ liệu của các bài viết
     private static $dataFile = __DIR__ . '/../data/articles.json';
 
+    /**
+     * Khởi tạo các bài viết mặc định nếu tệp articles.json chưa tồn tại.
+     */
     public static function initDefaultArticles() {
         if (!file_exists(dirname(self::$dataFile))) {
             mkdir(dirname(self::$dataFile), 0777, true);
@@ -45,12 +53,23 @@ class ArticleController {
         }
     }
 
+    /**
+     * Lấy toàn bộ danh sách bài viết từ tệp JSON.
+     *
+     * @return array Danh sách bài viết dưới dạng mảng
+     */
     public static function getAllArticles() {
         self::initDefaultArticles();
         $json = file_get_contents(self::$dataFile);
         return json_decode($json, true) ?: [];
     }
 
+    /**
+     * Tìm bài viết dựa trên đường dẫn tĩnh thân thiện (slug).
+     *
+     * @param string $slug Đường dẫn tĩnh
+     * @return array|null Trả về thông tin bài viết nếu tìm thấy, ngược lại trả về null
+     */
     public static function getArticleBySlug($slug) {
         $articles = self::getAllArticles();
         foreach ($articles as $article) {
@@ -61,10 +80,20 @@ class ArticleController {
         return null;
     }
 
+    /**
+     * Ghi đè danh sách bài viết vào tệp JSON.
+     *
+     * @param array $articles Mảng chứa các bài viết mới
+     */
     public static function saveArticles($articles) {
         file_put_contents(self::$dataFile, json_encode($articles, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     }
 
+    /**
+     * Tự động sinh ID tuần tự tiếp theo (dạng BVXX) cho bài viết mới.
+     *
+     * @return string ID mới (Ví dụ: BV04)
+     */
     public static function generateId() {
         $articles = self::getAllArticles();
         $max = 0;
@@ -75,10 +104,14 @@ class ArticleController {
         return 'BV' . str_pad($max + 1, 2, '0', STR_PAD_LEFT);
     }
 
+    /**
+     * Xử lý các hành động nghiệp vụ của quản trị viên (POST) cho bài viết.
+     */
     public static function handleAdminAction() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
         $action = isset($_POST['article_action']) ? $_POST['article_action'] : '';
 
+        // --- HÀNH ĐỘNG THÊM HOẶC SỬA BÀI VIẾT ---
         if ($action === 'add' || $action === 'edit') {
             $id = isset($_POST['id']) ? $_POST['id'] : '';
             $title = isset($_POST['title']) ? trim($_POST['title']) : '';
@@ -88,7 +121,7 @@ class ArticleController {
             $status = isset($_POST['status']) ? trim($_POST['status']) : 'XuatBan';
             $imagePath = isset($_POST['old_image']) ? $_POST['old_image'] : '';
 
-            // Handle image upload
+            // Xử lý upload tệp hình ảnh đính kèm bài viết
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                 $uploadDir = __DIR__ . '/../uploads/articles/';
                 if (!file_exists($uploadDir)) {
@@ -103,6 +136,7 @@ class ArticleController {
 
             $articles = self::getAllArticles();
             if ($action === 'add') {
+                // Tạo mới bài viết đút vào đầu danh sách
                 $newArticle = [
                     "id" => self::generateId(),
                     "title" => $title,
@@ -115,6 +149,7 @@ class ArticleController {
                 ];
                 array_unshift($articles, $newArticle);
             } else {
+                // Cập nhật thông tin bài viết cũ theo ID
                 foreach ($articles as &$a) {
                     if ($a['id'] === $id) {
                         $a['title'] = $title;
@@ -132,6 +167,7 @@ class ArticleController {
             exit;
         }
 
+        // --- HÀNH ĐỘNG XÓA BÀI VIẾT ---
         if ($action === 'delete') {
             $id = isset($_POST['id']) ? $_POST['id'] : '';
             $articles = self::getAllArticles();
@@ -144,4 +180,3 @@ class ArticleController {
         }
     }
 }
-?>

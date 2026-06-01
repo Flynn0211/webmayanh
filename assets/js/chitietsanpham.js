@@ -60,8 +60,57 @@ document.addEventListener("DOMContentLoaded", function() {
             priceElem.innerText = formatPrice(product.price);
         }
 
-        document.getElementById('detailImage').src = product.image;
-        document.getElementById('detailImage').alt = product.name;
+        // Populate Gallery & Thumbnails
+        const mainImage = document.getElementById('detailImage');
+        if (mainImage) {
+            mainImage.src = product.image;
+            mainImage.alt = product.name;
+        }
+
+        const thumbsContainer = document.getElementById('detailThumbnails');
+        if (thumbsContainer) {
+            thumbsContainer.innerHTML = '';
+            
+            // Build the list of images including the main image at the front
+            let imagesList = [];
+            if (product.image) {
+                imagesList.push(product.image);
+            }
+            if (product.additional_images) {
+                try {
+                    let additionalList = typeof product.additional_images === 'string' 
+                        ? JSON.parse(product.additional_images) 
+                        : product.additional_images;
+                    if (Array.isArray(additionalList)) {
+                        // filter out empty values
+                        additionalList = additionalList.filter(Boolean);
+                        imagesList = imagesList.concat(additionalList);
+                    }
+                } catch(e) {
+                    console.error("Error parsing additional images:", e);
+                }
+            }
+
+            // Render thumbnails if there's more than 1 image
+            if (imagesList.length > 1) {
+                imagesList.forEach((imgUrl, index) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'detail-thumbnail' + (index === 0 ? ' detail-thumbnail--active' : '');
+                    thumb.innerHTML = `<img src="${imgUrl}" alt="Thumbnail ${index + 1}"/>`;
+                    
+                    const switchImg = () => {
+                        mainImage.src = imgUrl;
+                        document.querySelectorAll('.detail-thumbnail').forEach(t => t.classList.remove('detail-thumbnail--active'));
+                        thumb.classList.add('detail-thumbnail--active');
+                    };
+                    
+                    thumb.addEventListener('click', switchImg);
+                    thumb.addEventListener('mouseenter', switchImg);
+                    
+                    thumbsContainer.appendChild(thumb);
+                });
+            }
+        }
         
         const stockElem = document.getElementById('detailStock');
         if (stockElem) {
@@ -165,17 +214,20 @@ document.addEventListener("DOMContentLoaded", function() {
             const list = document.getElementById('reviewsList');
             if (data.success && data.reviews.length > 0) {
                 list.innerHTML = data.reviews.map(r => `
-                    <div style="padding: 1rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 4px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <strong>${r.ho_ten} (@${r.username})</strong>
-                            <span style="color: #888; font-size: 0.85rem;">${r.ngay_bl}</span>
+                    <div class="review-card">
+                        <div class="review-card-header">
+                            <div class="review-user-info">
+                                <span class="review-user-name">${r.ho_ten}</span>
+                                <span class="review-username">@${r.username}</span>
+                            </div>
+                            <span class="review-date">${r.ngay_bl}</span>
                         </div>
-                        <div style="color: #fbbf24; margin-bottom: 0.5rem;">${'★'.repeat(r.so_sao)}${'☆'.repeat(5 - r.so_sao)}</div>
-                        <p style="margin: 0; line-height: 1.5;">${r.noi_dung}</p>
+                        <div class="review-stars">${'★'.repeat(r.so_sao)}${'☆'.repeat(5 - r.so_sao)}</div>
+                        <p class="review-text">${r.noi_dung}</p>
                     </div>
                 `).join('');
             } else {
-                list.innerHTML = '<p style="color: #888;">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá sản phẩm này!</p>';
+                list.innerHTML = '<p style="color: var(--on-surface-variant); opacity: 0.7;">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá sản phẩm này!</p>';
             }
         })
         .catch(err => {

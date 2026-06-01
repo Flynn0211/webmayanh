@@ -32,6 +32,12 @@ if (isset($conn) && $conn) {
     $db_products = ProductController::getAllActiveProducts($conn);
 }
 ?>
+<!-- Màn hình Preloader chào mừng Premium -->
+<div id="preloader" class="preloader--hidden">
+    <div class="preloader-spinner"></div>
+    <div class="preloader-brand">LENS &amp; LIGHT</div>
+</div>
+
 <script>
 window.dbProducts = <?php echo json_encode($db_products, JSON_UNESCAPED_UNICODE); ?>;
 <?php if ($_nav_logged_in): ?>
@@ -45,6 +51,197 @@ window.dbProducts = <?php echo json_encode($db_products, JSON_UNESCAPED_UNICODE)
 <?php else: ?>
     localStorage.removeItem('currentUser');
 <?php endif; ?>
+
+// Bản đồ chỉ số thứ tự các trang trên Thanh Menu điều hướng
+const PAGE_INDICES = {
+    'trangchu': 0,
+    'mayanh': 1,
+    'ongkinh': 2,
+    'phukien': 3,
+    'baiviet': 4,
+    'giohang': 5,
+    'taikhoan': 6,
+    'login': 7
+};
+
+// Hàm trợ giúp lấy tên trang từ chuỗi URL
+const getPageName = (urlStr) => {
+    if (!urlStr) return 'trangchu';
+    if (urlStr === 'index.php' || urlStr === './' || urlStr === '/') {
+        return 'trangchu';
+    }
+    if (urlStr.includes('page=')) {
+        const parts = urlStr.split('page=');
+        if (parts.length > 1) {
+            return parts[1].split('&')[0].split('#')[0];
+        }
+    }
+    return 'trangchu';
+};
+
+// Thực hiện áp dụng ngay lập tức lớp CSS tương ứng để hoạt động trước khi render giao diện
+(function() {
+    // 1. Chỉ hiển thị màn hình Preloader trong lần truy cập đầu tiên (First Load của website)
+    const firstLoadDone = sessionStorage.getItem('first_load_done');
+    const preloader = document.getElementById('preloader');
+    if (!firstLoadDone && preloader) {
+        preloader.classList.remove('preloader--hidden');
+    }
+
+    // 2. Tự động thêm lớp CSS trượt theo hướng chỉ mục menu hoặc trang chi tiết sản phẩm
+    const search = window.location.search || window.location.href;
+    let currPage = 'trangchu';
+    if (search.includes('page=')) {
+        const parts = search.split('page=');
+        if (parts.length > 1) {
+            currPage = parts[1].split('&')[0].split('#')[0];
+        }
+    }
+
+    if (currPage === 'chitietsanpham') {
+        document.body.classList.add('entry-product');
+    } else {
+        const direction = sessionStorage.getItem('nav_direction');
+        if (direction === 'to-left') {
+            document.body.classList.add('entry-from-right');
+        } else if (direction === 'to-right') {
+            document.body.classList.add('entry-from-left');
+        } else {
+            document.body.classList.add('entry-default');
+        }
+    }
+    // Xóa dấu vết chuyển hướng để tránh lặp lại hiệu ứng khi tải lại trang (reload)
+    sessionStorage.removeItem('nav_direction');
+})();
+
+// Xử lý màn hình Preloader & Hiệu ứng chuyển tiếp trang mượt mà (Transitions)
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Ẩn màn hình Preloader sau khi trang đã tải xong (nếu đang hiển thị)
+    const preloader = document.getElementById('preloader');
+    if (preloader && !preloader.classList.contains('preloader--hidden')) {
+        setTimeout(() => {
+            preloader.classList.add('preloader--hidden');
+            sessionStorage.setItem('first_load_done', 'true');
+        }, 300); // Chỉ chạy độ trễ 300ms trong lần truy cập đầu tiên
+    }
+
+    // Lấy chỉ mục vị trí trang hiện tại
+    const currentPage = getPageName(window.location.search || window.location.href);
+    const currentIndex = PAGE_INDICES[currentPage] !== undefined ? PAGE_INDICES[currentPage] : 0;
+
+    // 2. Chặn các liên kết nội bộ để tạo hiệu ứng biến mất trước khi chuyển hướng (Snappy Exit Transition)
+    const links = document.querySelectorAll('a');
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        const target = link.getAttribute('target');
+        
+        // Bỏ qua các đường dẫn neo, javascript, tab mới
+        if (!href || href.startsWith('#') || href.startsWith('javascript:') || target === '_blank') {
+            return;
+        }
+
+        // Chỉ chặn các đường dẫn nội bộ
+        const isLocal = href.includes('index.php') || href.startsWith('./') || !href.includes('://');
+        if (isLocal) {
+            link.addEventListener('click', (e) => {
+                // Vẫn cho phép mở tab mới bằng Ctrl/Cmd Click
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) {
+                    return;
+                }
+                e.preventDefault();
+                
+                // Lấy chỉ mục vị trí trang đích
+                const targetPage = getPageName(href);
+                const targetIndex = PAGE_INDICES[targetPage];
+
+                // Lưu lại vị trí tọa độ của nút Menu đang chọn làm mốc xuất phát trượt cho trang sau
+                const currentActiveLink = document.querySelector('.site-nav__links .nav-link--active');
+                if (currentActiveLink) {
+                    sessionStorage.setItem('prev_nav_left', currentActiveLink.offsetLeft);
+                    sessionStorage.setItem('prev_nav_width', currentActiveLink.offsetWidth);
+                }
+
+                // CHỈ áp dụng hiệu ứng trượt trái/phải nếu CẢ trang hiện tại và trang đích đều thuộc Menu chính nằm ngang có gạch dưới (Chỉ số 0 đến 4)
+                if (targetPage === 'chitietsanpham') {
+                    // Dùng hiệu ứng mờ và thu nhỏ nhẹ nhàng chuyên biệt khi vào xem chi tiết sản phẩm
+                    document.body.classList.add('exit-to-product');
+                } else if (targetIndex !== undefined && targetIndex <= 4 && currentIndex <= 4) {
+                    if (targetIndex > currentIndex) {
+                        // Di chuyển qua phải -> Ghi nhận và trượt giao diện qua trái nhanh
+                        sessionStorage.setItem('nav_direction', 'to-left');
+                        document.body.classList.add('exit-to-left');
+                    } else if (targetIndex < currentIndex) {
+                        // Di chuyển qua trái -> Ghi nhận và trượt giao diện qua phải nhanh
+                        sessionStorage.setItem('nav_direction', 'to-right');
+                        document.body.classList.add('exit-to-right');
+                    } else {
+                        // Cùng vị trí -> Mờ dần mặc định nhanh
+                        document.body.classList.add('exit-default');
+                    }
+                } else {
+                    // Đối với Giỏ hàng, Tài khoản, Đăng nhập, Đăng xuất (Không có gạch dưới) -> Dùng hiệu ứng mờ dần & trượt dọc sang trọng mặc định
+                    document.body.classList.add('exit-default');
+                }
+                
+                // Thực hiện điều hướng sau khi hiệu ứng cực kỳ nhanh kết thúc (120ms)
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 120);
+            });
+        }
+    });
+
+    // 3. Xử lý đường gạch chân đỏ chạy theo Menu chính một cách mượt mà bằng kỹ thuật FLIP (GPU-Accelerated Transition)
+    const activeLink = document.querySelector('.site-nav__links .nav-link--active');
+    const indicator = document.querySelector('.nav-indicator');
+    if (indicator && activeLink) {
+        // Luôn đặt vị trí mặc định tại mục hiện tại trước
+        indicator.style.left = activeLink.offsetLeft + 'px';
+        indicator.style.width = activeLink.offsetWidth + 'px';
+
+        const prevLeft = sessionStorage.getItem('prev_nav_left');
+        const prevWidth = sessionStorage.getItem('prev_nav_width');
+        
+        if (prevLeft && prevWidth) {
+            const activeLeft = activeLink.offsetLeft;
+            const activeWidth = activeLink.offsetWidth;
+            
+            // Tính toán khoảng cách (delta) và tỷ lệ co giãn (scale) từ vị trí trang trước đó
+            const deltaX = parseFloat(prevLeft) - activeLeft;
+            const scaleX = parseFloat(prevWidth) / activeWidth;
+            
+            // Đặt điểm gốc của biến đổi là góc bên trái (để scaleX giãn đúng chiều ngang)
+            indicator.style.transformOrigin = 'left center';
+            
+            // Khóa hoạt họa tạm thời để dịch chuyển tức thời thanh kẻ đỏ về vị trí trang trước đó
+            indicator.style.transition = 'none';
+            indicator.style.transform = `translateX(${deltaX}px) scaleX(${scaleX})`;
+            
+            // Kích hoạt ép buộc trình duyệt Render lại khung hình xuất phát (Force Reflow)
+            indicator.offsetHeight;
+            
+            // Áp dụng transition mượt mà qua GPU (sử dụng bezier nhanh và mượt hơn)
+            indicator.style.transition = 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1)';
+            indicator.style.transform = 'translateX(0) scaleX(1)';
+        } else {
+            indicator.style.transform = 'none';
+        }
+        
+        // Dọn dẹp bộ nhớ đệm
+        sessionStorage.removeItem('prev_nav_left');
+        sessionStorage.removeItem('prev_nav_width');
+    }
+
+    // Tự động tính toán lại vị trí khi người dùng thu phóng/thay đổi kích thước trình duyệt
+    window.addEventListener('resize', () => {
+        if (indicator && activeLink) {
+            indicator.style.transition = 'none';
+            indicator.style.transform = 'none';
+            indicator.style.left = activeLink.offsetLeft + 'px';
+            indicator.style.width = activeLink.offsetWidth + 'px';
+        }
+    });
+});
 </script>
 
 
@@ -62,14 +259,11 @@ window.dbProducts = <?php echo json_encode($db_products, JSON_UNESCAPED_UNICODE)
             <a class="nav-link <?= $activeNav === 'phukien' ? 'nav-link--active' : '' ?>" href="index.php?page=phukien">Phụ kiện</a>
             <a class="nav-link <?= $activeNav === 'baiviet' ? 'nav-link--active' : '' ?>" href="index.php?page=baiviet">Bài viết</a>
             <a class="nav-link" href="#">Liên hệ</a>
+            <div class="nav-indicator"></div>
         </div>
 
         <!-- Actions — visibility controlled by PHP session (server-side) -->
         <div class="site-nav__actions">
-            <?php if ($_nav_is_admin): ?>
-            <a class="auth-admin-btn nav-link" href="index.php?page=admin">Quản trị</a>
-            <?php endif; ?>
-
             <?php if ($_nav_logged_in): ?>
             <a class="auth-profile-btn nav-link" href="index.php?page=taikhoan"
                title="Tài khoản của <?= $_nav_fullname ?>">Tài khoản</a>
@@ -93,6 +287,10 @@ window.dbProducts = <?php echo json_encode($db_products, JSON_UNESCAPED_UNICODE)
                 <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
                 <span class="nav-cart-badge hidden" id="cartBadge"></span>
             </a>
+
+            <?php if ($_nav_is_admin): ?>
+            <a class="auth-admin-btn nav-link" href="index.php?page=admin">Quản trị</a>
+            <?php endif; ?>
 
             <button class="nav-menu-btn" aria-label="menu">
                 <span class="material-symbols-outlined">menu</span>

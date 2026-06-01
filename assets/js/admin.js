@@ -641,6 +641,62 @@ function renderAdminRevenue() {
 
 // ====== PRODUCT MODAL LOGIC ======
 let modal, modalContent, form;
+let currentAdditionalImages = [];
+
+function renderAdditionalImages() {
+    const previewContainer = document.getElementById('additionalImagesPreview');
+    if (!previewContainer) return;
+    previewContainer.innerHTML = '';
+    currentAdditionalImages.forEach((imgSrc, idx) => {
+        const item = document.createElement('div');
+        item.style.position = 'relative';
+        item.style.width = '60px';
+        item.style.height = '60px';
+        item.style.border = '1px solid rgba(0,0,0,0.1)';
+        item.style.borderRadius = '4px';
+        item.style.overflow = 'hidden';
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.justifyContent = 'center';
+        item.style.background = '#f9f9f9';
+
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '100%';
+        img.style.objectFit = 'contain';
+        item.appendChild(img);
+
+        // Delete button
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.innerHTML = '×';
+        delBtn.style.position = 'absolute';
+        delBtn.style.top = '2px';
+        delBtn.style.right = '2px';
+        delBtn.style.width = '16px';
+        delBtn.style.height = '16px';
+        delBtn.style.borderRadius = '50%';
+        delBtn.style.background = 'rgba(230, 57, 70, 0.8)';
+        delBtn.style.color = '#fff';
+        delBtn.style.border = 'none';
+        delBtn.style.fontSize = '12px';
+        delBtn.style.lineHeight = '12px';
+        delBtn.style.cursor = 'pointer';
+        delBtn.style.display = 'flex';
+        delBtn.style.alignItems = 'center';
+        delBtn.style.justifyContent = 'center';
+        delBtn.onclick = (e) => {
+            e.stopPropagation();
+            currentAdditionalImages.splice(idx, 1);
+            renderAdditionalImages();
+        };
+        item.appendChild(delBtn);
+
+        previewContainer.appendChild(item);
+    });
+}
+
 function initModal() {
     modal        = document.getElementById('productModal');
     modalContent = document.getElementById('productModalContent');
@@ -668,6 +724,22 @@ function initModal() {
             });
         }
 
+        const additionalImagesInput = document.getElementById('productAdditionalImagesFile');
+        if (additionalImagesInput) {
+            additionalImagesInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        currentAdditionalImages.push(ev.target.result);
+                        renderAdditionalImages();
+                    };
+                    reader.readAsDataURL(file);
+                });
+                additionalImagesInput.value = ''; // Reset input selection
+            });
+        }
+
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             const originalId = document.getElementById('originalProductId').value;
@@ -680,6 +752,7 @@ function initModal() {
             const image      = document.getElementById('productImage').value;
             const desc       = document.getElementById('productDescription').value;
             const specs      = document.getElementById('productSpecs').value;
+            const additional_images = JSON.stringify(currentAdditionalImages);
 
             if (!image) { alert('Vui lòng chọn hình ảnh cho sản phẩm!'); return; }
 
@@ -694,6 +767,7 @@ function initModal() {
             formData.append('image', image);
             formData.append('description', desc);
             formData.append('specs', specs);
+            formData.append('additional_images', additional_images);
 
             fetch(`admin/index.php?action=${action}`, {
                 method: 'POST',
@@ -730,6 +804,8 @@ function openProductModal(id = null) {
     imagePreview.classList.add('hidden');
     document.getElementById('productImage').value = '';
     originalIdInput.value = '';
+    currentAdditionalImages = [];
+    renderAdditionalImages();
 
     const brandInput = document.getElementById('productBrand');
     const nameInput  = document.getElementById('productName');
@@ -763,6 +839,22 @@ function openProductModal(id = null) {
             imagePreview.classList.remove('hidden');
             imagePreview.classList.add('visible');
         }
+
+        // Load additional images
+        if (p.additional_images) {
+            try {
+                currentAdditionalImages = typeof p.additional_images === 'string'
+                    ? JSON.parse(p.additional_images)
+                    : p.additional_images;
+                if (!Array.isArray(currentAdditionalImages)) {
+                    currentAdditionalImages = [];
+                }
+            } catch(e) {
+                console.error("Error parsing product additional images:", e);
+                currentAdditionalImages = [];
+            }
+        }
+        renderAdditionalImages();
     } else {
         form.reset();
         document.getElementById('productId').value = '';

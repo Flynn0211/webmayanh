@@ -210,3 +210,189 @@ input, textarea, select { font-family: inherit; }
 .status-badge--info    { background: #dbeafe; color: #1d4ed8; }
 .status-badge--warn    { background: #fef9c3; color: #a16207; }
 .status-badge--error   { background: var(--error-container); color: var(--on-error-container); }
+
+/* ============================================================
+   PREMIUM PRELOADER & PAGE TRANSITIONS
+   ============================================================ */
+
+/* Hiệu ứng mượt mà lúc mở trang bằng CSS Keyframes áp dụng cho thẻ main của khách hàng (loại trừ admin) */
+body:not(.admin-body) main {
+    opacity: 0;
+    will-change: transform, opacity; /* Thúc đẩy trình duyệt dựng luồng GPU chuyên biệt, chống giật lag tuyệt đối */
+}
+
+/* 1. Vào trang từ bên phải (khi chuyển qua trang bên phải) */
+body.entry-from-right main {
+    animation: slideInFromRight 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 2. Vào trang từ bên trái (khi chuyển qua trang bên trái) */
+body.entry-from-left main {
+    animation: slideInFromLeft 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 3. Vào trang mặc định dạng trượt lên nhẹ (khi reload hoặc trực tiếp) */
+body.entry-default main {
+    animation: pageEntry 0.22s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes pageEntry {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hiệu ứng mượt mà khi chuyển tiếp rời khỏi trang */
+
+/* A. Rời trang trượt về phía bên trái (chuyển sang trang ở bên phải) */
+body.exit-to-left main {
+    animation: slideOutToLeft 0.12s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes slideOutToLeft {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-16px);
+    }
+}
+
+/* B. Rời trang trượt về phía bên phải (chuyển sang trang ở bên trái) */
+body.exit-to-right main {
+    animation: slideOutToRight 0.12s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes slideOutToRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(16px);
+    }
+}
+
+/* C. Rời trang mặc định trôi lên nhẹ */
+body.exit-default main {
+    animation: pageExit 0.12s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes pageExit {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+}
+
+/* Màn hình Preloader chào mừng Premium */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #09090b; /* Màu tối huyền bí */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    transition: opacity 0.5s cubic-bezier(0.77, 0, 0.175, 1), transform 0.5s cubic-bezier(0.77, 0, 0.175, 1), visibility 0.5s;
+    pointer-events: all;
+    gap: 1.5rem;
+}
+
+#preloader.preloader--hidden {
+    opacity: 0;
+    transform: scale(1.02);
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Logo phát sáng óng ánh (Shimmering Logo) */
+.preloader-brand {
+    font-family: 'Geist', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #fff, #5b5b5b, #fff);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textShine 3s linear infinite;
+}
+
+@keyframes textShine {
+    to {
+        background-position: 200% center;
+    }
+}
+
+/* Spinner vòng xoay vô cực mượt mà */
+.preloader-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    border-top-color: var(--primary);
+    animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    box-shadow: 0 0 15px rgba(230, 57, 70, 0.2);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Hiệu ứng Snappy Exit khi chuyển sang xem chi tiết sản phẩm */
+body.exit-to-product main {
+    animation: exitToProduct 0.15s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes exitToProduct {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+}
+
