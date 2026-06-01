@@ -21,11 +21,14 @@
     <aside class="account-sidebar">
         <h2 class="account-sidebar__title">TÀI KHOẢN</h2>
         <nav class="account-sidebar__nav">
-            <a class="account-sidebar__link account-sidebar__link--active" href="index.php?page=taikhoan">
+            <a class="account-sidebar__link account-sidebar__link--active" href="#" id="navProfile">
                 Hồ sơ cá nhân
             </a>
-            <a class="account-sidebar__link" href="index.php?page=donhang">
+            <a class="account-sidebar__link" href="#" id="navOrders">
                 Lịch sử đơn hàng
+            </a>
+            <a class="account-sidebar__link" href="#" id="navFavorites">
+                Sản phẩm yêu thích
             </a>
             <button class="account-sidebar__link account-sidebar__link--logout" id="logoutSidebarBtn">
                 Đăng xuất
@@ -35,12 +38,17 @@
 
     <!-- Main Canvas Right -->
     <section class="account-canvas">
-        <header class="account-canvas__header">
-            <h1 class="account-canvas__title">Hồ sơ cá nhân</h1>
-        </header>
+        <div class="account-canvas-container">
+            <div class="account-slider" id="accountSlider">
+                
+                <!-- Panel 1: Profile -->
+                <div class="account-panel" id="panel-profile">
+                    <header class="account-canvas__header">
+                        <h1 class="account-canvas__title">Hồ sơ cá nhân</h1>
+                    </header>
 
-        <!-- Bento Grid Layout -->
-        <div class="profile-bento">
+                    <!-- Bento Grid Layout -->
+                    <div class="profile-bento">
             <!-- Contact Card -->
             <div class="profile-card">
                 <div class="profile-card__header">
@@ -116,7 +124,7 @@
         <div class="recent-orders">
             <div class="recent-orders__header">
                 <h3 class="recent-orders__title">Đơn hàng gần đây</h3>
-                <a class="recent-orders__link" href="index.php?page=donhang">Xem tất cả</a>
+                <a class="recent-orders__link" href="#" id="linkViewAllOrders">Xem tất cả</a>
             </div>
 
             <!-- Table Spec Style for Orders -->
@@ -133,6 +141,34 @@
                 <div id="recentOrdersBody"></div>
             </div>
         </div>
+                </div> <!-- End Panel Profile -->
+
+                <!-- Panel 2: Orders & Favorites -->
+                <div class="account-panel account-panel--orders" id="panel-orders">
+                    <header class="account-canvas__header">
+                        <h1 class="account-canvas__title">Lịch sử đơn hàng</h1>
+                    </header>
+                    
+                    <div class="tab-panel" style="margin-top: 2rem;">
+                        <!-- Đơn Hàng -->
+                        <div id="ordersContainer" class="block"></div>
+                    </div>
+                </div> <!-- End Panel Orders -->
+                
+                <!-- Panel 3: Favorites -->
+                <div class="account-panel account-panel--favorites" id="panel-favorites">
+                    <header class="account-canvas__header">
+                        <h1 class="account-canvas__title">Sản phẩm yêu thích</h1>
+                    </header>
+                    
+                    <div class="tab-panel" style="margin-top: 2rem;">
+                        <!-- Yêu Thích -->
+                        <div id="favoritesContainer" class="block"></div>
+                    </div>
+                </div> <!-- End Panel Favorites -->
+                
+            </div> <!-- End Slider -->
+        </div> <!-- End Canvas Container -->
     </section>
 </main>
 
@@ -195,6 +231,7 @@
 </style>
 
 <script src="assets/js/auth.js?v=2.0"></script>
+<script src="assets/js/donhang.js"></script>
 <script src="assets/js/taikhoan.js"></script>
 </body>
 </html>

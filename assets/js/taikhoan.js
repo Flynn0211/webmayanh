@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (profileName) profileName.textContent = p.ho_ten || user.username;
                     if (profileEmail) profileEmail.textContent = p.email || 'Chưa cập nhật email';
                     if (profilePhone) profilePhone.textContent = p.sdt || 'Chưa cập nhật SĐT';
-                    if (profileTier) profileTier.textContent = `${p.hang_thanh_vien} MEMBER (${p.diem_tich_luy} PTS)`;
 
                     // Render Total Spent and Next Tier
                     const profileSpent = document.getElementById('profileSpent');
@@ -60,6 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                             if (currentTierName) currentTierName.textContent = 'NONE';
                             if (nextTierName) nextTierName.textContent = 'SILVER (1k)';
+                            if (profileTier) profileTier.textContent = 'MEMBER';
                             
                         } else if (pts < 5000) {
                             nextTierLabel.textContent = 'Lên hạng Gold:';
@@ -75,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                             if (currentTierName) currentTierName.textContent = 'SILVER';
                             if (nextTierName) nextTierName.textContent = 'GOLD (5k)';
+                            if (profileTier) profileTier.textContent = 'SILVER MEMBER';
                             // Change text color for light card
                             if (membershipCard) membershipCard.style.color = '#333';
                             
@@ -95,6 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                             if (currentTierName) currentTierName.textContent = 'GOLD';
                             if (nextTierName) nextTierName.textContent = 'DIAMOND (10k)';
+                            if (profileTier) profileTier.textContent = 'GOLD MEMBER';
                             
                         } else {
                             nextTierLabel.textContent = 'Thăng hạng tiếp theo:';
@@ -111,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                             if (currentTierName) currentTierName.textContent = 'DIAMOND';
                             if (nextTierName) nextTierName.textContent = 'MAX LEVEL';
+                            if (profileTier) profileTier.textContent = 'DIAMOND MEMBER';
                         }
                         
                         // Force sub-elements color adjustment if light background
@@ -130,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     // Fallback
                     if (profileName) profileName.textContent = user.fullname || user.username;
-                    if (profileTier) profileTier.textContent = 'None Member (0 pts)';
+                    if (profileTier) profileTier.textContent = 'MEMBER';
                 }
             });
     }
@@ -256,4 +259,73 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // 5. Slider Navigation Logic
+    const navProfile = document.getElementById('navProfile');
+    const navOrders = document.getElementById('navOrders');
+    const navFavorites = document.getElementById('navFavorites');
+    const linkViewAllOrders = document.getElementById('linkViewAllOrders');
+    const accountSlider = document.getElementById('accountSlider');
+
+    function slideTo(panel) {
+        if (!accountSlider) return;
+        
+        // Remove active classes
+        if (navProfile) navProfile.classList.remove('account-sidebar__link--active');
+        if (navOrders) navOrders.classList.remove('account-sidebar__link--active');
+        if (navFavorites) navFavorites.classList.remove('account-sidebar__link--active');
+        
+        // Reset slider classes
+        accountSlider.classList.remove('show-orders', 'show-favorites');
+
+        if (panel === 'orders') {
+            accountSlider.classList.add('show-orders');
+            if (navOrders) navOrders.classList.add('account-sidebar__link--active');
+            window.location.hash = 'orders';
+        } else if (panel === 'favorites') {
+            accountSlider.classList.add('show-favorites');
+            if (navFavorites) navFavorites.classList.add('account-sidebar__link--active');
+            window.location.hash = 'favorites';
+        } else {
+            // Profile (default)
+            if (navProfile) navProfile.classList.add('account-sidebar__link--active');
+            window.location.hash = 'profile';
+        }
+    }
+
+    if (navProfile) {
+        navProfile.addEventListener('click', (e) => {
+            e.preventDefault();
+            slideTo('profile');
+        });
+    }
+
+    if (navOrders) {
+        navOrders.addEventListener('click', (e) => {
+            e.preventDefault();
+            slideTo('orders');
+        });
+    }
+
+    if (navFavorites) {
+        navFavorites.addEventListener('click', (e) => {
+            e.preventDefault();
+            slideTo('favorites');
+        });
+    }
+
+    if (linkViewAllOrders) {
+        linkViewAllOrders.addEventListener('click', (e) => {
+            e.preventDefault();
+            slideTo('orders');
+        });
+    }
+
+    // Auto-slide based on hash on load
+    if (window.location.hash === '#orders') {
+        setTimeout(() => slideTo('orders'), 50);
+    } else if (window.location.hash === '#favorites') {
+        setTimeout(() => slideTo('favorites'), 50);
+    }
+
 });

@@ -10,23 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const ordersContainer   = document.getElementById('ordersContainer');
     const favoritesContainer= document.getElementById('favoritesContainer');
-    const tabOrders         = document.getElementById('tabOrders');
-    const tabFavorites      = document.getElementById('tabFavorites');
-
-    // ── Tab switching ─────────────────────────────────────────
-    function setTab(active) {
-        const isOrders = (active === 'orders');
-        tabOrders.classList.toggle('tab-btn--active', isOrders);
-        tabFavorites.classList.toggle('tab-btn--active', !isOrders);
-        ordersContainer.classList.toggle('hidden', !isOrders);
-        ordersContainer.classList.toggle('block', isOrders);
-        favoritesContainer.classList.toggle('hidden', isOrders);
-        favoritesContainer.classList.toggle('block', !isOrders);
-        if (isOrders) renderOrders(); else renderFavorites();
-    }
-
-    tabOrders.onclick    = () => setTab('orders');
-    tabFavorites.onclick = () => setTab('favorites');
 
     // ── Remove favorite ───────────────────────────────────────
     window.removeFavorite = function(productId) {
@@ -168,5 +151,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     renderOrders();
+    renderFavorites();
 });
 

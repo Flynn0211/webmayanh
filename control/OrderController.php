@@ -37,15 +37,20 @@ class OrderController {
         $hang_thanh_vien = 'None';
         $email_khach_hang = null;
         if (!empty($customerUsername)) {
-            $stmt = $conn->prepare("SELECT ma_tk, hang_thanh_vien, email FROM tai_khoan WHERE username = ?");
+            $stmt = $conn->prepare("SELECT ma_tk, hang_thanh_vien, diem_tich_luy, email FROM tai_khoan WHERE username = ?");
             if ($stmt) {
                 $stmt->bind_param("s", $customerUsername);
                 $stmt->execute();
                 $res = $stmt->get_result();
                 if ($row = $res->fetch_assoc()) {
                     $ma_khach_hang = $row['ma_tk'];
-                    $hang_thanh_vien = $row['hang_thanh_vien'];
                     $email_khach_hang = $row['email'];
+                    
+                    $pts = (int)$row['diem_tich_luy'];
+                    $hang_thanh_vien = 'Thường';
+                    if ($pts >= 10000) $hang_thanh_vien = 'Diamond';
+                    elseif ($pts >= 5000) $hang_thanh_vien = 'Gold';
+                    elseif ($pts >= 1000) $hang_thanh_vien = 'Silver';
                 }
             }
         }

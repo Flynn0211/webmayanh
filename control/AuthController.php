@@ -217,6 +217,20 @@ class AuthController {
         $stmt->execute();
         $res = $stmt->get_result();
         if ($row = $res->fetch_assoc()) {
+            // Tính toán lại hạng thành viên dựa trên điểm
+            $pts = (int)$row['diem_tich_luy'];
+            $tier = 'Thường';
+            if ($pts >= 10000) $tier = 'Diamond';
+            elseif ($pts >= 5000) $tier = 'Gold';
+            elseif ($pts >= 1000) $tier = 'Silver';
+            
+            $row['hang_thanh_vien'] = $tier;
+            
+            // Cập nhật lại vào DB để đồng bộ
+            $stmt_u = $conn->prepare("UPDATE tai_khoan SET hang_thanh_vien = ? WHERE username = ?");
+            $stmt_u->bind_param("ss", $tier, $username);
+            $stmt_u->execute();
+
             echo json_encode(['success' => true, 'profile' => $row]);
         } else {
             echo json_encode(['success' => false, 'message' => 'User not found']);
@@ -309,4 +323,3 @@ class AuthController {
     }
 }
 ?>
-

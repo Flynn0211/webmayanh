@@ -55,3 +55,47 @@ window.handleFavorite = function(productId, btnElement) {
         }
     }
 };
+
+window.addToCartFast = function(productId) {
+    const user = getCurrentUser();
+    if (!user) {
+        alert("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!");
+        window.location.href = 'index.php?page=login';
+        return;
+    }
+    
+    const products = window.dbProducts || JSON.parse(localStorage.getItem('products')) || [];
+    const product = products.find(p => String(p.id) === String(productId));
+    if (!product) return;
+
+    const currentStock = product.stock !== undefined ? product.stock : 10;
+    if (currentStock <= 0) {
+        alert("Sản phẩm này đã hết hàng!");
+        return;
+    }
+
+    const cartKey = `cart_${user.username}`;
+    let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+    
+    const existingItem = cart.find(item => item.id == product.id);
+    if (existingItem) {
+        if (existingItem.quantity >= currentStock) {
+            alert(`Rất tiếc, bạn chỉ có thể mua tối đa ${currentStock} sản phẩm này!`);
+            return;
+        }
+        existingItem.quantity += 1;
+    } else {
+        cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            brand: product.brand,
+            quantity: 1,
+            stock: currentStock,
+            image: product.image
+        });
+    }
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+    alert("Đã thêm sản phẩm vào giỏ hàng!");
+    if (window.updateCartBadge) window.updateCartBadge();
+};

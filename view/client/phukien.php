@@ -1,0 +1,74 @@
+<?php $activeNav = 'phukien'; ?>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Danh mục phụ kiện máy ảnh cao cấp: Dây đeo, Balo, Filter, Bao da, Grip."/>
+    <title>LENS &amp; LIGHT - Danh mục Phụ Kiện</title>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="assets/css/base.css" rel="stylesheet"/>
+    <link href="assets/css/client.css" rel="stylesheet"/>
+    <link href="assets/css/responsive.css" rel="stylesheet"/>
+</head>
+<body>
+
+<?php include 'view/client/layout/_navbar.php'; ?>
+
+
+<main>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header__inner">
+            <h1 class="page-header__title">PHỤ KIỆN</h1>
+            <p class="page-header__desc">Hoàn thiện không gian nhiếp ảnh của bạn với những phụ kiện chuyên nghiệp nhất.</p>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-bar__inner">
+            <!-- Type Filters -->
+            <div class="brand-filters" id="brandFilterContainer">
+                <button class="brand-btn brand-btn--active" data-brand="all">Tất cả</button>
+                <button class="brand-btn" data-brand="day-deo">Dây Đeo</button>
+                <button class="brand-btn" data-brand="balo-tui">Balo & Túi</button>
+                <button class="brand-btn" data-brand="filter">Filter</button>
+                <button class="brand-btn" data-brand="bao-da">Bao Da</button>
+                <button class="brand-btn" data-brand="grip">Grip</button>
+                <button class="brand-btn" data-brand="khac">Khác</button>
+            </div>
+
+            <div class="filter-controls">
+                <!-- Search -->
+                <div class="filter-search">
+                    <span class="material-symbols-outlined filter-search__icon">search</span>
+                    <input type="text" id="searchInput" placeholder="Tìm phụ kiện..." class="filter-search__input"/>
+                </div>
+                <!-- Sort -->
+                <select id="sortSelect" class="filter-sort">
+                    <option value="default">Mặc định</option>
+                    <option value="price_asc">Giá: Thấp - Cao</option>
+                    <option value="price_desc">Giá: Cao - Thấp</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="catalog-grid">
+        <div id="productGrid" class="catalog-grid__inner">
+            <p class="no-products-msg hidden" id="noProductsMsg">Không tìm thấy sản phẩm nào phù hợp.</p>
+        </div>
+    </div>
+</main>
+
+<?php include 'view/client/layout/_footer_dark.php'; ?>
+
+<script src="assets/js/auth.js?v=2.0"></script>
+<script src="assets/js/phukien.js"></script>
+</body>
+</html>
+
+

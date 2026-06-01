@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Cấu hình thông tin cơ sở dữ liệu
 $servername = "localhost";
 $username = "root";

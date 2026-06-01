@@ -89,43 +89,144 @@ function renderAdminArticles() {
     });
 }
 
-window.openArticleModal = function() {
+window.openArticleModal = function(id = null) {
+    const imageInput      = document.getElementById('articleImageFile');
+    const imagePreview    = document.getElementById('articleImagePreviewContainer');
+    const imagePreviewImg = document.getElementById('articleImagePreviewImg');
+    const hiddenImage     = document.getElementById('articleImage');
+    const idInput         = document.getElementById('articleId');
+    const originalIdInput = document.getElementById('articleOriginalId');
+    
     document.getElementById('articleForm').reset();
-    document.getElementById('articleAction').value = 'add';
-    document.getElementById('articleId').value = '';
-    document.getElementById('articleOldImage').value = '';
-    document.getElementById('articleModalTitle').innerText = 'Thêm Bài Viết';
-    document.getElementById('articleImagePreview').innerHTML = '';
-    document.getElementById('articleModal').classList.add('active');
+    imageInput.value = '';
+    hiddenImage.value = '';
+    imagePreview.classList.remove('visible');
+    imagePreview.classList.add('hidden');
+    originalIdInput.value = '';
+    idInput.value = '';
+    
+    document.getElementById('articleModalTitle').innerText = id ? 'Sửa Bài Viết' : 'Thêm Bài Viết';
+
+    if (id) {
+        const art = articles.find(a => a.id === id);
+        if (art) {
+            originalIdInput.value = art.id;
+            idInput.value = art.id;
+            document.getElementById('articleTitle').value = art.title;
+            document.getElementById('articleSlug').value = art.slug;
+            document.getElementById('articleSummary').value = art.summary;
+            document.getElementById('articleContent').value = art.content;
+            document.getElementById('articleStatus').value = art.status;
+            hiddenImage.value = art.image;
+            
+            if (art.image) {
+                imagePreviewImg.src = art.image;
+                imagePreview.classList.remove('hidden');
+                imagePreview.classList.add('visible');
+            }
+        }
+    }
+    
+    document.getElementById('articleModal').classList.add('open');
 };
 
 window.closeArticleModal = function() {
-    document.getElementById('articleModal').classList.remove('active');
+    document.getElementById('articleModal').classList.remove('open');
 };
 
 window.editArticle = function(id) {
-    const art = articles.find(a => a.id === id);
-    if (!art) return;
-    document.getElementById('articleForm').reset();
-    document.getElementById('articleAction').value = 'edit';
-    document.getElementById('articleId').value = art.id;
-    document.getElementById('articleTitle').value = art.title;
-    document.getElementById('articleSlug').value = art.slug;
-    document.getElementById('articleSummary').value = art.summary;
-    document.getElementById('articleContent').value = art.content;
-    document.getElementById('articleStatus').value = art.status;
-    document.getElementById('articleOldImage').value = art.image;
-    document.getElementById('articleImagePreview').innerHTML = `<img src="${art.image}" style="max-width:100%; border-radius:4px;"/>`;
-    document.getElementById('articleModalTitle').innerText = 'Sửa Bài Viết';
-    document.getElementById('articleModal').classList.add('active');
+    window.openArticleModal(id);
 };
 
 window.deleteArticle = function(id) {
     if (confirm('Bạn có chắc muốn xóa bài viết này?')) {
-        document.getElementById('deleteArticleId').value = id;
-        document.getElementById('deleteArticleForm').submit();
+        fetch(`admin/index.php?action=delete_article&id=${id}`, {
+            method: 'POST'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Xóa bài viết thành công!');
+                location.reload();
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể xóa bài viết'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Lỗi mạng không thể xóa bài viết.');
+        });
     }
 };
+
+function initArticleModal() {
+    const articleForm = document.getElementById('articleForm');
+    if (!articleForm) return;
+
+    const imageInput = document.getElementById('articleImageFile');
+    const imagePreview = document.getElementById('articleImagePreviewContainer');
+    const imagePreviewImg = document.getElementById('articleImagePreviewImg');
+    const hiddenImageInput = document.getElementById('articleImage');
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    hiddenImageInput.value = ev.target.result;
+                    imagePreviewImg.src = ev.target.result;
+                    imagePreview.classList.remove('hidden');
+                    imagePreview.classList.add('visible');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    articleForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const originalId = document.getElementById('articleOriginalId').value;
+        const id         = document.getElementById('articleId').value.trim();
+        const title      = document.getElementById('articleTitle').value.trim();
+        const slug       = document.getElementById('articleSlug').value.trim();
+        const status     = document.getElementById('articleStatus').value;
+        const image      = document.getElementById('articleImage').value;
+        const summary    = document.getElementById('articleSummary').value.trim();
+        const content    = document.getElementById('articleContent').value.trim();
+
+        if (!image) { alert('Vui lòng chọn ảnh bìa cho bài viết!'); return; }
+
+        const action = originalId ? 'edit_article' : 'add_article';
+        const formData = new FormData();
+        formData.append('id', originalId || id);
+        formData.append('title', title);
+        formData.append('slug', slug);
+        formData.append('status', status);
+        formData.append('image', image);
+        formData.append('summary', summary);
+        formData.append('content', content);
+
+        fetch(`admin/index.php?action=${action}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(originalId ? 'Cập nhật bài viết thành công!' : 'Thêm bài viết thành công!');
+                closeArticleModal();
+                location.reload();
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể lưu bài viết'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Lỗi mạng không thể lưu bài viết.');
+        });
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -259,13 +360,40 @@ window.closeOrderModal = function() {
     document.getElementById('orderModal').classList.remove('open');
 };
 
+window.currentOrderTab = 'processing';
+
+window.switchOrderTab = function(tab) {
+    window.currentOrderTab = tab;
+    document.getElementById('orderTabProcessing').className = tab === 'processing' ? 'btn-hero-primary' : 'btn-hero-ghost';
+    document.getElementById('orderTabCompleted').className = tab === 'completed' ? 'btn-hero-primary' : 'btn-hero-ghost';
+    
+    if(tab === 'processing') {
+        document.getElementById('orderTabProcessing').style.cssText = 'padding: 0.5rem 1.5rem;';
+        document.getElementById('orderTabCompleted').style.cssText = 'padding: 0.5rem 1.5rem; color:var(--on-surface); border-color:rgba(0,0,0,0.1);';
+    } else {
+        document.getElementById('orderTabCompleted').style.cssText = 'padding: 0.5rem 1.5rem;';
+        document.getElementById('orderTabProcessing').style.cssText = 'padding: 0.5rem 1.5rem; color:var(--on-surface); border-color:rgba(0,0,0,0.1);';
+    }
+    
+    renderAdminOrders();
+};
+
 function renderAdminOrders() {
-    let orders   = window.dbOrders || [];
+    let allOrders = window.dbOrders || [];
     const statuses = ['Chờ Xác Nhận', 'Đang Xử Lý', 'Đang Giao', 'Đã Giao', 'Hoàn Thành', 'Đã hủy'];
 
+    let orders = [];
+    if (window.currentOrderTab === 'completed') {
+        orders = allOrders.filter(o => o.status === 'Hoàn Thành' || o.status === 'Đã hủy');
+    } else {
+        orders = allOrders.filter(o => o.status !== 'Hoàn Thành' && o.status !== 'Đã hủy');
+    }
+
     if (orders.length === 0) {
-        document.getElementById('adminOrderTableBody').innerHTML = `<tr><td colspan="6" class="td-muted" style="text-align:center;padding:2rem;">Chưa có đơn hàng nào.</td></tr>`;
-        document.getElementById('newOrdersBadge').innerText = '0';
+        document.getElementById('adminOrderTableBody').innerHTML = `<tr><td colspan="6" class="td-muted" style="text-align:center;padding:2rem;">Chưa có đơn hàng nào trong mục này.</td></tr>`;
+        // Only update badge if we are looking at processing tab, or total processing
+        const processingCount = allOrders.filter(o => o.status !== 'Hoàn Thành' && o.status !== 'Đã hủy').length;
+        document.getElementById('newOrdersBadge').innerText = processingCount.toString();
         return;
     }
 
@@ -292,24 +420,96 @@ function renderAdminOrders() {
         </tr>
     `).join('');
 
-    document.getElementById('newOrdersBadge').innerText = orders.length;
+    const processingCount = allOrders.filter(o => o.status !== 'Hoàn Thành' && o.status !== 'Đã hủy').length;
+    document.getElementById('newOrdersBadge').innerText = processingCount.toString();
 }
 
 // ── Customers ─────────────────────────────────────────────────
+window.toggleUserStatus = function(id) {
+    if(!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này?')) return;
+    fetch(`admin/index.php?action=toggle_user_status&id=${id}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Cập nhật trạng thái thành công!');
+            location.reload();
+        } else {
+            alert('Lỗi: ' + (data.error || 'Không thể cập nhật'));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Lỗi mạng khi cập nhật trạng thái');
+    });
+};
+
+window.closeUserModal = function() {
+    document.getElementById('userModal').classList.remove('open');
+};
+
+window.viewUser = function(id, type) {
+    const userList = type === 'customer' ? window.dbCustomers : window.dbEmployees;
+    const user = userList.find(u => String(u.id) === String(id));
+    if (!user) return;
+    
+    document.getElementById('userModalTitle').innerText = type === 'customer' ? 'Chi tiết Khách hàng' : 'Chi tiết Nhân viên';
+    
+    let html = `
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline-variant); padding-bottom: 0.5rem;">
+                <div style="font-weight: 600; color: var(--on-surface-variant);">ID</div>
+                <div style="font-family: 'Geist', sans-serif;">#${user.id}</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline-variant); padding-bottom: 0.5rem;">
+                <div style="font-weight: 600; color: var(--on-surface-variant);">Họ Tên</div>
+                <div>${user.name}</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline-variant); padding-bottom: 0.5rem;">
+                <div style="font-weight: 600; color: var(--on-surface-variant);">Username</div>
+                <div style="font-family: 'Geist', sans-serif; color: var(--primary);">@${user.username}</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline-variant); padding-bottom: 0.5rem;">
+                <div style="font-weight: 600; color: var(--on-surface-variant);">Email</div>
+                <div>${user.email || 'Không có'}</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline-variant); padding-bottom: 0.5rem;">
+                <div style="font-weight: 600; color: var(--on-surface-variant);">Số điện thoại</div>
+                <div>${user.phone || 'Không có'}</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline-variant); padding-bottom: 0.5rem;">
+                <div style="font-weight: 600; color: var(--on-surface-variant);">Vai trò</div>
+                <div>${user.role}</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline-variant); padding-bottom: 0.5rem;">
+                <div style="font-weight: 600; color: var(--on-surface-variant);">Trạng thái</div>
+                <div><span class="inline-block px-2 py-1 text-xs border border-tertiary text-tertiary rounded" style="${user.active ? 'border-color: green; color: green;' : 'border-color: red; color: red;'}">${user.active ? 'Hoạt động' : 'Bị khóa'}</span></div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('userModalBody').innerHTML = html;
+    document.getElementById('userModal').classList.add('open');
+};
+
 function renderAdminCustomers() {
-    document.getElementById('adminCustomerTableBody').innerHTML = mockCustomers.map(c => `
+    let customers = window.dbCustomers || [];
+    if (customers.length === 0) {
+        document.getElementById('adminCustomerTableBody').innerHTML = `<tr><td colspan="4" class="center td-muted">Chưa có khách hàng nào.</td></tr>`;
+        return;
+    }
+    document.getElementById('adminCustomerTableBody').innerHTML = customers.map(c => `
         <tr class="${!c.active ? 'disabled' : ''}">
             <td class="td-id">${c.id}</td>
             <td class="td-bold">${c.name}</td>
             <td><span class="tier-badge tier-badge--${c.tier}">${c.tier}</span></td>
             <td class="center">
                 <div class="action-group">
-                    <button class="btn-table-action btn-table-action--view" title="Xem">
+                    <button class="btn-table-action btn-table-action--view" title="Xem" onclick="viewUser('${c.id}', 'customer')">
                         <span class="material-symbols-outlined" style="font-size:1.25rem;">visibility</span>
                     </button>
                     <button class="btn-table-action ${c.active ? 'btn-table-action--lock' : 'btn-table-action--unlock'}"
                             title="${c.active ? 'Khóa' : 'Mở khóa'}"
-                            onclick="alert('Đã thay đổi trạng thái khách hàng!')">
+                            onclick="toggleUserStatus('${c.id}')">
                         <span class="material-symbols-outlined" style="font-size:1.25rem;">${c.active ? 'lock' : 'lock_open'}</span>
                     </button>
                 </div>
@@ -320,19 +520,24 @@ function renderAdminCustomers() {
 
 // ── Employees ─────────────────────────────────────────────────
 function renderAdminEmployees() {
-    document.getElementById('adminEmployeeTableBody').innerHTML = mockEmployees.map(e => `
+    let employees = window.dbEmployees || [];
+    if (employees.length === 0) {
+        document.getElementById('adminEmployeeTableBody').innerHTML = `<tr><td colspan="4" class="center td-muted">Chưa có nhân viên nào.</td></tr>`;
+        return;
+    }
+    document.getElementById('adminEmployeeTableBody').innerHTML = employees.map(e => `
         <tr class="${!e.active ? 'disabled' : ''}">
             <td class="td-id">${e.id}</td>
             <td class="td-bold">${e.name}</td>
             <td class="td-muted">${e.role}</td>
             <td class="center">
                 <div class="action-group">
-                    <button class="btn-table-action btn-table-action--view" title="Xem">
+                    <button class="btn-table-action btn-table-action--view" title="Xem" onclick="viewUser('${e.id}', 'employee')">
                         <span class="material-symbols-outlined" style="font-size:1.25rem;">visibility</span>
                     </button>
                     <button class="btn-table-action ${e.active ? 'btn-table-action--lock' : 'btn-table-action--unlock'}"
                             title="${e.active ? 'Khóa' : 'Mở khóa'}"
-                            onclick="alert('Đã thay đổi trạng thái nhân viên!')">
+                            onclick="toggleUserStatus('${e.id}')">
                         <span class="material-symbols-outlined" style="font-size:1.25rem;">${e.active ? 'lock' : 'lock_open'}</span>
                     </button>
                 </div>
@@ -376,17 +581,34 @@ function renderAdminVouchers() {
 
 // ── Promotions ────────────────────────────────────────────────
 function renderAdminPromotions() {
-    document.getElementById('adminPromoTableBody').innerHTML = mockPromos.map(p => `
-        <tr>
-            <td class="td-bold">${p.product}</td>
-            <td class="td-primary td-bold">Giảm ${p.discount}</td>
-            <td class="center">
-                <button class="btn-table-action btn-table-action--delete" title="Xóa" onclick="alert('Đã gỡ khuyến mãi!')">
-                    <span class="material-symbols-outlined" style="font-size:1.25rem;">delete</span>
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    fetch('admin/index.php?action=get_promotions')
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('adminPromoTableBody').innerHTML = data.promotions.map(p => `
+                <tr>
+                    <td class="td-bold">${p.product}</td>
+                    <td class="td-primary td-bold">Giảm ${p.discount}</td>
+                    <td class="td-muted">${p.start} - ${p.end}</td>
+                    <td class="center">
+                        <span class="inline-block px-2 py-1 text-xs border border-tertiary text-tertiary rounded font-label-caps" style="text-transform: uppercase;">
+                            ${p.status}
+                        </span>
+                    </td>
+                    <td class="center">
+                        <button class="btn-table-action btn-table-action--delete" title="Xóa" onclick="deletePromotion(${p.id})">
+                            <span class="material-symbols-outlined" style="font-size:1.25rem;">delete</span>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            document.getElementById('adminPromoTableBody').innerHTML = `<tr><td colspan="5" class="center">Không thể tải khuyến mãi</td></tr>`;
+        }
+    })
+    .catch(err => {
+        document.getElementById('adminPromoTableBody').innerHTML = `<tr><td colspan="5" class="center">Lỗi mạng</td></tr>`;
+    });
 }
 
 // ── Revenue ───────────────────────────────────────────────────
@@ -615,9 +837,116 @@ window.addVoucherPrompt = function() {
     });
 };
 
+window.addPromotionPrompt = function() {
+    const promoModal = document.getElementById('promoModal');
+    const productSelect = document.getElementById('promoProduct');
+    const form = document.getElementById('promoForm');
+    
+    // Populate select
+    productSelect.innerHTML = products.map(p => `<option value="${p.id}">${p.id} - ${p.name}</option>`).join('');
+    
+    promoModal.classList.add('open');
+    
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        
+        const productId = document.getElementById('promoProduct').value;
+        const discount = document.getElementById('promoDiscount').value;
+        const expire = document.getElementById('promoExpire').value;
+        
+        const formData = new FormData();
+        formData.append('product_id', productId.trim());
+        formData.append('discount', discount.trim());
+        formData.append('expire', expire);
+        
+        fetch('admin/index.php?action=add_promotion', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Thêm khuyến mãi thành công!');
+                closePromoModal();
+                form.reset();
+                renderAdminPromotions();
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể tạo khuyến mãi'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+        });
+    };
+};
+
+window.closePromoModal = function() {
+    document.getElementById('promoModal').classList.remove('open');
+};
+
+window.deletePromotion = function(id) {
+    if (confirm('Bạn có chắc chắn muốn gỡ khuyến mãi này?')) {
+        const formData = new FormData();
+        formData.append('id', id);
+        
+        fetch('admin/index.php?action=delete_promotion', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Xóa khuyến mãi thành công!');
+                renderAdminPromotions();
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể xóa khuyến mãi'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Lỗi mạng không thể xóa khuyến mãi.');
+        });
+    }
+};
+
+window.addUserPrompt = function() {
+    const name = prompt("Nhập họ tên nhân viên mới:");
+    if (!name) return;
+    const user = prompt("Nhập username:");
+    if (!user) return;
+    const pass = prompt("Nhập mật khẩu (password):");
+    if (!pass) return;
+    
+    const formData = new FormData();
+    formData.append('name', name.trim());
+    formData.append('username', user.trim());
+    formData.append('password', pass);
+    formData.append('role', 'Admin');
+    
+    fetch('admin/index.php?action=add_user', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Thêm nhân viên thành công!');
+            location.reload();
+        } else {
+            alert('Lỗi: ' + (data.error || 'Không thể thêm nhân viên'));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Lỗi mạng không thể tạo nhân viên.');
+    });
+};
+
 // ====== INITIALIZATION ======
 document.addEventListener("DOMContentLoaded", function() {
     initModal();
+    initArticleModal();
     switchTab('products');
 });
 

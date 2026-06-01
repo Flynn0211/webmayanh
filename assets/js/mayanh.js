@@ -83,10 +83,15 @@ document.addEventListener("DOMContentLoaded", function() {
                     <h3 class="catalog-card__name">
                         <a href="index.php?page=chitietsanpham&id=${product.id}">${product.name}</a>
                     </h3>
-                    <p class="catalog-card__price">
-                        ${product.raw_original_price > product.raw_price ? `<span style="text-decoration: line-through; color: #888; font-size: 0.85em; margin-right: 8px;">${product.original_price}</span>` : ''}
-                        ${formatPrice(product.price)}
-                    </p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                        <p class="catalog-card__price" style="margin: 0;">
+                            ${product.raw_original_price > product.raw_price ? `<span style="text-decoration: line-through; color: #888; font-size: 0.85em; margin-right: 8px;">${product.original_price}</span>` : ''}
+                            ${formatPrice(product.price)}
+                        </p>
+                        <button onclick="addToCartFast('${product.id}')" title="Thêm vào giỏ" style="background:none; border:none; color:var(--primary); cursor:pointer; display:flex; align-items:center; padding:0;">
+                            <span class="material-symbols-outlined">add_shopping_cart</span>
+                        </button>
+                    </div>
                 </div>
             </div>`;
         }).join('');

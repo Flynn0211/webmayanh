@@ -11,7 +11,14 @@ class ProductController {
         $db_products = [];
 
         foreach ($rawProducts as $row) {
-            $cat = ($row['category_slug'] === 'ong-kinh') ? 'lens' : 'camera';
+            $slug = $row['category_slug'];
+            if ($slug === 'ong-kinh') {
+                $cat = 'lens';
+            } elseif ($slug === 'phu-kien') {
+                $cat = 'accessory';
+            } else {
+                $cat = 'camera';
+            }
             $price_formatted = number_format($row['price'], 0, '', ',') . ' ₫';
             $original_price_formatted = isset($row['original_price']) ? number_format($row['original_price'], 0, '', ',') . ' ₫' : $price_formatted;
 

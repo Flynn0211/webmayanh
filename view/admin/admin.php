@@ -9,7 +9,7 @@ if ($conn === false) {
 }
 
 // ── Image Helper ──────────────────────────────────────────────
-function save_base64_image($base64_string, $output_dir) {
+function save_base64_image($base64_string, $output_dir, $path_prefix = 'uploads/products/') {
     if (preg_match('/^data:image\/(\w+);base64,/', $base64_string, $type)) {
         $data = substr($base64_string, strpos($base64_string, ',') + 1);
         $type = strtolower($type[1]);
@@ -26,13 +26,13 @@ function save_base64_image($base64_string, $output_dir) {
         $file_name = uniqid() . '.' . $type;
         $file_path = $output_dir . '/' . $file_name;
         file_put_contents($file_path, $data);
-        return 'uploads/products/' . $file_name;
+        return $path_prefix . $file_name;
     }
     return false;
 }
 
 // ── AJAX CRUD router ──────────────────────────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
+if (isset($_GET['action'])) {
     ob_clean(); // Discard BOM and any previous output
     header('Content-Type: application/json');
     $action = $_GET['action'];
@@ -177,9 +177,139 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         } else {
             echo json_encode(['success' => false, 'error' => $conn->error]);
         }
+    } elseif ($action === 'get_promotions') {
+        $res = $conn->query("
+            SELECT 
+                km.ma_km as id,
+                hh.ten_hang_hoa as product,
+                km.ten_km as name,
+                km.loai_giam_gia,
+                km.gia_tri_giam,
+                km.ngay_bat_dau,
+                km.ngay_het_han,
+                km.trang_thai
+            FROM khuyen_mai km
+            LEFT JOIN chi_tiet_khuyen_mai ctkm ON km.ma_km = ctkm.ma_km
+            LEFT JOIN hang_hoa hh ON ctkm.ma_hh = hh.ma_hh
+            ORDER BY km.ma_km DESC
+        ");
+        $promotions = [];
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $discountStr = '';
+                if ($row['loai_giam_gia'] === 'PhanTram') {
+                    $discountStr = floatval($row['gia_tri_giam']) . '%';
+                } else {
+                    $discountStr = number_format($row['gia_tri_giam'], 0, '', ',') . ' ₫';
+                }
+                $promotions[] = [
+                    'id' => $row['id'],
+                    'product' => $row['product'] ? $row['product'] : 'Chưa áp dụng',
+                    'discount' => $discountStr,
+                    'start' => date('d/m/Y', strtotime($row['ngay_bat_dau'])),
+                    'end' => date('d/m/Y', strtotime($row['ngay_het_han'])),
+                    'status' => $row['trang_thai']
+                ];
+            }
+        }
+        echo json_encode(['success' => true, 'promotions' => $promotions]);
+    } elseif ($action === 'add_promotion') {
+        $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+        $discount = isset($_POST['discount']) ? trim($_POST['discount']) : '0';
+        $expire = isset($_POST['expire']) ? trim($_POST['expire']) : '';
+        
+        if ($productId === 0 || empty($discount) || empty($expire)) {
+            echo json_encode(['success' => false, 'error' => 'Vui lòng điền đủ thông tin']);
+            exit;
+        }
+
+        $discount_val = (float)preg_replace('/[^0-9.]/', '', $discount);
+        $loai_giam_gia = (strpos($discount, '%') !== false) ? 'PhanTram' : 'TienMat';
+        $ngay_bat_dau = date('Y-m-d H:i:s');
+        $ngay_het_han = date('Y-m-d 23:59:59', strtotime($expire));
+        $ten_km = "Khuyến mãi " . $discount;
+
+        // Xóa khuyến mãi cũ của sản phẩm này (nếu có)
+        $conn->query("DELETE km, ctkm FROM khuyen_mai km INNER JOIN chi_tiet_khuyen_mai ctkm ON km.ma_km = ctkm.ma_km WHERE ctkm.ma_hh = $productId");
+
+        $stmt = $conn->prepare("INSERT INTO khuyen_mai (ten_km, loai_giam_gia, gia_tri_giam, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, ?, ?, ?, 'HoatDong')");
+        $stmt->bind_param("ssdss", $ten_km, $loai_giam_gia, $discount_val, $ngay_bat_dau, $ngay_het_han);
+        if ($stmt->execute()) {
+            $ma_km = $conn->insert_id;
+            $stmt2 = $conn->prepare("INSERT INTO chi_tiet_khuyen_mai (ma_km, ma_hh) VALUES (?, ?)");
+            $stmt2->bind_param("ii", $ma_km, $productId);
+            $stmt2->execute();
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => $conn->error]);
+        }
+    } elseif ($action === 'delete_promotion') {
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        $conn->query("DELETE FROM chi_tiet_khuyen_mai WHERE ma_km = $id");
+        $res = $conn->query("DELETE FROM khuyen_mai WHERE ma_km = $id");
+        if ($res) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => $conn->error]);
+        }
+    } elseif ($action === 'toggle_user_status') {
+        $id = isset($_GET['id']) ? trim($_GET['id']) : '';
+        if ($id) {
+            // Find current status
+            $stmt = $conn->prepare("SELECT trang_thai FROM tai_khoan WHERE ma_tk = ?");
+            $stmt->bind_param("s", $id);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($row = $res->fetch_assoc()) {
+                $newStatus = ($row['trang_thai'] === 'HoatDong') ? 'BiKhoa' : 'HoatDong';
+                $stmt_up = $conn->prepare("UPDATE tai_khoan SET trang_thai = ? WHERE ma_tk = ?");
+                $stmt_up->bind_param("ss", $newStatus, $id);
+                if ($stmt_up->execute()) {
+                    echo json_encode(['success' => true, 'new_status' => $newStatus]);
+                } else {
+                    echo json_encode(['success' => false, 'error' => $conn->error]);
+                }
+            } else {
+                echo json_encode(['success' => false, 'error' => 'User not found']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Missing ID']);
+        }
+    } elseif ($action === 'add_user') {
+        $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+        $username = isset($_POST['username']) ? trim($_POST['username']) : '';
+        $password = isset($_POST['password']) ? trim($_POST['password']) : '';
+        $role = isset($_POST['role']) ? trim($_POST['role']) : 'Admin';
+        
+        if (empty($name) || empty($username) || empty($password)) {
+            echo json_encode(['success' => false, 'error' => 'Vui lòng điền đủ thông tin']);
+            exit;
+        }
+        
+        // Check if username exists
+        $stmt_c = $conn->prepare("SELECT ma_tk FROM tai_khoan WHERE username = ?");
+        $stmt_c->bind_param("s", $username);
+        $stmt_c->execute();
+        if ($stmt_c->get_result()->num_rows > 0) {
+            echo json_encode(['success' => false, 'error' => 'Username đã tồn tại']);
+            exit;
+        }
+        
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        $date = date("Y-m-d H:i:s");
+        
+        $stmt_i = $conn->prepare("INSERT INTO tai_khoan (ho_ten, username, password, loai_tk, hang_thanh_vien, diem_tich_luy, trang_thai, ngay_tao) VALUES (?, ?, ?, ?, 'Newbie', 0, 'HoatDong', ?)");
+        $stmt_i->bind_param("sssss", $name, $username, $hashed, $role, $date);
+        
+        if ($stmt_i->execute()) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => $conn->error]);
+        }
     } elseif ($action === 'update_order') {
         $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
         $status = isset($_POST['status']) ? trim($_POST['status']) : '';
+
         
         $stmt_o = $conn->prepare("UPDATE don_hang SET trang_thai_don = ? WHERE ma_dh = ?");
         $stmt_o->bind_param("si", $status, $id);
@@ -188,6 +318,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         } else {
             echo json_encode(['success' => false, 'error' => $conn->error]);
         }
+    } elseif ($action === 'add_article' || $action === 'edit_article') {
+        $id = isset($_POST['id']) ? trim($_POST['id']) : '';
+        $title = isset($_POST['title']) ? trim($_POST['title']) : '';
+        $slug = isset($_POST['slug']) ? trim($_POST['slug']) : '';
+        $summary = isset($_POST['summary']) ? trim($_POST['summary']) : '';
+        $content = isset($_POST['content']) ? trim($_POST['content']) : '';
+        $status = isset($_POST['status']) ? trim($_POST['status']) : 'XuatBan';
+        $image = isset($_POST['image']) ? trim($_POST['image']) : '';
+
+        $saved_image = $image;
+        if (strpos($image, 'data:image') === 0) {
+            $upload_dir = __DIR__ . '/../../uploads/articles';
+            $saved_image = save_base64_image($image, $upload_dir, 'uploads/articles/');
+            if (!$saved_image) {
+                $saved_image = $image; // fallback
+            }
+        }
+
+        $articles = ArticleController::getAllArticles();
+        if ($action === 'add_article') {
+            $newArticle = [
+                "id" => ArticleController::generateId(),
+                "title" => $title,
+                "slug" => $slug,
+                "image" => $saved_image,
+                "summary" => $summary,
+                "content" => $content,
+                "date" => date("Y-m-d H:i:s"),
+                "status" => $status
+            ];
+            array_unshift($articles, $newArticle);
+        } else {
+            foreach ($articles as &$a) {
+                if ($a['id'] === $id) {
+                    $a['title'] = $title;
+                    $a['slug'] = $slug;
+                    if ($saved_image !== '') $a['image'] = $saved_image;
+                    $a['summary'] = $summary;
+                    $a['content'] = $content;
+                    $a['status'] = $status;
+                    break;
+                }
+            }
+        }
+        ArticleController::saveArticles($articles);
+        echo json_encode(['success' => true]);
+    } elseif ($action === 'delete_article') {
+        $id = isset($_GET['id']) ? trim($_GET['id']) : '';
+        $articles = ArticleController::getAllArticles();
+        $articles = array_filter($articles, function($a) use ($id) {
+            return $a['id'] !== $id;
+        });
+        ArticleController::saveArticles(array_values($articles));
+        echo json_encode(['success' => true]);
     }
     exit;
 }
@@ -450,6 +634,10 @@ while ($row = $res_ch->fetch_assoc()) {
 
                 <!-- ── ORDERS TAB ───────────────────────────── -->
                 <div id="tab-orders" class="admin-tab">
+                    <div class="admin-orders-tabs" style="margin-bottom: 1.5rem; display: flex; gap: 1rem;">
+                        <button id="orderTabProcessing" class="btn-hero-primary" style="padding: 0.5rem 1.5rem;" onclick="switchOrderTab('processing')">Đơn đang xử lý</button>
+                        <button id="orderTabCompleted" class="btn-hero-ghost" style="padding: 0.5rem 1.5rem; color:var(--on-surface); border-color:rgba(0,0,0,0.1);" onclick="switchOrderTab('completed')">Đã hoàn thành</button>
+                    </div>
                     <div class="admin-card">
                         <div class="table-wrap">
                             <table class="admin-table">
@@ -502,14 +690,16 @@ while ($row = $res_ch->fetch_assoc()) {
                     <div class="admin-card">
                         <div class="admin-section-header">
                             <h2 class="admin-section-title">Khuyến mãi</h2>
-                            <button class="btn-admin-add"><span class="material-symbols-outlined">add</span> Thêm</button>
+                            <button onclick="addPromotionPrompt()" class="btn-admin-add"><span class="material-symbols-outlined">add</span> Thêm</button>
                         </div>
                         <div class="table-wrap">
                             <table class="admin-table">
                                 <thead>
                                     <tr>
                                         <th>Sản phẩm</th>
-                                        <th>Mức giảm (%)</th>
+                                        <th>Mức giảm</th>
+                                        <th>Thời gian</th>
+                                        <th class="center">Trạng thái</th>
                                         <th class="center">Thao tác</th>
                                     </tr>
                                 </thead>
@@ -592,7 +782,7 @@ while ($row = $res_ch->fetch_assoc()) {
                     <div class="admin-card">
                         <div class="admin-section-header">
                             <h2 class="admin-section-title">Nhân viên</h2>
-                            <button class="btn-admin-add"><span class="material-symbols-outlined">add</span> Thêm</button>
+                            <button onclick="addUserPrompt()" class="btn-admin-add"><span class="material-symbols-outlined">add</span> Thêm</button>
                         </div>
                         <div class="table-wrap">
                             <table class="admin-table">
@@ -635,7 +825,7 @@ while ($row = $res_ch->fetch_assoc()) {
 
     <!-- ── Article Modal ───────────────────────────────────── -->
     <div id="articleModal" class="admin-modal-overlay">
-        <div class="admin-modal admin-modal--large" id="articleModalContent" style="max-width:800px;">
+        <div class="admin-modal" id="articleModalContent">
             <div class="admin-modal__header">
                 <h3 id="articleModalTitle" class="admin-modal__title">Thêm Bài Viết</h3>
                 <button onclick="closeArticleModal()" class="admin-modal__close">
@@ -643,56 +833,113 @@ while ($row = $res_ch->fetch_assoc()) {
                 </button>
             </div>
             <div class="admin-modal__body">
-                <form id="articleForm" method="POST" action="index.php?page=admin" enctype="multipart/form-data">
-                    <input type="hidden" name="article_action" id="articleAction" value="add"/>
-                    <input type="hidden" name="id" id="articleId" value=""/>
-                    <input type="hidden" name="old_image" id="articleOldImage" value=""/>
+                <form id="articleForm">
+                    <input type="hidden" id="articleId" value=""/>
+                    <input type="hidden" id="articleOriginalId" value=""/>
 
-                    <div style="display:flex; flex-direction:column; gap:1rem;">
-                        <div>
-                            <label class="admin-label">Tiêu đề</label>
-                            <input type="text" name="title" id="articleTitle" required class="admin-input" onkeyup="document.getElementById('articleSlug').value = this.value.toLowerCase().replace(/ /g,'-').replace(/[^\w-]+/g,'')"/>
+                    <div class="modal-form-grid">
+                        <!-- Cột trái: Upload hình -->
+                        <div class="modal-form-col">
+                            <label class="admin-label">Ảnh bìa bài viết</label>
+                            <div class="img-upload-zone">
+                                <div class="img-upload-placeholder" id="articleImagePlaceholder">
+                                    <span class="material-symbols-outlined">add_photo_alternate</span>
+                                    <span class="img-upload-placeholder__title">Nhấn để tải ảnh lên</span>
+                                    <span class="img-upload-placeholder__hint">PNG, JPG, WEBP</span>
+                                </div>
+                                <div class="img-preview" id="articleImagePreviewContainer">
+                                    <img src="" id="articleImagePreviewImg" class="img-preview__img"/>
+                                    <div class="img-preview__overlay">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </div>
+                                </div>
+                                <input type="file" id="articleImageFile" accept="image/*" class="img-upload-input" title="Chọn ảnh bìa bài viết"/>
+                            </div>
+                            <input type="hidden" id="articleImage" value=""/>
                         </div>
-                        <div>
-                            <label class="admin-label">Đường dẫn (Slug)</label>
-                            <input type="text" name="slug" id="articleSlug" required class="admin-input admin-input--mono"/>
+
+                        <!-- Cột phải: Thông tin -->
+                        <div class="modal-form-col modal-form-col--center">
+                            <div>
+                                <label class="admin-label">Tiêu đề</label>
+                                <input type="text" id="articleTitle" required placeholder="Nhập tiêu đề bài viết..." class="admin-input" onkeyup="document.getElementById('articleSlug').value = this.value.toLowerCase().replace(/ /g,'-').replace(/[^\w-]+/g,'')"/>
+                            </div>
+                            <div>
+                                <label class="admin-label">Đường dẫn (Slug)</label>
+                                <input type="text" id="articleSlug" required placeholder="duong-dan-bai-viet" class="admin-input admin-input--mono"/>
+                            </div>
+                            <div>
+                                <label class="admin-label">Trạng thái</label>
+                                <select id="articleStatus" required class="admin-input">
+                                    <option value="XuatBan">Xuất bản</option>
+                                    <option value="Nhao">Bản nháp</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label class="admin-label">Ảnh bìa</label>
-                            <input type="file" name="image" id="articleImageFile" accept="image/*" class="admin-input"/>
-                            <div id="articleImagePreview" style="margin-top:0.5rem; max-width:200px;"></div>
-                        </div>
+                    </div>
+
+                    <div class="modal-form-full">
                         <div>
                             <label class="admin-label">Tóm tắt</label>
-                            <textarea name="summary" id="articleSummary" required class="admin-input" rows="3"></textarea>
+                            <textarea id="articleSummary" required placeholder="Nhập tóm tắt..." class="admin-textarea" rows="3"></textarea>
                         </div>
                         <div>
                             <label class="admin-label">Nội dung HTML</label>
-                            <textarea name="content" id="articleContent" required class="admin-input" rows="8"></textarea>
-                        </div>
-                        <div>
-                            <label class="admin-label">Trạng thái</label>
-                            <select name="status" id="articleStatus" required class="admin-input">
-                                <option value="XuatBan">Xuất bản</option>
-                                <option value="Nhao">Bản nháp</option>
-                            </select>
+                            <textarea id="articleContent" required placeholder="Nhập nội dung bài viết..." class="admin-textarea" rows="8"></textarea>
                         </div>
                     </div>
                     
-                    <div class="admin-modal__footer" style="margin-top:1.5rem; justify-content:flex-end; display:flex; gap:1rem;">
-                        <button type="button" onclick="closeArticleModal()" class="btn-admin-cancel">Hủy</button>
-                        <button type="submit" class="btn-admin-save">Lưu Bài Viết</button>
+                    <div class="admin-modal__footer">
+                        <button type="button" onclick="closeArticleModal()" class="btn-ghost">Hủy</button>
+                        <button type="submit" class="btn-save">
+                            <span class="material-symbols-outlined">save</span> Lưu Bài Viết
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Delete Article Form -->
-    <form id="deleteArticleForm" method="POST" action="index.php?page=admin" style="display:none;">
-        <input type="hidden" name="article_action" value="delete"/>
-        <input type="hidden" name="id" id="deleteArticleId" value=""/>
-    </form>
+
+
+    <!-- ── Promotion Modal ────────────────────────────────────── -->
+    <div id="promoModal" class="admin-modal-overlay">
+        <div class="admin-modal" id="promoModalContent">
+            <div class="admin-modal__header">
+                <h3 id="promoModalTitle" class="admin-modal__title">Thêm Khuyến Mãi Mới</h3>
+                <button onclick="closePromoModal()" class="admin-modal__close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="admin-modal__body">
+                <form id="promoForm">
+                    <div class="modal-form-col modal-form-col--center" style="width: 100%;">
+                        <div style="margin-bottom: 1rem;">
+                            <label class="admin-label">Sản phẩm</label>
+                            <select id="promoProduct" required class="admin-input">
+                                <!-- Option sẽ được render qua JS -->
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label class="admin-label">Mức giảm (ví dụ: 15% hoặc 500000)</label>
+                            <input type="text" id="promoDiscount" required placeholder="Nhập mức giảm..." class="admin-input"/>
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="admin-label">Ngày hết hạn</label>
+                            <input type="date" id="promoExpire" required class="admin-input"/>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-modal__footer">
+                        <button type="button" onclick="closePromoModal()" class="btn-ghost">Hủy</button>
+                        <button type="submit" class="btn-save">
+                            <span class="material-symbols-outlined">save</span> Lưu Khuyến Mãi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- ── Order Details Modal ──────────────────────────────── -->
     <div id="orderModal" class="admin-modal-overlay">
@@ -797,6 +1044,21 @@ while ($row = $res_ch->fetch_assoc()) {
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── User Modal ──────────────────────────────────────── -->
+    <div id="userModal" class="admin-modal-overlay">
+        <div class="admin-modal" style="max-width: 500px;">
+            <div class="admin-modal__header">
+                <h3 id="userModalTitle" class="admin-modal__title">Chi tiết tài khoản</h3>
+                <button onclick="closeUserModal()" class="admin-modal__close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="admin-modal__body" id="userModalBody" style="padding: 1.5rem 2rem;">
+                <!-- User details injected here -->
             </div>
         </div>
     </div>

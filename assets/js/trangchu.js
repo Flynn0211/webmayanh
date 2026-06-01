@@ -24,8 +24,13 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     if (productGrid) {
-        productGrid.innerHTML = products.map(product => `
+        productGrid.innerHTML = products.map(product => {
+            const badge = product.brand.toLowerCase() === 'leica'
+                ? '<div class="product-card__badge">Limited</div>'
+                : '';
+            return `
             <div class="product-card">
+                ${badge}
                 <button onclick="handleFavorite('${product.id}', this)" class="product-card__fav-btn" title="Yêu thích">
                     <span class="material-symbols-outlined" style="font-size:1.25rem; color: ${isFavorited(product.id) ? 'var(--error)' : 'inherit'}; font-variation-settings: 'FILL' ${isFavorited(product.id) ? '1' : '0'};">favorite</span>
                 </button>
@@ -42,13 +47,16 @@ document.addEventListener("DOMContentLoaded", function() {
                             ${product.raw_original_price > product.raw_price ? `<span style="text-decoration: line-through; color: #888; font-size: 0.85em; margin-right: 8px;">${product.original_price}</span>` : ''}
                             ${formatPrice(product.price)}
                         </span>
-                        <a href="index.php?page=chitietsanpham&id=${product.id}" class="product-card__link">
-                            Xem <span class="material-symbols-outlined">arrow_forward</span>
-                        </a>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <button onclick="addToCartFast('${product.id}')" title="Thêm vào giỏ" style="background:none; border:none; color:var(--primary); cursor:pointer; display:flex; align-items:center; padding: 0;">
+                                <span class="material-symbols-outlined">add_shopping_cart</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     updateCartBadge();

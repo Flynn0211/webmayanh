@@ -37,12 +37,25 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // ── Render ────────────────────────────────────────────────
     function renderProducts() {
-        // Filter out only lenses
-        let filtered = allProducts.filter(p => p.category === 'lens');
+        // Exclude camera items and show only accessories precisely
+        let filtered = allProducts.filter(p => p.category === 'accessory');
 
-        // 1. Filter brand
+        // 1. Filter accessory type
         if (currentBrand !== 'all') {
-            filtered = filtered.filter(p => p.brand.toLowerCase() === currentBrand);
+            filtered = filtered.filter(p => {
+                const b = (p.brand || '').toLowerCase();
+                const n = (p.name || '').toLowerCase();
+                if (currentBrand === 'day-deo') return b.includes('dây đeo') || n.includes('dây đeo');
+                if (currentBrand === 'balo-tui') return b.includes('balo') || b.includes('túi') || n.includes('balo') || n.includes('túi');
+                if (currentBrand === 'filter') return b.includes('filter') || n.includes('filter');
+                if (currentBrand === 'bao-da') return b.includes('bao da') || n.includes('bao da');
+                if (currentBrand === 'grip') return b.includes('grip') || n.includes('grip');
+                if (currentBrand === 'khac') {
+                    const types = ['dây đeo', 'balo', 'túi', 'filter', 'bao da', 'grip'];
+                    return !types.some(t => b.includes(t) || n.includes(t));
+                }
+                return true;
+            });
         }
 
         // 2. Filter search

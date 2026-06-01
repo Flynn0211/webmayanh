@@ -53,10 +53,13 @@ if ($action === 'client_logout') {
 }
 
 // Basic routing mapping
-$clientPages = ['trangchu', 'mayanh', 'ongkinh', 'chitietsanpham', 'giohang', 'donhang', 'login', 'taikhoan', 'baiviet', 'chitietbaiviet'];
+$clientPages = ['trangchu', 'mayanh', 'ongkinh', 'phukien', 'chitietsanpham', 'giohang', 'donhang', 'login', 'taikhoan', 'baiviet', 'chitietbaiviet'];
 
 if ($page === 'admin') {
     header("Location: admin/");
+    exit;
+} elseif ($page === 'donhang') {
+    header("Location: index.php?page=taikhoan#orders");
     exit;
 } elseif (in_array($page, $clientPages)) {
     include "view/client/{$page}.php";
