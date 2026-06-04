@@ -23,10 +23,10 @@
 │   ├── 📁 products/         # Ảnh sản phẩm do Admin tải lên (chính + ảnh phụ)
 │   └── 📁 articles/         # Ảnh minh họa bài viết CMS
 │
-├── 📁 model/                # TẦNG DỮ LIỆU (Thực thi truy vấn CSDL MySQL)
-│   ├── database.php         # Khởi tạo kết nối MySQLi ($conn) bảo mật cao
+├── 📁 model/                # TẦNG DỮ LIỆU (Thực thi truy vấn CSDL qua PDO)
+│   ├── database.php         # Khởi tạo kết nối CSDL bằng PDO bảo mật tuyệt đối
 │   ├── ProductModel.php     # Truy vấn hàng hóa và khuyến mãi đang diễn ra
-│   ├── ReviewModel.php      # Quản lý bình luận, thêm đánh giá sản phẩm
+│   ├── ReviewModel.php      # Quản lý bình luận, thêm đánh giá sản phẩm (API Admin)
 │   ├── UserModel.php        # Quản lý đăng ký, đăng nhập & nâng cấp mật khẩu hash
 │   ├── VoucherModel.php     # Xác thực điều kiện sử dụng mã giảm giá
 │   └── SmtpMailer.php       # Thư viện gửi mail qua Socket thô độc lập
@@ -44,7 +44,8 @@
 │   │   ├── trangchu.php     # Trang chủ hiển thị banner và sản phẩm nổi bật
 │   │   ├── chitietsanpham.php # Chi tiết sản phẩm, slideshow ảnh & đánh giá
 │   │   ├── giohang.php      # Trang giỏ hàng, áp dụng voucher & thanh toán
-│   │   └── donhang.php      # Lịch sử đơn hàng và cập nhật hành trình
+│   │   ├── donhang.php      # Lịch sử đơn hàng và cập nhật hành trình
+│   │   └── lienhe.php       # Trang liên hệ có tích hợp Google Maps
 │   │
 │   └── 📁 admin/            # Layout & trang dành cho Quản trị viên
 │       ├── 📁 layout/       # Sidebar, Topbar quản trị
@@ -59,6 +60,18 @@
 ---
 
 ## 🛠️ Các Cơ Chế & Tính Năng Nổi Bật Gần Đây
+
+### 1. Nâng cấp Bảo mật toàn diện với PDO (PHP Data Objects)
+- Chuyển đổi toàn bộ kiến trúc CSDL từ `mysqli` thuần sang `PDO`.
+- 100% truy vấn trên toàn bộ hệ thống sử dụng Prepared Statements (`$stmt->prepare()`, `$stmt->execute()`) để chặn đứng hoàn toàn rủi ro bị chèn mã độc SQL Injection.
+
+### 2. Thuật toán Voucher Khuyến Mãi Nâng Cao
+- Thay vì chỉ tính tổng tiền sau cùng ở Giỏ hàng, hệ thống tiến hành thuật toán phân bổ tỷ lệ giảm giá từ Voucher xuống trực tiếp từng đơn giá riêng lẻ của mỗi sản phẩm.
+- Frontend sẽ gạch bỏ giá cũ và hiển thị giá trị mới (đã trừ voucher) ngay trên từng món hàng để tối ưu UX cho Khách hàng.
+
+### 3. Tích hợp Google Maps Thông Minh
+- Website đã hỗ trợ trang Liên hệ tĩnh kết hợp Google Maps để khách hàng dễ dàng tìm đường.
+- Cải tiến phần Footer của toàn bộ trang web (Giao diện Sáng và Tối) đều chứa bản đồ mini thanh lịch (cao 80px) để hỗ trợ tìm đường từ mọi trang, trừ trang Liên hệ.
 
 ### 1. Cơ chế nhiều ảnh phụ sản phẩm (Option 2 - `anh_phu` JSON)
 - **Database:** Bảng `hang_hoa` bổ sung thêm cột `anh_phu` kiểu dữ liệu `TEXT` để lưu trữ một danh sách các ảnh phụ dạng mảng JSON (ví dụ: `["uploads/products/image1.jpg", "uploads/products/image2.jpg"]`).

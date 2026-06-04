@@ -18,11 +18,9 @@ class ReviewModel {
         // Truy vấn lấy danh sách bình luận kèm theo họ tên và username tài khoản tương ứng
         $stmt = $conn->prepare("SELECT b.*, t.ho_ten, t.username FROM binh_luan_danh_gia b JOIN tai_khoan t ON b.ma_tk = t.ma_tk WHERE b.ma_hh = ? AND b.trang_thai = 'HienThi' ORDER BY b.ngay_bl DESC");
         if ($stmt) {
-            $stmt->bind_param("i", $ma_hh);
-            $stmt->execute();
-            $res = $stmt->get_result();
+            $stmt->execute([$ma_hh]);
             $reviews = [];
-            while ($row = $res->fetch_assoc()) {
+            while ($row = $stmt->fetch()) {
                 $reviews[] = $row;
             }
             return $reviews;
@@ -48,8 +46,7 @@ class ReviewModel {
         // Câu lệnh thêm mới bản ghi đánh giá mặc định ở trạng thái 'HienThi'
         $stmt = $conn->prepare("INSERT INTO binh_luan_danh_gia (ma_tk, ma_hh, so_sao, noi_dung, trang_thai) VALUES (?, ?, ?, ?, 'HienThi')");
         if ($stmt) {
-            $stmt->bind_param("iiis", $ma_tk, $ma_hh, $so_sao, $noi_dung);
-            return $stmt->execute();
+            return $stmt->execute([$ma_tk, $ma_hh, $so_sao, $noi_dung]);
         }
         return false;
     }

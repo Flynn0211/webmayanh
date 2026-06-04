@@ -548,19 +548,60 @@ function renderAdminEmployees() {
 
 // ── Reviews ───────────────────────────────────────────────────
 function renderAdminReviews() {
-    document.getElementById('adminReviewTableBody').innerHTML = mockReviews.map(r => `
-        <tr>
-            <td class="td-primary td-bold">${r.product}</td>
-            <td class="td-muted">${r.user}</td>
-            <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.content}</td>
-            <td class="center">
-                <button class="btn-table-action btn-table-action--delete" title="Xóa" onclick="alert('Đã xóa đánh giá!')">
-                    <span class="material-symbols-outlined" style="font-size:1.25rem;">delete</span>
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    fetch('admin/index.php?action=get_reviews')
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (data.reviews.length === 0) {
+                document.getElementById('adminReviewTableBody').innerHTML = `<tr><td colspan="4" class="center">Chưa có đánh giá nào.</td></tr>`;
+                return;
+            }
+            document.getElementById('adminReviewTableBody').innerHTML = data.reviews.map(r => `
+                <tr>
+                    <td class="td-primary td-bold">${r.product}</td>
+                    <td class="td-muted">@${r.user}</td>
+                    <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.content}</td>
+                    <td class="center">
+                        <button class="btn-table-action btn-table-action--delete" title="Xóa" onclick="deleteReview(${r.id})">
+                            <span class="material-symbols-outlined" style="font-size:1.25rem;">delete</span>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            document.getElementById('adminReviewTableBody').innerHTML = `<tr><td colspan="4" class="center">Không thể tải đánh giá</td></tr>`;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById('adminReviewTableBody').innerHTML = `<tr><td colspan="4" class="center">Lỗi mạng</td></tr>`;
+    });
 }
+
+window.deleteReview = function(id) {
+    if (confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+        const formData = new FormData();
+        formData.append('id', id);
+        
+        fetch('admin/index.php?action=delete_review', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Xóa đánh giá thành công!');
+                renderAdminReviews();
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể xóa'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Lỗi mạng không thể xóa đánh giá.');
+        });
+    }
+};
 
 // ── Vouchers ──────────────────────────────────────────────────
 function renderAdminVouchers() {

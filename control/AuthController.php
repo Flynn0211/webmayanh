@@ -37,8 +37,7 @@ class AuthController {
                     $newHash = password_hash($password, PASSWORD_DEFAULT);
                     $upgradeStmt = $conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
                     if ($upgradeStmt) {
-                        $upgradeStmt->bind_param("ss", $newHash, $username);
-                        $upgradeStmt->execute();
+                        $upgradeStmt->execute([$newHash, $username]);
                     }
                 }
 
@@ -141,8 +140,7 @@ class AuthController {
                             $newHash = password_hash($password, PASSWORD_DEFAULT);
                             $upgradeStmt = $conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
                             if ($upgradeStmt) {
-                                $upgradeStmt->bind_param("ss", $newHash, $username);
-                                $upgradeStmt->execute();
+                                $upgradeStmt->execute([$newHash, $username]);
                             }
                         }
 
@@ -227,10 +225,8 @@ class AuthController {
         }
 
         $stmt = $conn->prepare("SELECT ho_ten, email, sdt, hang_thanh_vien, diem_tich_luy FROM tai_khoan WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        if ($row = $res->fetch_assoc()) {
+        $stmt->execute([$username]);
+        if ($row = $stmt->fetch()) {
             // Tự động phân cấp hạng thành viên thực tế dựa trên tổng điểm tích lũy
             $pts = (int)$row['diem_tich_luy'];
             $tier = 'Thường';
@@ -242,8 +238,7 @@ class AuthController {
             
             // Cập nhật ngược lại CSDL để đồng bộ dữ liệu
             $stmt_u = $conn->prepare("UPDATE tai_khoan SET hang_thanh_vien = ? WHERE username = ?");
-            $stmt_u->bind_param("ss", $tier, $username);
-            $stmt_u->execute();
+            $stmt_u->execute([$tier, $username]);
 
             echo json_encode(['success' => true, 'profile' => $row]);
         } else {
@@ -280,8 +275,7 @@ class AuthController {
         $sdt = isset($data['sdt']) ? trim($data['sdt']) : '';
 
         $stmt = $conn->prepare("UPDATE tai_khoan SET ho_ten = ?, email = ?, sdt = ? WHERE username = ?");
-        $stmt->bind_param("ssss", $ho_ten, $email, $sdt, $username);
-        if ($stmt->execute()) {
+        if ($stmt->execute([$ho_ten, $email, $sdt, $username])) {
             // Đồng bộ lại các biến Session
             $_SESSION['client_fullname'] = $ho_ten;
             $_SESSION['client_email'] = $email;
@@ -321,17 +315,14 @@ class AuthController {
 
         // Lấy mã băm mật khẩu hiện tại trong CSDL để so khớp
         $stmt = $conn->prepare("SELECT mat_khau FROM tai_khoan WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $res = $stmt->get_result();
+        $stmt->execute([$username]);
         
-        if ($row = $res->fetch_assoc()) {
+        if ($row = $stmt->fetch()) {
             if (password_verify($oldPwd, $row['mat_khau'])) {
                 // Mã hóa băm mật khẩu mới trước khi lưu trữ
                 $newHash = password_hash($newPwd, PASSWORD_DEFAULT);
                 $updateStmt = $conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
-                $updateStmt->bind_param("ss", $newHash, $username);
-                if ($updateStmt->execute()) {
+                if ($updateStmt->execute([$newHash, $username])) {
                     echo json_encode(['success' => true, 'message' => 'Đổi mật khẩu thành công']);
                 } else {
                     echo json_encode(['success' => false, 'message' => 'Lỗi cập nhật CSDL']);

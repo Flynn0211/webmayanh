@@ -46,12 +46,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 const b = (p.brand || '').toLowerCase();
                 const n = (p.name || '').toLowerCase();
                 if (currentBrand === 'day-deo') return b.includes('dây đeo') || n.includes('dây đeo');
-                if (currentBrand === 'balo-tui') return b.includes('balo') || b.includes('túi') || n.includes('balo') || n.includes('túi');
+                if (currentBrand === 'balo-tui') return b.includes('balo') || b.includes('ba lô') || b.includes('túi') || n.includes('balo') || n.includes('ba lô') || n.includes('túi');
                 if (currentBrand === 'filter') return b.includes('filter') || n.includes('filter');
                 if (currentBrand === 'bao-da') return b.includes('bao da') || n.includes('bao da');
                 if (currentBrand === 'grip') return b.includes('grip') || n.includes('grip');
                 if (currentBrand === 'khac') {
-                    const types = ['dây đeo', 'balo', 'túi', 'filter', 'bao da', 'grip'];
+                    const types = ['dây đeo', 'balo', 'ba lô', 'túi', 'filter', 'bao da', 'grip'];
                     return !types.some(t => b.includes(t) || n.includes(t));
                 }
                 return true;

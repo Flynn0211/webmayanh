@@ -59,9 +59,10 @@ const PAGE_INDICES = {
     'ongkinh': 2,
     'phukien': 3,
     'baiviet': 4,
-    'giohang': 5,
-    'taikhoan': 6,
-    'login': 7
+    'lienhe': 5,
+    'giohang': 6,
+    'taikhoan': 7,
+    'login': 8
 };
 
 // Hàm trợ giúp lấy tên trang từ chuỗi URL
@@ -161,11 +162,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     sessionStorage.setItem('prev_nav_width', currentActiveLink.offsetWidth);
                 }
 
-                // CHỈ áp dụng hiệu ứng trượt trái/phải nếu CẢ trang hiện tại và trang đích đều thuộc Menu chính nằm ngang có gạch dưới (Chỉ số 0 đến 4)
+                // CHỈ áp dụng hiệu ứng trượt trái/phải nếu CẢ trang hiện tại và trang đích đều thuộc Menu chính nằm ngang có gạch dưới (Chỉ số 0 đến 5)
                 if (targetPage === 'chitietsanpham') {
                     // Dùng hiệu ứng mờ và thu nhỏ nhẹ nhàng chuyên biệt khi vào xem chi tiết sản phẩm
                     document.body.classList.add('exit-to-product');
-                } else if (targetIndex !== undefined && targetIndex <= 4 && currentIndex <= 4) {
+                } else if (targetIndex !== undefined && targetIndex <= 5 && currentIndex <= 5) {
                     if (targetIndex > currentIndex) {
                         // Di chuyển qua phải -> Ghi nhận và trượt giao diện qua trái nhanh
                         sessionStorage.setItem('nav_direction', 'to-left');
@@ -258,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <a class="nav-link <?= $activeNav === 'ongkinh' ? 'nav-link--active' : '' ?>" href="index.php?page=ongkinh">Ống kính</a>
             <a class="nav-link <?= $activeNav === 'phukien' ? 'nav-link--active' : '' ?>" href="index.php?page=phukien">Phụ kiện</a>
             <a class="nav-link <?= $activeNav === 'baiviet' ? 'nav-link--active' : '' ?>" href="index.php?page=baiviet">Bài viết</a>
-            <a class="nav-link" href="#">Liên hệ</a>
+            <a class="nav-link <?= $activeNav === 'lienhe' ? 'nav-link--active' : '' ?>" href="index.php?page=lienhe">Liên hệ</a>
             <div class="nav-indicator"></div>
         </div>
 

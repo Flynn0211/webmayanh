@@ -49,7 +49,7 @@ class ProductModel {
         $res = $conn->query($sql);
         $products = [];
         if ($res) {
-            while ($row = $res->fetch_assoc()) {
+            while ($row = $res->fetch()) {
                 $products[] = $row;
             }
         }

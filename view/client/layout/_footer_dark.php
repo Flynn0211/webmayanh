@@ -1,4 +1,4 @@
-﻿<footer class="footer-dark">
+<footer class="footer-dark">
     <div class="footer-dark__grid">
         <!-- Brand col -->
         <div class="footer-dark__brand-col">
@@ -26,9 +26,9 @@
             <ul class="footer-dark__link-list">
                 <li><a class="footer-dark__link" href="index.php?page=mayanh">Máy ảnh Mirrorless</a></li>
                 <li><a class="footer-dark__link" href="index.php?page=mayanh">Máy ảnh DSLR</a></li>
-                <li><a class="footer-dark__link" href="#">Ống kính</a></li>
-                <li><a class="footer-dark__link" href="#">Phụ kiện</a></li>
-                <li><a class="footer-dark__link" href="#">Sản phẩm giới hạn</a></li>
+                <li><a class="footer-dark__link" href="index.php?page=ongkinh">Ống kính</a></li>
+                <li><a class="footer-dark__link" href="index.php?page=phukien">Phụ kiện</a></li>
+                <li><a class="footer-dark__link" href="index.php?page=trangchu">Sản phẩm giới hạn</a></li>
             </ul>
         </div>
 
@@ -36,10 +36,10 @@
         <div class="footer-dark__col">
             <span class="footer-dark__col-title">CÔNG TY</span>
             <ul class="footer-dark__link-list">
-                <li><a class="footer-dark__link" href="#">Về chúng tôi</a></li>
-                <li><a class="footer-dark__link" href="#">Tuyển dụng</a></li>
-                <li><a class="footer-dark__link" href="#">Bài viết</a></li>
-                <li><a class="footer-dark__link" href="#">Liên hệ</a></li>
+                <li><a class="footer-dark__link" href="index.php?page=lienhe">Về chúng tôi</a></li>
+                <li><a class="footer-dark__link" href="index.php?page=donhang">Đơn hàng của tôi</a></li>
+                <li><a class="footer-dark__link" href="index.php?page=baiviet">Bài viết</a></li>
+                <li><a class="footer-dark__link" href="index.php?page=lienhe">Liên hệ</a></li>
             </ul>
         </div>
 
@@ -49,7 +49,7 @@
             <div style="display:flex;flex-direction:column;gap:0.75rem;">
                 <div class="footer-dark__contact-item">
                     <span class="material-symbols-outlined footer-dark__contact-icon">location_on</span>
-                    <span>72 Lê Thánh Tôn, Q.1, TP.HCM</span>
+                    <span>624 Âu Cơ, Bảy Hiền, Hồ Chí Minh</span>
                 </div>
                 <div class="footer-dark__contact-item">
                     <span class="material-symbols-outlined footer-dark__contact-icon">phone</span>
@@ -60,6 +60,11 @@
                     <span>hello@lensandlight.vn</span>
                 </div>
             </div>
+            <?php if (!isset($activeNav) || $activeNav !== 'lienhe'): ?>
+            <div style="margin-top: 0.75rem; border-radius: 6px; overflow: hidden; height: 80px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                <iframe src="https://www.google.com/maps?q=624+Au+Co,+Ho+Chi+Minh&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 

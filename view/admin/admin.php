@@ -16,13 +16,13 @@ AdminController::handleAjaxAction();
 // ── Load database collections ──────────────────────────────────
 // 0. Categories (Seed if empty)
 $res_check = $conn->query("SELECT COUNT(*) as cnt FROM danh_muc");
-$row_check = $res_check->fetch_assoc();
+$row_check = $res_check->fetch();
 if ($row_check['cnt'] == 0) {
     $conn->query("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES ('Máy ảnh', 'may-anh'), ('Ống kính', 'ong-kinh'), ('Phụ kiện', 'phu-kien')");
 }
 $dbCategories = [];
 $res_c = $conn->query("SELECT ma_dm as id, ten_danh_muc as name FROM danh_muc");
-while ($row = $res_c->fetch_assoc()) {
+while ($row = $res_c->fetch()) {
     $dbCategories[] = $row;
 }
 
@@ -34,7 +34,7 @@ LEFT JOIN nha_cung_cap n ON h.ma_ncc = n.ma_ncc
 LEFT JOIN ton_kho_chi_tiet t ON h.ma_hh = t.ma_hh
 GROUP BY h.ma_hh
 ORDER BY h.ma_hh DESC");
-while ($row = $res_p->fetch_assoc()) {
+while ($row = $res_p->fetch()) {
     $row['price'] = number_format($row['price_val']) . ' ₫';
     $dbProducts[] = $row;
 }
@@ -42,7 +42,7 @@ while ($row = $res_p->fetch_assoc()) {
 // 2. Vouchers
 $dbVouchers = [];
 $res_v = $conn->query("SELECT ma_code as code, loai_giam_gia, gia_tri_giam, so_luong, ngay_het_han as expire, trang_thai FROM voucher ORDER BY ma_voucher DESC");
-while ($row = $res_v->fetch_assoc()) {
+while ($row = $res_v->fetch()) {
     $discount_symbol = ($row['loai_giam_gia'] === 'PhanTram') ? '%' : ' ₫';
     if ($row['loai_giam_gia'] === 'PhanTram') {
         $row['discount'] = intval($row['gia_tri_giam']) . $discount_symbol;
@@ -59,17 +59,15 @@ $res_o = $conn->query("SELECT d.ma_dh as id, d.ten_nguoi_nhan as customerName, t
 FROM don_hang d
 LEFT JOIN tai_khoan t ON d.ma_khach_hang = t.ma_tk
 ORDER BY d.ma_dh DESC");
-while ($row = $res_o->fetch_assoc()) {
+while ($row = $res_o->fetch()) {
     $row['total'] = number_format($row['total_val']) . ' ₫';
     $row['date'] = date('d/m/Y', strtotime($row['date_val']));
     $row['items'] = [];
 
     // Fetch items for this order
     $stmt_item = $conn->prepare("SELECT c.ma_hh as id, h.ten_hang_hoa as name, h.anh as image, c.so_luong as quantity, c.gia_luc_mua as price_val, n.ten_ncc as brand FROM chi_tiet_don_hang c JOIN hang_hoa h ON c.ma_hh = h.ma_hh LEFT JOIN nha_cung_cap n ON h.ma_ncc = n.ma_ncc WHERE c.ma_dh = ?");
-    $stmt_item->bind_param("i", $row['id']);
-    $stmt_item->execute();
-    $res_item = $stmt_item->get_result();
-    while ($i = $res_item->fetch_assoc()) {
+    $stmt_item->execute([$row['id']]);
+    while ($i = $stmt_item->fetch()) {
         $i['price'] = number_format($i['price_val']) . ' ₫';
         $row['items'][] = $i;
     }
@@ -81,7 +79,7 @@ while ($row = $res_o->fetch_assoc()) {
 $dbCustomers = [];
 $dbEmployees = [];
 $res_u = $conn->query("SELECT ma_tk as id, ho_ten as name, username, email, sdt as phone, loai_tk as role, hang_thanh_vien as tier, trang_thai as status FROM tai_khoan");
-while ($row = $res_u->fetch_assoc()) {
+while ($row = $res_u->fetch()) {
     $row['active'] = ($row['status'] === 'HoatDong');
     if ($row['role'] === 'User') {
         $dbCustomers[] = $row;
@@ -93,44 +91,44 @@ while ($row = $res_u->fetch_assoc()) {
 // 4. BI Stats Calculations
 $week_rev = 0;
 $res_w = $conn->query("SELECT SUM(c.so_luong * c.gia_luc_mua) as rev FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don != 'Đã hủy' AND d.ngay_dat >= DATE_SUB(NOW(), INTERVAL 1 WEEK)");
-if ($row = $res_w->fetch_assoc()) {
+if ($row = $res_w->fetch()) {
     $week_rev = (float) $row['rev'];
 }
 
 $month_rev = 0;
 $res_m = $conn->query("SELECT SUM(c.so_luong * c.gia_luc_mua) as rev FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don != 'Đã hủy' AND d.ngay_dat >= DATE_SUB(NOW(), INTERVAL 1 MONTH)");
-if ($row = $res_m->fetch_assoc()) {
+if ($row = $res_m->fetch()) {
     $month_rev = (float) $row['rev'];
 }
 
 $year_rev = 0;
 $res_yr = $conn->query("SELECT SUM(c.so_luong * c.gia_luc_mua) as rev FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don != 'Đã hủy' AND d.ngay_dat >= DATE_SUB(NOW(), INTERVAL 1 YEAR)");
-if ($row = $res_yr->fetch_assoc()) {
+if ($row = $res_yr->fetch()) {
     $year_rev = (float) $row['rev'];
 }
 
 $total_orders = 0;
 $res_to = $conn->query("SELECT COUNT(*) as cnt FROM don_hang WHERE trang_thai_don != 'Đã hủy'");
-if ($row = $res_to->fetch_assoc()) {
+if ($row = $res_to->fetch()) {
     $total_orders = (int) $row['cnt'];
 }
 
 $products_sold = 0;
 $res_ps = $conn->query("SELECT SUM(so_luong) as cnt FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don != 'Đã hủy'");
-if ($row = $res_ps->fetch_assoc()) {
+if ($row = $res_ps->fetch()) {
     $products_sold = (int) $row['cnt'];
 }
 
 $new_customers = 0;
 $res_nc = $conn->query("SELECT COUNT(*) as cnt FROM tai_khoan WHERE loai_tk = 'User' AND ngay_tao >= DATE_SUB(NOW(), INTERVAL 1 MONTH)");
-if ($row = $res_nc->fetch_assoc()) {
+if ($row = $res_nc->fetch()) {
     $new_customers = (int) $row['cnt'];
 }
 
 // 5. Chart Data (Past 12 Months)
 $chart_data = [];
 $res_ch = $conn->query("SELECT MONTH(ngay_dat) as m, YEAR(ngay_dat) as y, SUM(so_luong * gia_luc_mua) as revenue FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don != 'Đã hủy' AND ngay_dat >= DATE_SUB(NOW(), INTERVAL 12 MONTH) GROUP BY YEAR(ngay_dat), MONTH(ngay_dat) ORDER BY y, m");
-while ($row = $res_ch->fetch_assoc()) {
+while ($row = $res_ch->fetch()) {
     $chart_data[] = [
         'label' => 'T' . $row['m'],
         'revenue' => (float) $row['revenue'] / 1000000.0 // Unit: Million VND

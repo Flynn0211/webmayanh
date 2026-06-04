@@ -4,6 +4,34 @@ Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng 
 
 ---
 
+## [Phiên Bản Cập Nhật Ngày 04/06/2026] - Nâng cấp PDO, Cải tiến Thuật toán Voucher & Trang Liên Hệ
+
+### 🔒 Chuyển đổi toàn diện cơ sở dữ liệu sang PDO (PHP Data Objects)
+- **Tầng Cơ Sở Dữ Liệu:** Đã nâng cấp hoàn toàn file `database.php` chuyển từ thư viện `mysqli` cũ sang `PDO`. Điều này mang lại sự bảo mật tuyệt đối chống lại các tấn công SQL Injection.
+- **Tái cấu trúc Tầng Model:** Đã cấu trúc lại toàn bộ các class Model bao gồm `ProductModel`, `ReviewModel`, `UserModel`, và `VoucherModel` để sử dụng chuẩn Prepared Statements của PDO (`$stmt->execute()`). Các Controller như `AdminController` và `OrderController` cũng được đồng bộ triệt để.
+
+### 💰 Cải tiến thuật toán Áp dụng Khuyến Mãi (Voucher)
+- **Phân bổ giảm giá vào TỪNG sản phẩm:** Nâng cấp thuật toán ở Frontend (`giohang.js`) và Backend (`OrderController.php`). Khi áp dụng voucher giảm tổng tiền, thay vì chỉ trừ ở tổng cuối cùng, hệ thống tự động tính toán phân bổ đều mức giảm trừ thẳng vào đơn giá của từng sản phẩm trong giỏ hàng.
+- **Cải tiến UI/UX Giỏ hàng:** Khách hàng giờ đây có thể nhìn thấy trực quan mức giá cũ (gạch ngang) và mức giá mới (đã trừ giảm giá voucher) cho từng món hàng riêng lẻ ngay lập tức.
+- **Sửa lỗi Quản lý Khuyến Mãi Admin:** Khắc phục triệt để lỗi mạng (Network error) khi chuyển sang tab Khuyến mãi. Bổ sung đầy đủ API `get_promotions` và `delete_promotion` vào `AdminController` để fetch dữ liệu voucher thực. Fix lỗi không lưu được khi thêm mới khuyến mãi.
+
+### 🌟 Tính năng Quản lý Đánh Giá Thực Tế (Admin Reviews)
+- Khắc phục lỗi trang Quản lý Đánh giá trong Admin chỉ hiển thị dữ liệu ảo (Mock data).
+- Bổ sung API `get_reviews` và `delete_review` liên kết trực tiếp với cơ sở dữ liệu qua `ReviewModel.php`. Quản trị viên giờ đây có thể duyệt và xóa các đánh giá thực tế của người dùng trực tiếp trên Dashboard.
+
+### 🗺️ Ra mắt Trang Liên Hệ & Đồng bộ hóa Bản đồ Google Maps
+- **Trang Liên Hệ Mới:** Xây dựng trang Liên hệ (`lienhe.php`) chuẩn tĩnh theo yêu cầu không cần Database, với thiết kế Form sang trọng và đầy đủ thông tin chi tiết. 
+- **Tích hợp Google Maps:** Nhúng bản đồ Google Maps kích thước lớn cực đẹp vào trang Liên hệ.
+- **Cải tiến Footer toàn hệ thống:** 
+  - Sửa lỗi các nút bấm trống `#` trong Footer để chuyển hướng chuẩn xác về các trang tương ứng.
+  - Tích hợp một bản đồ Google Maps siêu nhỏ gọn (cao 80px) trực tiếp vào Footer (cho cả giao diện Sáng và Tối) giúp tăng tính chuyên nghiệp.
+  - Tối ưu logic PHP thông minh để ẩn bản đồ Footer này chỉ riêng khi người dùng đang ở trang Liên hệ (tránh trùng lặp 2 bản đồ).
+
+### 🐛 Sửa lỗi Logic Lọc Phụ Kiện (Balo)
+- Fix lỗi người dùng nhấn vào nút "Balo & Túi" nhưng không hiển thị sản phẩm balo. Nguyên nhân do bất đồng bộ ký tự "Ba lô" (có khoảng trắng) trong CSDL và "balo" trong mã nguồn. Đã khắc phục triệt để bằng cách Regex bộ lọc trong file `phukien.js`.
+
+---
+
 ## [Phiên Bản Cập Nhật Ngày 01/06/2026 - Chiều tối] - Cải tiến Hiệu ứng chuyển động & Đồng bộ tương tác Premium
 
 ### ⚡ Cải tiến Thanh trượt chỉ mục trượt ngang động (.nav-indicator)

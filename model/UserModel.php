@@ -16,10 +16,8 @@ class UserModel {
         }
         $stmt = $conn->prepare("SELECT * FROM tai_khoan WHERE username = ? AND trang_thai = 'HoatDong'");
         if ($stmt) {
-            $stmt->bind_param("s", $username);
-            $stmt->execute();
-            $res = $stmt->get_result();
-            return $res->fetch_assoc();
+            $stmt->execute([$username]);
+            return $stmt->fetch();
         }
         return null;
     }
@@ -42,8 +40,7 @@ class UserModel {
         if ($stmt) {
             // Thực hiện băm mật khẩu chuẩn bảo mật cao chống tấn công dò mật khẩu
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $stmt->bind_param("sss", $username, $hashed_password, $fullname);
-            return $stmt->execute();
+            return $stmt->execute([$username, $hashed_password, $fullname]);
         }
         return false;
     }

@@ -127,11 +127,9 @@ class ProductController {
 
         // Lấy mã tài khoản (ma_tk) từ tên đăng nhập đang đăng nhập
         $stmt = $conn->prepare("SELECT ma_tk FROM tai_khoan WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $res = $stmt->get_result();
+        $stmt->execute([$username]);
         $ma_tk = null;
-        if ($row = $res->fetch_assoc()) {
+        if ($row = $stmt->fetch()) {
             $ma_tk = $row['ma_tk'];
         }
 
@@ -144,10 +142,8 @@ class ProductController {
         // Truy vấn trực tiếp từ bảng binh_luan_danh_gia để đếm số lượng đánh giá của tài khoản này cho sản phẩm này
         $stmt_check = $conn->prepare("SELECT COUNT(*) as cnt FROM binh_luan_danh_gia WHERE ma_tk = ? AND ma_hh = ?");
         $product_id = (int)$data['ma_hh'];
-        $stmt_check->bind_param("ii", $ma_tk, $product_id);
-        $stmt_check->execute();
-        $res_check = $stmt_check->get_result();
-        if ($row_check = $res_check->fetch_assoc()) {
+        $stmt_check->execute([$ma_tk, $product_id]);
+        if ($row_check = $stmt_check->fetch()) {
             if ($row_check['cnt'] > 0) {
                 // Đã tồn tại đánh giá, trả về từ chối lịch sự
                 echo json_encode(['success' => false, 'message' => 'Bạn đã đánh giá sản phẩm này rồi! Mỗi sản phẩm chỉ được đánh giá một lần.']);

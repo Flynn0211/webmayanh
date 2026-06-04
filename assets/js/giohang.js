@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (modified) localStorage.setItem(cartKey, JSON.stringify(cart));
     } catch(e) {}
 
+    window.appliedVoucher = null;
+
     function renderCart() {
         let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
 
@@ -51,13 +53,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let html  = '';
         let total = 0;
+        let totalRawAll = 0;
+        cart.forEach(item => {
+            totalRawAll += (parseInt(String(item.price).replace(/\D/g, '')) || 0) * item.quantity;
+        });
+
         const products = JSON.parse(localStorage.getItem('products')) || [];
+
+        let discountRemaining = 0;
+        if (window.appliedVoucher) {
+            if (window.appliedVoucher.type === 'PhanTram') {
+                discountRemaining = totalRawAll * (window.appliedVoucher.value / 100);
+            } else {
+                discountRemaining = window.appliedVoucher.value;
+            }
+        }
 
         cart.forEach((item, index) => {
             const rawPrice = parseInt(String(item.price).replace(/\D/g, '')) || 0;
-            total += rawPrice * item.quantity;
+            const itemTotalOriginal = rawPrice * item.quantity;
+            let itemTotalDiscounted = itemTotalOriginal;
+            
+            if (discountRemaining > 0) {
+                const deduct = Math.min(itemTotalOriginal, discountRemaining);
+                itemTotalDiscounted -= deduct;
+                discountRemaining -= deduct;
+            }
+            
+            let displayPriceHtml = '';
+            if (itemTotalDiscounted < itemTotalOriginal) {
+                const currentUnitPrice = itemTotalDiscounted / item.quantity;
+                displayPriceHtml = `<div style="display:flex; flex-direction:column; align-items:flex-end;">
+                                        <span style="text-decoration: line-through; font-size: 0.85em; color: #888;">${formatPriceLocal(rawPrice * item.quantity)}</span>
+                                        <span style="color: var(--primary); font-weight: bold;">${formatPriceLocal(itemTotalDiscounted)}</span>
+                                    </div>`;
+            } else {
+                displayPriceHtml = `<span>${formatPriceLocal(rawPrice * item.quantity)}</span>`;
+            }
+            
             const origProd     = products.find(p => p.id == item.id);
             const displayImage = origProd ? origProd.image : (item.image || '');
+            
+            total += itemTotalDiscounted;
 
             html += `
             <div class="cart-item">
@@ -73,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span class="cart-item__qty-val">${item.quantity}</span>
                     <button onclick="changeQty(${index}, 1)"  class="cart-item__qty-btn">+</button>
                 </div>
-                <div class="cart-item__price">${formatPriceLocal(rawPrice * item.quantity)}</div>
+                <div class="cart-item__price">${displayPriceHtml}</div>
                 <button onclick="removeItem(${index})" class="cart-item__remove">
                     <span class="material-symbols-outlined" style="font-size:1.25rem;">close</span>
                 </button>
@@ -142,6 +179,52 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cart[index]) { cart.splice(index, 1); localStorage.setItem(cartKey, JSON.stringify(cart)); renderCart(); }
     };
 
+    const btnApplyVoucher = document.getElementById('btnApplyVoucher');
+    if (btnApplyVoucher) {
+        btnApplyVoucher.onclick = function() {
+            const voucherInput = document.getElementById('voucherCode');
+            const msgElem = document.getElementById('voucherMessage');
+            const code = voucherInput.value.trim();
+            
+            if (!code) {
+                msgElem.innerHTML = '<span style="color:red">Vui lòng nhập mã giảm giá.</span>';
+                window.appliedVoucher = null;
+                renderCart();
+                return;
+            }
+            
+            let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+            let totalRaw = 0;
+            cart.forEach(item => { totalRaw += (parseInt(String(item.price).replace(/\D/g, '')) || 0) * item.quantity; });
+            
+            fetch('index.php?action=check_voucher', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code, totalRaw: totalRaw })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.valid) {
+                    window.appliedVoucher = {
+                        code: code,
+                        type: data.type,
+                        value: data.value
+                    };
+                    msgElem.innerHTML = `<span style="color:green">${data.message}</span>`;
+                    renderCart();
+                } else {
+                    window.appliedVoucher = null;
+                    msgElem.innerHTML = `<span style="color:red">${data.message}</span>`;
+                    renderCart();
+                }
+            })
+            .catch(err => {
+                msgElem.innerHTML = '<span style="color:red">Lỗi kết nối.</span>';
+                console.error(err);
+            });
+        };
+    }
+
     document.getElementById('btnCheckout').onclick = function() {
         let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
         if (cart.length === 0) { alert("Giỏ hàng trống! Không thể thanh toán."); return; }
@@ -163,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
             customerName: user.fullname,
             customerUsername: user.username,
             customerPhone: phone,
-            voucherCode: voucherInput ? voucherInput.value.trim() : '',
+            voucherCode: window.appliedVoucher ? window.appliedVoucher.code : (voucherInput ? voucherInput.value.trim() : ''),
             items: cart,
             totalRaw: total
         };

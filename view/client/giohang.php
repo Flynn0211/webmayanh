@@ -65,7 +65,11 @@
 
                 <div class="cart-summary__form-group" style="margin-top: 1rem; margin-bottom: 1.5rem;">
                     <label for="voucherCode" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.5rem; letter-spacing: 0.5px;">MÃ GIẢM GIÁ (NẾU CÓ)</label>
-                    <input type="text" id="voucherCode" placeholder="Nhập mã voucher..." style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit; text-transform: uppercase;">
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="voucherCode" placeholder="Nhập mã voucher..." style="flex: 1; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit; text-transform: uppercase;">
+                        <button type="button" id="btnApplyVoucher" style="padding: 0 1rem; border: none; border-radius: 4px; background: var(--primary); color: white; cursor: pointer; font-weight: 600;">ÁP DỤNG</button>
+                    </div>
+                    <div id="voucherMessage" style="margin-top: 0.5rem; font-size: 0.85rem;"></div>
                 </div>
 
                 <button id="btnCheckout" class="btn-checkout">TIẾN HÀNH THANH TOÁN</button>

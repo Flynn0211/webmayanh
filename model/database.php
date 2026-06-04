@@ -13,17 +13,15 @@ $username   = defined('DB_USER') ? DB_USER : "root";
 $password   = defined('DB_PASS') ? DB_PASS : "";
 $dbname     = defined('DB_NAME') ? DB_NAME : "webmayanh";
 
-// Tắt chế độ báo cáo lỗi mặc định của mysqli để tránh hiển thị các lỗi hệ thống thô ra màn hình
-mysqli_report(MYSQLI_REPORT_OFF);
-
-// Thực hiện khởi tạo kết nối cơ sở dữ liệu
-$conn = @new mysqli($servername, $username, $password, $dbname);
-
-// Kiểm tra lỗi kết nối
-if ($conn->connect_error) {
+// Thực hiện khởi tạo kết nối cơ sở dữ liệu PDO
+try {
+    $dsn = "mysql:host=$servername;dbname=$dbname;charset=utf8mb4";
+    $conn = new PDO($dsn, $username, $password);
+    // Thiết lập chế độ báo lỗi exception
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Thiết lập chế độ fetch mặc định là array kết hợp
+    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
     // Nếu kết nối bị lỗi, gán $conn = false để bảo vệ ứng dụng không bị sập hoàn toàn
     $conn = false;
-} else {
-    // Thiết lập bảng mã UTF-8 để hiển thị tiếng Việt chính xác
-    $conn->set_charset("utf8mb4");
 }

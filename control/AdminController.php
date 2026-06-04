@@ -58,11 +58,78 @@ class AdminController {
             exit;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
+        if (isset($_GET['action'])) {
+            $action = $_GET['action'];
+            
+            // Allow GET for specific actions, require POST for others
+            $isPost = ($_SERVER['REQUEST_METHOD'] === 'POST');
+            
+            // --- XỬ LÝ GET KHUYẾN MÃI ---
+            if ($action === 'get_promotions') {
+                ob_clean();
+                header('Content-Type: application/json');
+                $sql = "SELECT km.ma_km, km.loai_giam_gia, km.gia_tri_giam, km.ngay_bat_dau, km.ngay_het_han, km.trang_thai, hh.ten_hang_hoa, ct.ma_hh 
+                        FROM khuyen_mai km
+                        LEFT JOIN chi_tiet_khuyen_mai ct ON km.ma_km = ct.ma_km
+                        LEFT JOIN hang_hoa hh ON ct.ma_hh = hh.ma_hh
+                        ORDER BY km.ma_km DESC";
+                $res = $conn->query($sql);
+                $promos = [];
+                if ($res) {
+                    while ($row = $res->fetch()) {
+                        $discountStr = ($row['loai_giam_gia'] === 'PhanTram') ? $row['gia_tri_giam'] . '%' : number_format($row['gia_tri_giam']) . 'đ';
+                        $promos[] = [
+                            'id' => $row['ma_km'],
+                            'product' => $row['ten_hang_hoa'] ? $row['ten_hang_hoa'] : 'Tất cả sản phẩm',
+                            'discount' => $discountStr,
+                            'start' => date('d/m/Y', strtotime($row['ngay_bat_dau'])),
+                            'end' => date('d/m/Y', strtotime($row['ngay_het_han'])),
+                            'status' => $row['trang_thai']
+                        ];
+                    }
+                }
+                echo json_encode(['success' => true, 'promotions' => $promos]);
+                exit;
+            }
+
+            // --- XỬ LÝ GET ĐÁNH GIÁ ---
+            if ($action === 'get_reviews') {
+                ob_clean();
+                header('Content-Type: application/json');
+                $sql = "SELECT b.ma_bl, b.noi_dung, b.so_sao, b.ngay_bl, t.username, h.ten_hang_hoa 
+                        FROM binh_luan_danh_gia b 
+                        LEFT JOIN tai_khoan t ON b.ma_tk = t.ma_tk 
+                        LEFT JOIN hang_hoa h ON b.ma_hh = h.ma_hh 
+                        ORDER BY b.ngay_bl DESC";
+                $res = $conn->query($sql);
+                $reviews = [];
+                if ($res) {
+                    while ($row = $res->fetch()) {
+                        $reviews[] = [
+                            'id' => $row['ma_bl'],
+                            'product' => $row['ten_hang_hoa'],
+                            'user' => $row['username'],
+                            'content' => $row['noi_dung'] . ' (' . $row['so_sao'] . ' sao)',
+                            'date' => $row['ngay_bl']
+                        ];
+                    }
+                }
+                echo json_encode(['success' => true, 'reviews' => $reviews]);
+                exit;
+            }
+
             // Dọn sạch bộ đệm trước khi trả về dữ liệu JSON
             ob_clean();
             header('Content-Type: application/json');
-            $action = $_GET['action'];
+            
+            if (!$isPost) {
+                // Ignore other GET actions if they are supposed to be POST
+                // Except maybe toggle_user_status
+                if ($action !== 'toggle_user_status') {
+                    echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+                    exit;
+                }
+            }
             
             // --- XỬ LÝ THÊM HOẶC CẬP NHẬT SẢN PHẨM ---
             if ($action === 'add_product' || $action === 'edit_product') {
@@ -104,26 +171,23 @@ class AdminController {
                 // 1. Tìm hoặc tạo mới Nhà cung cấp (ma_ncc) dựa trên tên Thương hiệu nhập vào
                 $ma_ncc = 1;
                 $stmt = $conn->prepare("SELECT ma_ncc FROM nha_cung_cap WHERE LOWER(ten_ncc) = LOWER(?)");
-                $stmt->bind_param("s", $brand);
-                $stmt->execute();
-                $res = $stmt->get_result();
-                if ($row = $res->fetch_assoc()) {
+                $stmt->execute([$brand]);
+                if ($row = $stmt->fetch()) {
                     $ma_ncc = $row['ma_ncc'];
                 } else {
                     $stmt_ins = $conn->prepare("INSERT INTO nha_cung_cap (ten_ncc, sdt_lien_he, dia_chi) VALUES (?, '0900000000', 'Unknown')");
-                    $stmt_ins->bind_param("s", $brand);
-                    $stmt_ins->execute();
-                    $ma_ncc = $conn->insert_id;
+                    $stmt_ins->execute([$brand]);
+                    $ma_ncc = $conn->lastInsertId();
                 }
                 
                 // 1.5. Đảm bảo danh mục tồn tại an toàn
                 $ma_dm = 1;
                 $stmt_cat = $conn->query("SELECT ma_dm FROM danh_muc LIMIT 1");
-                if ($row_cat = $stmt_cat->fetch_assoc()) {
+                if ($row_cat = $stmt_cat->fetch()) {
                     $ma_dm = $row_cat['ma_dm'];
                 } else {
                     $conn->query("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES ('Máy ảnh', 'may-anh')");
-                    $ma_dm = $conn->insert_id;
+                    $ma_dm = $conn->lastInsertId();
                 }
                 
                 // 2. Chuẩn hóa giá bán (loại bỏ ký tự phân tách nghìn)
@@ -164,31 +228,27 @@ class AdminController {
                 // Thực thi thêm mới sản phẩm
                 if ($action === 'add_product') {
                     $stmt_add = $conn->prepare("INSERT INTO hang_hoa (ma_dm, ma_ncc, ten_hang_hoa, slug, anh, anh_phu, mo_ta, thong_so_ky_thuat, gia_hien_tai) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmt_add->bind_param("iissssssd", $categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned);
-                    if ($stmt_add->execute()) {
-                        $new_id = $conn->insert_id;
+                    if ($stmt_add->execute([$categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned])) {
+                        $new_id = $conn->lastInsertId();
                         // Lưu số lượng tồn kho mặc định vào kho số 1
                         $stmt_stock = $conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
-                        $stmt_stock->bind_param("ii", $new_id, $stock);
-                        $stmt_stock->execute();
+                        $stmt_stock->execute([$new_id, $stock]);
                         echo json_encode(['success' => true, 'id' => $new_id]);
                     } else {
-                        echo json_encode(['success' => false, 'error' => $conn->error]);
+                        echo json_encode(['success' => false, 'error' => $stmt_add->errorInfo()[2]]);
                     }
                 } else {
                     // Cập nhật thông tin sản phẩm hiện tại
                     $original_id = (int)$id;
                     $stmt_edit = $conn->prepare("UPDATE hang_hoa SET ma_dm = ?, ma_ncc = ?, ten_hang_hoa = ?, slug = ?, anh = ?, anh_phu = ?, mo_ta = ?, thong_so_ky_thuat = ?, gia_hien_tai = ? WHERE ma_hh = ?");
-                    $stmt_edit->bind_param("iissssssdi", $categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned, $original_id);
-                    if ($stmt_edit->execute()) {
+                    if ($stmt_edit->execute([$categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned, $original_id])) {
                         // Xóa cũ thêm mới số lượng tồn kho
                         $conn->query("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = $original_id");
                         $stmt_stock = $conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
-                        $stmt_stock->bind_param("ii", $original_id, $stock);
-                        $stmt_stock->execute();
+                        $stmt_stock->execute([$original_id, $stock]);
                         echo json_encode(['success' => true]);
                     } else {
-                        echo json_encode(['success' => false, 'error' => $conn->error]);
+                        echo json_encode(['success' => false, 'error' => $stmt_edit->errorInfo()[2]]);
                     }
                 }
             } 
@@ -202,7 +262,7 @@ class AdminController {
                 if ($res) {
                     echo json_encode(['success' => true]);
                 } else {
-                    echo json_encode(['success' => false, 'error' => $conn->error]);
+                    echo json_encode(['success' => false, 'error' => $conn->errorInfo()[2]]);
                 }
             } 
             // --- XỬ LÝ THÊM MỚI VOUCHER GIẢM GIÁ ---
@@ -220,11 +280,10 @@ class AdminController {
                 $ngay_het_han = date('Y-m-d H:i:s', strtotime($expire));
                 
                 $stmt_v = $conn->prepare("INSERT INTO voucher (ma_code, loai_giam_gia, gia_tri_giam, don_toi_thieu, so_luong, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, ?, 0.00, ?, ?, ?, 'HoatDong')");
-                $stmt_v->bind_param("ssdiss", $code, $loai_giam_gia, $discount_val, $quantity, $ngay_bat_dau, $ngay_het_han);
-                if ($stmt_v->execute()) {
+                if ($stmt_v->execute([$code, $loai_giam_gia, $discount_val, $quantity, $ngay_bat_dau, $ngay_het_han])) {
                     echo json_encode(['success' => true]);
                 } else {
-                    echo json_encode(['success' => false, 'error' => $conn->error]);
+                    echo json_encode(['success' => false, 'error' => $stmt_v->errorInfo()[2]]);
                 }
             } 
             // --- XỬ LÝ CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG ---
@@ -233,11 +292,60 @@ class AdminController {
                 $status = isset($_POST['status']) ? trim($_POST['status']) : '';
                 
                 $stmt_o = $conn->prepare("UPDATE don_hang SET trang_thai_don = ? WHERE ma_dh = ?");
-                $stmt_o->bind_param("si", $status, $id);
-                if ($stmt_o->execute()) {
+                if ($stmt_o->execute([$status, $id])) {
                     echo json_encode(['success' => true]);
                 } else {
-                    echo json_encode(['success' => false, 'error' => $conn->error]);
+                    echo json_encode(['success' => false, 'error' => $stmt_o->errorInfo()[2]]);
+                }
+            } 
+            // --- XỬ LÝ THÊM KHUYẾN MÃI ---
+            elseif ($action === 'add_promotion') {
+                $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+                $discount = isset($_POST['discount']) ? trim($_POST['discount']) : '0';
+                $expire = isset($_POST['expire']) ? trim($_POST['expire']) : '';
+                
+                $discount_val = (float)preg_replace('/[^0-9.]/', '', $discount);
+                $loai_giam_gia = (strpos($discount, '%') !== false) ? 'PhanTram' : 'TienMat';
+                $ngay_bat_dau = date('Y-m-d H:i:s');
+                $ngay_het_han = date('Y-m-d H:i:s', strtotime($expire));
+                
+                $conn->beginTransaction();
+                try {
+                    $stmt_km = $conn->prepare("INSERT INTO khuyen_mai (loai_giam_gia, gia_tri_giam, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, ?, ?, 'HoatDong')");
+                    $stmt_km->execute([$loai_giam_gia, $discount_val, $ngay_bat_dau, $ngay_het_han]);
+                    $ma_km = $conn->lastInsertId();
+                    
+                    if ($product_id > 0) {
+                        $stmt_ct = $conn->prepare("INSERT INTO chi_tiet_khuyen_mai (ma_km, ma_hh) VALUES (?, ?)");
+                        $stmt_ct->execute([$ma_km, $product_id]);
+                    }
+                    
+                    $conn->commit();
+                    echo json_encode(['success' => true]);
+                } catch(Exception $e) {
+                    $conn->rollBack();
+                    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+                }
+            }
+            // --- XỬ LÝ XÓA KHUYẾN MÃI ---
+            elseif ($action === 'delete_promotion') {
+                $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+                $conn->query("DELETE FROM chi_tiet_khuyen_mai WHERE ma_km = $id");
+                $res = $conn->query("DELETE FROM khuyen_mai WHERE ma_km = $id");
+                if ($res) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'error' => $conn->errorInfo()[2]]);
+                }
+            }
+            // --- XỬ LÝ XÓA ĐÁNH GIÁ ---
+            elseif ($action === 'delete_review') {
+                $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+                $res = $conn->query("DELETE FROM binh_luan_danh_gia WHERE ma_bl = $id");
+                if ($res) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'error' => $conn->errorInfo()[2]]);
                 }
             }
             exit;

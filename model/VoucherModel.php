@@ -20,10 +20,8 @@ class VoucherModel {
         // Truy vấn tìm kiếm voucher đang hoạt động
         $stmt = $conn->prepare("SELECT * FROM voucher WHERE ma_code = ? AND trang_thai = 'HoatDong'");
         if ($stmt) {
-            $stmt->bind_param("s", $voucherCode);
-            $stmt->execute();
-            $res = $stmt->get_result();
-            if ($row = $res->fetch_assoc()) {
+            $stmt->execute([$voucherCode]);
+            if ($row = $stmt->fetch()) {
                 // 1. Kiểm tra số lượng lượt sử dụng còn lại
                 if ($row['so_luong'] <= 0) {
                     return ['valid' => false, 'discount' => 0, 'message' => 'Mã giảm giá đã hết lượt sử dụng.'];
@@ -51,6 +49,8 @@ class VoucherModel {
                 return [
                     'valid' => true, 
                     'discount' => $discountAmount,
+                    'type' => $row['loai_giam_gia'],
+                    'value' => (float)$row['gia_tri_giam'],
                     'id' => $row['ma_voucher'],
                     'message' => 'Áp dụng mã giảm giá thành công.'
                 ];

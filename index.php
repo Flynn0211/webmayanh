@@ -25,6 +25,10 @@ if ($action === 'client_logout') {
     require_once 'control/OrderController.php';
     OrderController::handleUpdateStatus();
     exit;
+} elseif ($action === 'check_voucher') {
+    require_once 'control/OrderController.php';
+    OrderController::checkVoucher();
+    exit;
 } elseif ($action === 'get_reviews') {
     require_once 'model/database.php';
     require_once 'control/ProductController.php';
@@ -53,7 +57,7 @@ if ($action === 'client_logout') {
 }
 
 // Basic routing mapping
-$clientPages = ['trangchu', 'mayanh', 'ongkinh', 'phukien', 'chitietsanpham', 'giohang', 'donhang', 'login', 'taikhoan', 'baiviet', 'chitietbaiviet'];
+$clientPages = ['trangchu', 'mayanh', 'ongkinh', 'phukien', 'chitietsanpham', 'giohang', 'donhang', 'login', 'taikhoan', 'baiviet', 'chitietbaiviet', 'lienhe'];
 
 if ($page === 'admin') {
     header("Location: admin/");
