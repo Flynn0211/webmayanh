@@ -49,7 +49,7 @@
             <div style="display:flex;flex-direction:column;gap:0.75rem;">
                 <div class="footer-dark__contact-item">
                     <span class="material-symbols-outlined footer-dark__contact-icon">location_on</span>
-                    <span>624 Âu Cơ, Bảy Hiền, Hồ Chí Minh</span>
+                    <span>613 Âu Cơ, Phú Trung, Tân Phú, Hồ Chí Minh</span>
                 </div>
                 <div class="footer-dark__contact-item">
                     <span class="material-symbols-outlined footer-dark__contact-icon">phone</span>
@@ -62,7 +62,7 @@
             </div>
             <?php if (!isset($activeNav) || $activeNav !== 'lienhe'): ?>
             <div style="margin-top: 0.75rem; border-radius: 6px; overflow: hidden; height: 80px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                <iframe src="https://www.google.com/maps?q=624+Au+Co,+Ho+Chi+Minh&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                <iframe src="https://www.google.com/maps?q=613+Au+Co,+Phu+Trung,+Tan+Phu,+Ho+Chi+Minh&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
             </div>
             <?php endif; ?>
         </div>
