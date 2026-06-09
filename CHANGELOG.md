@@ -4,6 +4,16 @@ Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng 
 
 ---
 
+## [Phiên Bản Cập Nhật Ngày 07/06/2026] - Cập nhật Bản đồ Địa điểm cửa hàng sang Trụ sở chính (Cơ sở 613 Âu Cơ)
+
+### 🗺️ Cập nhật & Đồng bộ Bản đồ Đại học Văn Hiến (Cơ sở 613 Âu Cơ)
+- **Cập nhật Địa chỉ Showroom:** Thay đổi thông tin địa chỉ từ cơ sở cũ Harmony Campus (`624 Âu Cơ, Bảy Hiền`) sang Trụ sở chính mới (`613 Âu Cơ, Phú Trung, Tân Phú, Hồ Chí Minh`).
+- **Nâng cấp Bản đồ Nhúng Google Maps:** Cập nhật tham số tọa độ tìm kiếm trong thẻ `iframe` bản đồ trên toàn hệ thống về địa chỉ `613 Âu Cơ` giúp khách hàng chỉ đường và định vị chính xác nhất:
+  - **Footer Tối & Footer Sáng:** Cập nhật ở [_footer_dark.php](file:///c:/xampp/htdocs/webmayanh/view/client/layout/_footer_dark.php) và [_footer_light.php](file:///c:/xampp/htdocs/webmayanh/view/client/layout/_footer_light.php).
+  - **Trang Liên Hệ:** Đồng bộ hóa bản đồ bản lớn và văn bản hiển thị địa chỉ trên trang [lienhe.php](file:///c:/xampp/htdocs/webmayanh/view/client/lienhe.php).
+
+---
+
 ## [Phiên Bản Cập Nhật Ngày 04/06/2026] - Nâng cấp PDO, Cải tiến Thuật toán Voucher & Trang Liên Hệ
 
 ### 🔒 Chuyển đổi toàn diện cơ sở dữ liệu sang PDO (PHP Data Objects)

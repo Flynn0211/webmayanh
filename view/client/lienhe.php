@@ -197,7 +197,7 @@ $activeNav = 'lienhe';
                     <span class="material-symbols-outlined">location_on</span>
                     <div>
                         <strong>Địa chỉ Showroom</strong>
-                        <span>624 Âu Cơ, Bảy Hiền, Hồ Chí Minh, Việt Nam</span>
+                        <span>613 Âu Cơ, Phú Trung, Tân Phú, Hồ Chí Minh, Việt Nam</span>
                     </div>
                 </div>
 
@@ -255,7 +255,7 @@ $activeNav = 'lienhe';
         <!-- Bản đồ Google Maps -->
         <div class="map-container">
             <iframe 
-                src="https://www.google.com/maps?q=624+Au+Co,+Ho+Chi+Minh&output=embed" 
+                src="https://www.google.com/maps?q=613+Au+Co,+Phu+Trung,+Tan+Phu,+Ho+Chi+Minh&output=embed" 
                 class="map-iframe"
                 allowfullscreen="" 
                 loading="lazy" 
