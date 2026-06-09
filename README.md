@@ -29,14 +29,15 @@
 │   ├── ReviewModel.php      # Quản lý bình luận, thêm đánh giá sản phẩm (API Admin)
 │   ├── UserModel.php        # Quản lý đăng ký, đăng nhập & nâng cấp mật khẩu hash
 │   ├── VoucherModel.php     # Xác thực điều kiện sử dụng mã giảm giá
-│   └── SmtpMailer.php       # Thư viện gửi mail qua Socket thô độc lập
+│   └── SmtpMailer.php       # Thư viện gửi mail qua PHPMailer + Gửi Email Marketing hàng loạt (BCC)
 │
 ├── 📁 control/              # TẦNG ĐIỀU KHIỂN & BẢO MẬT (Xử lý logic hệ thống)
 │   ├── ProductController.php# Xử lý hiển thị sản phẩm, chặn trùng lặp đánh giá
 │   ├── AuthController.php   # Quản lý Session đồng bộ, Đăng nhập/Đăng ký/Đổi mật khẩu
 │   ├── OrderController.php  # Quy trình thanh toán Transaction an toàn, trừ kho thông minh
 │   ├── ArticleController.php# Quản lý tin tức/bài viết CMS (CSDL articles.json)
-│   └── AdminController.php  # Xử lý upload ảnh base64, thêm/sửa/xóa sản phẩm
+│   ├── ContactController.php# Xử lý Form liên hệ & Đăng ký Newsletter tự động
+│   └── AdminController.php  # Xử lý upload ảnh base64, quản lý dữ liệu với PDO Prepared Statements
 │
 ├── 📁 view/                 # TẦNG HIỂN THỊ (HTML + PHP in dữ liệu)
 │   ├── 📁 client/           # Layout & trang dành cho Khách hàng

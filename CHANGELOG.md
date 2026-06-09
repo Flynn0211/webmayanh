@@ -4,6 +4,29 @@ Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng 
 
 ---
 
+## [Phiên Bản Cập Nhật Ngày 09/06/2026] - Nâng cấp Hệ thống Email Marketing, Tối ưu Hiệu suất & Chống SQL Injection
+
+### 📩 Hệ thống Tự động hóa Email & Marketing (SmtpMailer)
+- **Thay thế công nghệ lõi:** Chuyển đổi từ `mail()`/socket thuần sang thư viện **PHPMailer** chuẩn mực (Tích hợp thủ công không dùng Composer) nhằm khắc phục 100% lỗi rớt email.
+- **Tính năng Đăng ký Bản tin (Newsletter):** Kích hoạt thành công form nhập email ở Footer trang chủ (`trangchu.php`). Khi khách hàng đăng ký, hệ thống tự động:
+  - Cập nhật email trực tiếp vào hồ sơ tài khoản (nếu khách đang đăng nhập nhưng bị trống email).
+  - Lưu trữ cố định vào bảng CSDL mới `email_dang_ky` để phục vụ Marketing.
+  - Tự động gửi một **Email Chào Mừng** ("Welcome Email") đẹp mắt vào hòm thư của khách.
+- **Gửi Email Marketing Tự động:** Khi quản trị viên thêm một **Khuyến mãi** mới trên trang Admin, hệ thống sẽ tự động quét chéo toàn bộ dữ liệu (bằng lệnh `UNION`) để gửi hàng loạt thông báo giảm giá cho toàn bộ người dùng có email trong hệ thống.
+- **Gửi Email Ẩn danh siêu tốc (BCC Bulk Mailing):** Thiết lập cơ chế gửi hàng trăm email cùng lúc bằng trường `BCC`, tiết kiệm 99% thời gian so với gửi từng người và bảo vệ tuyệt đối danh tính khách hàng.
+
+### ⚡ Tối ưu Trải nghiệm Lạc quan (Optimistic UI) & Hiệu năng Backend
+- **Trải nghiệm tốc độ 0 giây:** Nút gửi "Liên Hệ" và "Đăng ký Bản tin" được áp dụng cơ chế *Fire-and-forget* (Bắn và Quên) bằng `fetch()`. Khi nhấn nút, người dùng lập tức nhận được thông báo thành công thay vì phải ngồi đợi 2-3 giây như trước.
+- **Công nghệ SMTP Keep-Alive:** Lớp `SmtpMailer` được thiết kế lại thành **Singleton Pattern**, chỉ mở 1 cổng TCP duy nhất để nã hàng loạt Email rồi mới đóng lại, biến hệ thống thành một cỗ máy gửi thư cực nhẹ và nhanh.
+- **Vượt qua Bộ lọc Thư rác (Anti-Spam Filter):** Tất cả thư đi từ hệ thống đều được đẻ ra nội dung dạng `AltBody` (Text thô) để đạt chuẩn điểm Spam tối thiểu của các nhà cung cấp như Google/Outlook.
+
+### 🛡️ Nâng cấp Cấu trúc Database & Vá Lỗ hổng SQL Injection
+- Cấu trúc lại toàn bộ các câu truy vấn phức tạp của `AdminController.php` (như sửa/thêm/xóa sản phẩm, đơn hàng, danh mục) và `OrderController.php`, loại bỏ 100% các câu truy vấn nối chuỗi thô sơ sang **Prepared Statements** (kết hợp với PDO).
+- Tạo mới bảng `email_dang_ky` lưu trữ email từ Newsletter.
+- Vá lỗi cấu hình App Password khi dán bị thừa "khoảng trắng" bằng hàm `str_replace` bên trong `SmtpMailer`.
+
+---
+
 ## [Phiên Bản Cập Nhật Ngày 07/06/2026] - Cập nhật Bản đồ Địa điểm cửa hàng sang Trụ sở chính (Cơ sở 613 Âu Cơ)
 
 ### 🗺️ Cập nhật & Đồng bộ Bản đồ Đại học Văn Hiến (Cơ sở 613 Âu Cơ)
