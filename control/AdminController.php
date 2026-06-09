@@ -243,7 +243,8 @@ class AdminController {
                     $stmt_edit = $conn->prepare("UPDATE hang_hoa SET ma_dm = ?, ma_ncc = ?, ten_hang_hoa = ?, slug = ?, anh = ?, anh_phu = ?, mo_ta = ?, thong_so_ky_thuat = ?, gia_hien_tai = ? WHERE ma_hh = ?");
                     if ($stmt_edit->execute([$categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned, $original_id])) {
                         // Xóa cũ thêm mới số lượng tồn kho
-                        $conn->query("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = $original_id");
+                        $stmt_del = $conn->prepare("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = ?");
+                        $stmt_del->execute([$original_id]);
                         $stmt_stock = $conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
                         $stmt_stock->execute([$original_id, $stock]);
                         echo json_encode(['success' => true]);
@@ -256,9 +257,12 @@ class AdminController {
             elseif ($action === 'delete_product') {
                 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
                 // Xóa các bảng liên quan trước để tránh lỗi ràng buộc khóa ngoại (Constraint)
-                $conn->query("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = $id");
-                $conn->query("DELETE FROM chi_tiet_don_hang WHERE ma_hh = $id");
-                $res = $conn->query("DELETE FROM hang_hoa WHERE ma_hh = $id");
+                $stmt1 = $conn->prepare("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = ?");
+                $stmt1->execute([$id]);
+                $stmt2 = $conn->prepare("DELETE FROM chi_tiet_don_hang WHERE ma_hh = ?");
+                $stmt2->execute([$id]);
+                $stmt3 = $conn->prepare("DELETE FROM hang_hoa WHERE ma_hh = ?");
+                $res = $stmt3->execute([$id]);
                 if ($res) {
                     echo json_encode(['success' => true]);
                 } else {
@@ -321,6 +325,60 @@ class AdminController {
                     }
                     
                     $conn->commit();
+                    
+                    // --- GỬI EMAIL THÔNG BÁO CHO TẤT CẢ KHÁCH HÀNG ĐÃ ĐĂNG KÝ ---
+                    try {
+                        // Lấy toàn bộ email từ bảng người đăng ký VÀ các tài khoản có khai báo email
+                        $sql = "SELECT email FROM email_dang_ky UNION SELECT email FROM tai_khoan WHERE email IS NOT NULL AND email != ''";
+                        $stmt_emails = $conn->query($sql);
+                        $bccList = [];
+                        while ($row = $stmt_emails->fetch()) {
+                            if (filter_var($row['email'], FILTER_VALIDATE_EMAIL)) {
+                                $bccList[] = $row['email'];
+                            }
+                        }
+
+                        if (!empty($bccList)) {
+                            require_once __DIR__ . '/../model/SmtpMailer.php';
+                            // Nếu có áp dụng cho 1 sản phẩm cụ thể thì lấy tên sản phẩm
+                            $prodName = "Tất cả sản phẩm";
+                            if ($product_id > 0) {
+                                $stmt_pn = $conn->prepare("SELECT ten_hang_hoa FROM hang_hoa WHERE ma_hh = ?");
+                                $stmt_pn->execute([$product_id]);
+                                if ($r = $stmt_pn->fetch()) {
+                                    $prodName = $r['ten_hang_hoa'];
+                                }
+                            }
+
+                            $discountStr = ($loai_giam_gia === 'PhanTram') ? $discount_val . '%' : number_format($discount_val) . 'đ';
+                            
+                            $subject = "Khuyến mãi mới từ LENS & LIGHT: Giảm tới $discountStr";
+                            $body = "
+                                <html>
+                                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                                    <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;'>
+                                        <h2 style='color: #e63946;'>Tin vui dành cho bạn!</h2>
+                                        <p>LENS & LIGHT vừa tung ra chương trình khuyến mãi cực sốc dành riêng cho cộng đồng yêu nhiếp ảnh.</p>
+                                        <div style='background: #f9f9f9; padding: 15px; border-left: 4px solid #e63946; margin-top: 20px;'>
+                                            <p>🎁 <strong>Sản phẩm áp dụng:</strong> $prodName</p>
+                                            <p>🔥 <strong>Mức giảm giá:</strong> <span style='font-size:1.2rem; color:#e63946;'>$discountStr</span></p>
+                                            <p>⏳ <strong>Hạn sử dụng:</strong> " . date('d/m/Y H:i', strtotime($expire)) . "</p>
+                                        </div>
+                                        <p style='margin-top: 20px;'><a href='http://" . $_SERVER['HTTP_HOST'] . "' style='background: #e63946; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; display: inline-block;'>Mua sắm ngay</a></p>
+                                        <br/>
+                                        <p>Trân trọng,<br/><strong>Đội ngũ LENS & LIGHT</strong></p>
+                                    </div>
+                                </body>
+                                </html>
+                            ";
+                            
+                            SmtpMailer::sendNewsletter($bccList, $subject, $body);
+                        }
+                    } catch (Exception $em) {
+                        // Bỏ qua lỗi gửi mail để không làm gián đoạn thêm khuyến mãi
+                        error_log("Failed to send promo email: " . $em->getMessage());
+                    }
+
                     echo json_encode(['success' => true]);
                 } catch(Exception $e) {
                     $conn->rollBack();
@@ -330,8 +388,10 @@ class AdminController {
             // --- XỬ LÝ XÓA KHUYẾN MÃI ---
             elseif ($action === 'delete_promotion') {
                 $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-                $conn->query("DELETE FROM chi_tiet_khuyen_mai WHERE ma_km = $id");
-                $res = $conn->query("DELETE FROM khuyen_mai WHERE ma_km = $id");
+                $stmt1 = $conn->prepare("DELETE FROM chi_tiet_khuyen_mai WHERE ma_km = ?");
+                $stmt1->execute([$id]);
+                $stmt2 = $conn->prepare("DELETE FROM khuyen_mai WHERE ma_km = ?");
+                $res = $stmt2->execute([$id]);
                 if ($res) {
                     echo json_encode(['success' => true]);
                 } else {
@@ -341,7 +401,8 @@ class AdminController {
             // --- XỬ LÝ XÓA ĐÁNH GIÁ ---
             elseif ($action === 'delete_review') {
                 $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-                $res = $conn->query("DELETE FROM binh_luan_danh_gia WHERE ma_bl = $id");
+                $stmt_del = $conn->prepare("DELETE FROM binh_luan_danh_gia WHERE ma_bl = ?");
+                $res = $stmt_del->execute([$id]);
                 if ($res) {
                     echo json_encode(['success' => true]);
                 } else {
