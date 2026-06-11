@@ -148,3 +148,19 @@ CREATE TABLE IF NOT EXISTS `thong_bao_email` (
   PRIMARY KEY (`ma_tb`),
   FOREIGN KEY (`ma_tk_nhan`) REFERENCES `tai_khoan`(`ma_tk`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 12. Bảng bài viết (Tin tức / Blog)
+CREATE TABLE IF NOT EXISTS `bai_viet` (
+  `ma_bv` int(11) NOT NULL AUTO_INCREMENT,
+  `tieu_de` varchar(255) NOT NULL,
+  `slug` varchar(255) NOT NULL UNIQUE,
+  `anh_dai_dien` varchar(255) DEFAULT NULL,
+  `mo_ta_ngan` text,
+  `noi_dung` longtext NOT NULL,
+  `ma_tk` int(11) NOT NULL,
+  `ngay_tao` datetime DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `trang_thai` enum('XuatBan','Nhao') DEFAULT 'XuatBan',
+  PRIMARY KEY (`ma_bv`),
+  FOREIGN KEY (`ma_tk`) REFERENCES `tai_khoan`(`ma_tk`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

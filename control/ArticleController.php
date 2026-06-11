@@ -1,127 +1,70 @@
 <?php
 /**
  * Lớp ArticleController quản lý toàn bộ các bài viết (blog/tin tức) của hệ thống CMS
- * bao gồm: đọc/ghi dữ liệu từ tệp JSON articles.json làm CSDL tạm, upload hình ảnh bài viết và xử lý các hành động thêm/sửa/xóa bài viết trong Admin.
+ * Sử dụng ArticleModel để tương tác với cơ sở dữ liệu MySQL thay vì JSON như trước.
  */
 
+require_once __DIR__ . '/../model/database.php';
+require_once __DIR__ . '/../model/ArticleModel.php';
+
 class ArticleController {
-    // Đường dẫn trỏ tới tệp JSON cơ sở dữ liệu của các bài viết
-    private static $dataFile = __DIR__ . '/../data/articles.json';
-
     /**
-     * Khởi tạo các bài viết mặc định nếu tệp articles.json chưa tồn tại.
-     */
-    public static function initDefaultArticles() {
-        if (!file_exists(dirname(self::$dataFile))) {
-            mkdir(dirname(self::$dataFile), 0777, true);
-        }
-
-        if (!file_exists(self::$dataFile)) {
-            $defaultArticles = [
-                [
-                    "id" => "BV01",
-                    "title" => "Đánh giá chi tiết Sony A7R V: Siêu phẩm độ phân giải cao",
-                    "slug" => "danh-gia-chi-tiet-sony-a7r-v",
-                    "image" => "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1000&auto=format&fit=crop",
-                    "summary" => "Khám phá sức mạnh của cảm biến 61MP, hệ thống lấy nét AI mới nhất và khả năng quay video 8K trên chiếc máy ảnh mirrorless flagship của Sony.",
-                    "content" => "<p>Sony A7R V mang đến một bước nhảy vọt về công nghệ lấy nét tự động nhờ vi xử lý AI chuyên dụng. Cảm biến 61MP vẫn giữ nguyên từ thế hệ trước nhưng chi tiết và dải tương phản động đã được tối ưu hóa xuất sắc. Đặc biệt, màn hình xoay lật 4 trục mới mang lại trải nghiệm chụp ảnh chưa từng có.</p><p>Hệ thống chống rung IBIS giờ đây đạt mức 8 stop, giúp bạn chụp cầm tay ở tốc độ màn trập rất thấp mà vẫn sắc nét.</p>",
-                    "date" => date("Y-m-d H:i:s", strtotime("-2 days")),
-                    "status" => "XuatBan"
-                ],
-                [
-                    "id" => "BV02",
-                    "title" => "Leica M11 Monochrom: Nghệ thuật nhiếp ảnh đen trắng",
-                    "slug" => "leica-m11-monochrom-nghe-thuat-den-trang",
-                    "image" => "https://images.unsplash.com/photo-1589410141973-10eb0a6231d6?q=80&w=1000&auto=format&fit=crop",
-                    "summary" => "Chiếc máy ảnh rangefinder sinh ra chỉ để chụp ảnh đen trắng với cảm biến BSI CMOS 60MP loại bỏ hoàn toàn bộ lọc màng màu (Bayer filter).",
-                    "content" => "<p>Leica M11 Monochrom là minh chứng cho sự theo đuổi sự hoàn hảo trong nhiếp ảnh thuần túy. Bằng cách loại bỏ bộ lọc màu, cảm biến hấp thụ nhiều ánh sáng hơn, mang lại dải nhạy sáng cực rộng và độ nhiễu cực thấp ở ISO cao.</p><p>Thiết kế tối giản, loại bỏ logo chấm đỏ quen thuộc, máy toát lên vẻ đẹp cổ điển và bí ẩn.</p>",
-                    "date" => date("Y-m-d H:i:s", strtotime("-5 days")),
-                    "status" => "XuatBan"
-                ],
-                [
-                    "id" => "BV03",
-                    "title" => "Top 5 ống kính Canon RF đáng mua nhất năm nay",
-                    "slug" => "top-5-ong-kinh-canon-rf-dang-mua",
-                    "image" => "https://images.unsplash.com/photo-1617005082833-1eb58ec8d1a1?q=80&w=1000&auto=format&fit=crop",
-                    "summary" => "Hệ sinh thái ngàm RF của Canon đang ngày càng phong phú. Dưới đây là những ống kính 'must-have' dành cho người dùng EOS R.",
-                    "content" => "<p>1. Canon RF 24-70mm f/2.8L IS USM: Ống kính đa dụng hoàn hảo cho mọi nhu cầu.<br>2. Canon RF 50mm f/1.2L USM: Sức mạnh xóa phông tuyệt đối.<br>3. Canon RF 70-200mm f/2.8L IS USM: Nhỏ gọn bất ngờ so với phiên bản ngàm EF.<br>4. Canon RF 85mm f/1.2L USM DS: Chân dung đỉnh cao với hiệu ứng bokeh mượt mà.<br>5. Canon RF 15-35mm f/2.8L IS USM: Lựa chọn số 1 cho phong cảnh và kiến trúc.</p>",
-                    "date" => date("Y-m-d H:i:s", strtotime("-10 days")),
-                    "status" => "XuatBan"
-                ]
-            ];
-            file_put_contents(self::$dataFile, json_encode($defaultArticles, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-        }
-    }
-
-    /**
-     * Lấy toàn bộ danh sách bài viết từ tệp JSON.
+     * Lấy toàn bộ danh sách bài viết từ Database.
      *
-     * @return array Danh sách bài viết dưới dạng mảng
+     * @param bool $onlyPublished Nếu true, chỉ lấy các bài viết có trạng thái XuatBan.
+     * @return array Danh sách bài viết
      */
-    public static function getAllArticles() {
-        self::initDefaultArticles();
-        $json = file_get_contents(self::$dataFile);
-        return json_decode($json, true) ?: [];
+    public static function getAllArticles($onlyPublished = false) {
+        global $conn;
+        $status = $onlyPublished ? 'XuatBan' : null;
+        return ArticleModel::getAllArticles($conn, $status);
     }
 
     /**
      * Tìm bài viết dựa trên đường dẫn tĩnh thân thiện (slug).
      *
      * @param string $slug Đường dẫn tĩnh
-     * @return array|null Trả về thông tin bài viết nếu tìm thấy, ngược lại trả về null
+     * @return array|false Trả về thông tin bài viết nếu tìm thấy, ngược lại trả về false
      */
     public static function getArticleBySlug($slug) {
-        $articles = self::getAllArticles();
-        foreach ($articles as $article) {
-            if ($article['slug'] === $slug) {
-                return $article;
-            }
-        }
-        return null;
+        global $conn;
+        return ArticleModel::getArticleBySlug($conn, $slug);
     }
 
     /**
-     * Ghi đè danh sách bài viết vào tệp JSON.
+     * Tìm bài viết dựa trên ID.
      *
-     * @param array $articles Mảng chứa các bài viết mới
+     * @param int $id ID bài viết
+     * @return array|false
      */
-    public static function saveArticles($articles) {
-        file_put_contents(self::$dataFile, json_encode($articles, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-    }
-
-    /**
-     * Tự động sinh ID tuần tự tiếp theo (dạng BVXX) cho bài viết mới.
-     *
-     * @return string ID mới (Ví dụ: BV04)
-     */
-    public static function generateId() {
-        $articles = self::getAllArticles();
-        $max = 0;
-        foreach ($articles as $a) {
-            $num = intval(str_replace('BV', '', $a['id']));
-            if ($num > $max) $max = $num;
-        }
-        return 'BV' . str_pad($max + 1, 2, '0', STR_PAD_LEFT);
+    public static function getArticleById($id) {
+        global $conn;
+        return ArticleModel::getArticleById($conn, $id);
     }
 
     /**
      * Xử lý các hành động nghiệp vụ của quản trị viên (POST) cho bài viết.
      */
     public static function handleAdminAction() {
+        global $conn;
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
+        
         $action = isset($_POST['article_action']) ? $_POST['article_action'] : '';
 
         // --- HÀNH ĐỘNG THÊM HOẶC SỬA BÀI VIẾT ---
         if ($action === 'add' || $action === 'edit') {
-            $id = isset($_POST['id']) ? $_POST['id'] : '';
+            $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
             $title = isset($_POST['title']) ? trim($_POST['title']) : '';
             $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $_POST['slug'] ?? '')));
             $summary = isset($_POST['summary']) ? trim($_POST['summary']) : '';
+            // Nhận nội dung mã HTML từ CKEditor
             $content = isset($_POST['content']) ? trim($_POST['content']) : '';
             $status = isset($_POST['status']) ? trim($_POST['status']) : 'XuatBan';
             $imagePath = isset($_POST['old_image']) ? $_POST['old_image'] : '';
+            // Mặc định user đăng bài, trong thực tế sẽ lấy từ session
+            $ma_tk = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 1; 
 
-            // Xử lý upload tệp hình ảnh đính kèm bài viết
+            // Xử lý upload tệp hình ảnh đại diện của bài viết
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                 $uploadDir = __DIR__ . '/../uploads/articles/';
                 if (!file_exists($uploadDir)) {
@@ -134,48 +77,77 @@ class ArticleController {
                 }
             }
 
-            $articles = self::getAllArticles();
+            $data = [
+                'tieu_de' => $title,
+                'slug' => $slug,
+                'anh_bia' => $imagePath,
+                'tom_tat' => $summary,
+                'noi_dung' => $content,
+                'ma_tk_dang' => $ma_tk,
+                'trang_thai' => $status
+            ];
+
             if ($action === 'add') {
-                // Tạo mới bài viết đút vào đầu danh sách
-                $newArticle = [
-                    "id" => self::generateId(),
-                    "title" => $title,
-                    "slug" => $slug,
-                    "image" => $imagePath,
-                    "summary" => $summary,
-                    "content" => $content,
-                    "date" => date("Y-m-d H:i:s"),
-                    "status" => $status
-                ];
-                array_unshift($articles, $newArticle);
+                ArticleModel::addArticle($conn, $data);
             } else {
-                // Cập nhật thông tin bài viết cũ theo ID
-                foreach ($articles as &$a) {
-                    if ($a['id'] === $id) {
-                        $a['title'] = $title;
-                        $a['slug'] = $slug;
-                        if ($imagePath !== '') $a['image'] = $imagePath;
-                        $a['summary'] = $summary;
-                        $a['content'] = $content;
-                        $a['status'] = $status;
-                        break;
-                    }
-                }
+                ArticleModel::updateArticle($conn, $id, $data);
             }
-            self::saveArticles($articles);
+            
             echo "<script>window.location.href='index.php?tab=articles';</script>";
             exit;
         }
 
         // --- HÀNH ĐỘNG XÓA BÀI VIẾT ---
         if ($action === 'delete') {
-            $id = isset($_POST['id']) ? $_POST['id'] : '';
-            $articles = self::getAllArticles();
-            $articles = array_filter($articles, function($a) use ($id) {
-                return $a['id'] !== $id;
-            });
-            self::saveArticles(array_values($articles));
+            $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+            if ($id > 0) {
+                ArticleModel::deleteArticle($conn, $id);
+            }
             echo "<script>window.location.href='index.php?tab=articles';</script>";
+            exit;
+        }
+    }
+
+    /**
+     * Xử lý API Upload hình ảnh từ CKEditor
+     * CKEditor yêu cầu trả về JSON có dạng { "url": "..." } khi thành công.
+     */
+    public static function handleCKEditorUpload() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['upload'])) {
+            $file = $_FILES['upload'];
+            
+            // Kiểm tra lỗi
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                echo json_encode(['error' => ['message' => 'Lỗi upload file.']]);
+                exit;
+            }
+
+            $uploadDir = __DIR__ . '/../uploads/articles/';
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            // Tạo tên file duy nhất tránh trùng lặp
+            $filename = time() . '_' . basename($file['name']);
+            $targetFile = $uploadDir . $filename;
+
+            // Di chuyển file
+            if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+                // Đường dẫn trả về cho CKEditor (có thể là đường dẫn tuyệt đối hoặc tương đối)
+                // Phụ thuộc vào cấu trúc URL của dự án. Ở đây trả về relative path từ thư mục gốc.
+                
+                // Lấy URL base hiện tại (thường thì admin đang ở /admin/, nên trả về ../uploads/articles/...)
+                // Tuy nhiên, để linh hoạt, ta dùng đường dẫn tuyệt đối tĩnh dựa trên HTTP_HOST
+                $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+                $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . "/webmayanh/";
+                $url = $base_url . 'uploads/articles/' . $filename;
+
+                echo json_encode([
+                    'url' => $url
+                ]);
+            } else {
+                echo json_encode(['error' => ['message' => 'Không thể lưu file.']]);
+            }
             exit;
         }
     }

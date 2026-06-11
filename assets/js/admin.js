@@ -20,6 +20,7 @@ const tabNames = {
     'revenue':    'Quản lý doanh thu',
     'orders':     'Quản lý đơn hàng',
     'products':   'Quản lý sản phẩm',
+    'categories': 'Quản lý danh mục',
     'promotions': 'Khuyến mãi sản phẩm',
     'vouchers':   'Quản lý voucher',
     'articles':   'Quản lý Bài viết',
@@ -46,6 +47,7 @@ window.switchTab = switchTab;
 // ====== RENDERING ======
 function renderTab(tabId) {
     if (tabId === 'products')   renderAdminProducts();
+    else if (tabId === 'categories')  renderAdminCategories();
     else if (tabId === 'orders')      renderAdminOrders();
     else if (tabId === 'customers')   renderAdminCustomers();
     else if (tabId === 'employees')   renderAdminEmployees();
@@ -63,24 +65,30 @@ function renderAdminArticles() {
     tbody.innerHTML = '';
     
     articles.forEach(art => {
+        const id = art.ma_bv || art.id;
+        const title = art.tieu_de || art.title;
+        const image = art.anh_bia || art.anh_dai_dien || art.image;
+        const date = art.ngay_dang || art.ngay_tao || art.date;
+        const status = art.trang_thai || art.status;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
-                <img src="${art.image}" alt="${art.title}" style="width:60px; height:60px; object-fit:cover; border-radius:4px;"/>
+                <img src="${image}" alt="${title}" style="width:60px; height:60px; object-fit:cover; border-radius:4px;"/>
             </td>
-            <td><strong>${art.id}</strong></td>
+            <td><strong>${id}</strong></td>
             <td>
-                <div style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${art.title}">
-                    ${art.title}
+                <div style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${title}">
+                    ${title}
                 </div>
             </td>
-            <td>${art.date}</td>
-            <td><span class="badge badge--${art.status === 'XuatBan' ? 'success' : 'warning'}">${art.status === 'XuatBan' ? 'Xuất bản' : 'Bản nháp'}</span></td>
+            <td>${date}</td>
+            <td><span class="badge badge--${status === 'XuatBan' ? 'success' : 'warning'}">${status === 'XuatBan' ? 'Xuất bản' : 'Bản nháp'}</span></td>
             <td class="center">
-                <button class="btn-icon" onclick="editArticle('${art.id}')" title="Sửa bài viết">
+                <button class="btn-icon" onclick="editArticle('${id}')" title="Sửa bài viết">
                     <span class="material-symbols-outlined">edit</span>
                 </button>
-                <button class="btn-icon delete-icon" onclick="deleteArticle('${art.id}')" title="Xóa">
+                <button class="btn-icon delete-icon" onclick="deleteArticle('${id}')" title="Xóa">
                     <span class="material-symbols-outlined">delete</span>
                 </button>
             </td>
@@ -89,38 +97,48 @@ function renderAdminArticles() {
     });
 }
 
+let articleEditorInstance;
+
+function syncCKEditor() {
+    if (articleEditorInstance) {
+        document.getElementById('articleContent').value = articleEditorInstance.getData();
+    }
+    return true;
+}
+
 window.openArticleModal = function(id = null) {
     const imageInput      = document.getElementById('articleImageFile');
     const imagePreview    = document.getElementById('articleImagePreviewContainer');
     const imagePreviewImg = document.getElementById('articleImagePreviewImg');
-    const hiddenImage     = document.getElementById('articleImage');
+    const oldImageInput   = document.getElementById('articleOldImage');
     const idInput         = document.getElementById('articleId');
-    const originalIdInput = document.getElementById('articleOriginalId');
+    const actionInput     = document.getElementById('articleAction');
     
     document.getElementById('articleForm').reset();
     imageInput.value = '';
-    hiddenImage.value = '';
+    oldImageInput.value = '';
     imagePreview.classList.remove('visible');
     imagePreview.classList.add('hidden');
-    originalIdInput.value = '';
     idInput.value = '';
+    actionInput.value = id ? 'edit' : 'add';
     
     document.getElementById('articleModalTitle').innerText = id ? 'Sửa Bài Viết' : 'Thêm Bài Viết';
 
+    let initialContent = '';
+
     if (id) {
-        const art = articles.find(a => a.id === id);
+        const art = articles.find(a => String(a.ma_bv) === String(id) || String(a.id) === String(id));
         if (art) {
-            originalIdInput.value = art.id;
-            idInput.value = art.id;
-            document.getElementById('articleTitle').value = art.title;
+            idInput.value = art.ma_bv || art.id;
+            document.getElementById('articleTitle').value = art.tieu_de || art.title;
             document.getElementById('articleSlug').value = art.slug;
-            document.getElementById('articleSummary').value = art.summary;
-            document.getElementById('articleContent').value = art.content;
-            document.getElementById('articleStatus').value = art.status;
-            hiddenImage.value = art.image;
+            document.getElementById('articleSummary').value = art.tom_tat || art.mo_ta_ngan || art.summary;
+            initialContent = art.noi_dung || art.content;
+            document.getElementById('articleStatus').value = art.trang_thai || art.status;
+            oldImageInput.value = art.anh_bia || art.anh_dai_dien || art.image;
             
-            if (art.image) {
-                imagePreviewImg.src = art.image;
+            if (art.anh_bia || art.anh_dai_dien || art.image) {
+                imagePreviewImg.src = art.anh_bia || art.anh_dai_dien || art.image;
                 imagePreview.classList.remove('hidden');
                 imagePreview.classList.add('visible');
             }
@@ -128,7 +146,31 @@ window.openArticleModal = function(id = null) {
     }
     
     document.getElementById('articleModal').classList.add('open');
+
+    if (articleEditorInstance) {
+        articleEditorInstance.destroy()
+            .then(() => initCKEditor(initialContent))
+            .catch(error => console.log(error));
+    } else {
+        initCKEditor(initialContent);
+    }
 };
+
+function initCKEditor(initialContent) {
+    ClassicEditor
+        .create(document.querySelector('#articleContent'), {
+            simpleUpload: {
+                uploadUrl: 'index.php?action=upload_image'
+            }
+        })
+        .then(editor => {
+            articleEditorInstance = editor;
+            editor.setData(initialContent);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+}
 
 window.closeArticleModal = function() {
     document.getElementById('articleModal').classList.remove('open');
@@ -140,33 +182,28 @@ window.editArticle = function(id) {
 
 window.deleteArticle = function(id) {
     if (confirm('Bạn có chắc muốn xóa bài viết này?')) {
-        fetch(`admin/index.php?action=delete_article&id=${id}`, {
-            method: 'POST'
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert('Xóa bài viết thành công!');
-                location.reload();
-            } else {
-                alert('Lỗi: ' + (data.error || 'Không thể xóa bài viết'));
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Lỗi mạng không thể xóa bài viết.');
-        });
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'index.php?tab=articles';
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'article_action';
+        actionInput.value = 'delete';
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'id';
+        idInput.value = id;
+        form.appendChild(actionInput);
+        form.appendChild(idInput);
+        document.body.appendChild(form);
+        form.submit();
     }
 };
 
 function initArticleModal() {
-    const articleForm = document.getElementById('articleForm');
-    if (!articleForm) return;
-
     const imageInput = document.getElementById('articleImageFile');
     const imagePreview = document.getElementById('articleImagePreviewContainer');
     const imagePreviewImg = document.getElementById('articleImagePreviewImg');
-    const hiddenImageInput = document.getElementById('articleImage');
 
     if (imageInput) {
         imageInput.addEventListener('change', function(e) {
@@ -174,7 +211,6 @@ function initArticleModal() {
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(ev) {
-                    hiddenImageInput.value = ev.target.result;
                     imagePreviewImg.src = ev.target.result;
                     imagePreview.classList.remove('hidden');
                     imagePreview.classList.add('visible');
@@ -183,49 +219,6 @@ function initArticleModal() {
             }
         });
     }
-
-    articleForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const originalId = document.getElementById('articleOriginalId').value;
-        const id         = document.getElementById('articleId').value.trim();
-        const title      = document.getElementById('articleTitle').value.trim();
-        const slug       = document.getElementById('articleSlug').value.trim();
-        const status     = document.getElementById('articleStatus').value;
-        const image      = document.getElementById('articleImage').value;
-        const summary    = document.getElementById('articleSummary').value.trim();
-        const content    = document.getElementById('articleContent').value.trim();
-
-        if (!image) { alert('Vui lòng chọn ảnh bìa cho bài viết!'); return; }
-
-        const action = originalId ? 'edit_article' : 'add_article';
-        const formData = new FormData();
-        formData.append('id', originalId || id);
-        formData.append('title', title);
-        formData.append('slug', slug);
-        formData.append('status', status);
-        formData.append('image', image);
-        formData.append('summary', summary);
-        formData.append('content', content);
-
-        fetch(`admin/index.php?action=${action}`, {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert(originalId ? 'Cập nhật bài viết thành công!' : 'Thêm bài viết thành công!');
-                closeArticleModal();
-                location.reload();
-            } else {
-                alert('Lỗi: ' + (data.error || 'Không thể lưu bài viết'));
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Lỗi mạng không thể lưu bài viết.');
-        });
-    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -235,6 +228,109 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         switchTab('revenue');
     }
+});
+
+// ── Products ──────────────────────────────────────────────────
+let categories = window.dbCategories || [];
+
+function renderAdminCategories() {
+    const tbody = document.getElementById('adminCategoryTableBody');
+    if (!tbody) return;
+    if (categories.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="td-muted" style="text-align:center;padding:2rem;">Không có danh mục nào.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = categories.map(c => `
+        <tr>
+            <td class="td-id center">#${c.id}</td>
+            <td class="td-bold">${c.name}</td>
+            <td class="center">
+                <button class="btn-icon" onclick="editCategory(${c.id})" title="Sửa danh mục">
+                    <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="btn-icon delete-icon" onclick="deleteCategory(${c.id})" title="Xóa">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.openCategoryModal = function(id = null) {
+    document.getElementById('categoryForm').reset();
+    document.getElementById('categoryId').value = id || '';
+    document.getElementById('categoryModalTitle').innerText = id ? 'Sửa Danh Mục' : 'Thêm Danh Mục';
+
+    if (id) {
+        const cat = categories.find(c => String(c.id) === String(id));
+        if (cat) {
+            document.getElementById('categoryName').value = cat.name;
+        }
+    }
+    document.getElementById('categoryModal').classList.add('open');
+};
+
+window.closeCategoryModal = function() {
+    document.getElementById('categoryModal').classList.remove('open');
+};
+
+window.editCategory = function(id) {
+    window.openCategoryModal(id);
+};
+
+window.deleteCategory = function(id) {
+    if (confirm('Bạn có chắc muốn xóa danh mục này? Hệ thống sẽ chặn nếu có sản phẩm bên trong!')) {
+        const formData = new FormData();
+        formData.append('action', 'delete_category');
+        formData.append('id', id);
+
+        fetch('index.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Xóa danh mục thành công!');
+                window.location.reload();
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể xóa danh mục!'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Lỗi kết nối!');
+        });
+    }
+};
+
+document.getElementById('categoryForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const id = document.getElementById('categoryId').value;
+    const name = document.getElementById('categoryName').value;
+
+    const formData = new FormData();
+    formData.append('action', id ? 'edit_category' : 'add_category');
+    if (id) formData.append('id', id);
+    formData.append('name', name);
+
+    fetch('index.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Lưu danh mục thành công!');
+            window.location.reload();
+        } else {
+            alert('Lỗi: ' + (data.error || 'Lưu thất bại!'));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Lỗi kết nối!');
+    });
 });
 
 // ── Products ──────────────────────────────────────────────────

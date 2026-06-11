@@ -191,6 +191,10 @@ while ($row = $res_ch->fetch()) {
                 <span class="material-symbols-outlined">inventory_2</span>
                 <span class="truncate">Quản lý sản phẩm</span>
             </button>
+            <button onclick="switchTab('categories')" id="menu-categories" class="menu-item">
+                <span class="material-symbols-outlined">category</span>
+                <span class="truncate">Quản lý danh mục</span>
+            </button>
             <button onclick="switchTab('promotions')" id="menu-promotions" class="menu-item">
                 <span class="material-symbols-outlined">sell</span>
                 <span class="truncate">Khuyến mãi sản phẩm</span>
@@ -353,6 +357,29 @@ while ($row = $res_ch->fetch()) {
                     </div>
                 </div>
 
+                <!-- ── CATEGORIES TAB ───────────────────────── -->
+                <div id="tab-categories" class="admin-tab">
+                    <div class="admin-card">
+                        <div class="admin-section-header">
+                            <h2 class="admin-section-title">Danh mục sản phẩm</h2>
+                            <button onclick="openCategoryModal()" class="btn-admin-add"><span
+                                    class="material-symbols-outlined">add</span> Thêm</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th class="center">ID</th>
+                                        <th>Tên danh mục</th>
+                                        <th class="center">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminCategoryTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ── PROMOTIONS TAB ───────────────────────── -->
                 <div id="tab-promotions" class="admin-tab">
                     <div class="admin-card">
@@ -505,9 +532,10 @@ while ($row = $res_ch->fetch()) {
                 </button>
             </div>
             <div class="admin-modal__body">
-                <form id="articleForm">
-                    <input type="hidden" id="articleId" value="" />
-                    <input type="hidden" id="articleOriginalId" value="" />
+                <form id="articleForm" method="POST" action="index.php?tab=articles" enctype="multipart/form-data">
+                    <input type="hidden" name="article_action" id="articleAction" value="add" />
+                    <input type="hidden" name="id" id="articleId" value="" />
+                    <input type="hidden" name="old_image" id="articleOldImage" value="" />
 
                     <div class="modal-form-grid">
                         <!-- Cột trái: Upload hình -->
@@ -525,28 +553,27 @@ while ($row = $res_ch->fetch()) {
                                         <span class="material-symbols-outlined">edit</span>
                                     </div>
                                 </div>
-                                <input type="file" id="articleImageFile" accept="image/*" class="img-upload-input"
+                                <input type="file" name="image" id="articleImageFile" accept="image/*" class="img-upload-input"
                                     title="Chọn ảnh bìa bài viết" />
                             </div>
-                            <input type="hidden" id="articleImage" value="" />
                         </div>
 
                         <!-- Cột phải: Thông tin -->
                         <div class="modal-form-col modal-form-col--center">
                             <div>
                                 <label class="admin-label">Tiêu đề</label>
-                                <input type="text" id="articleTitle" required placeholder="Nhập tiêu đề bài viết..."
+                                <input type="text" name="title" id="articleTitle" required placeholder="Nhập tiêu đề bài viết..."
                                     class="admin-input"
                                     onkeyup="document.getElementById('articleSlug').value = this.value.toLowerCase().replace(/ /g,'-').replace(/[^\w-]+/g,'')" />
                             </div>
                             <div>
                                 <label class="admin-label">Đường dẫn (Slug)</label>
-                                <input type="text" id="articleSlug" required placeholder="duong-dan-bai-viet"
+                                <input type="text" name="slug" id="articleSlug" required placeholder="duong-dan-bai-viet"
                                     class="admin-input admin-input--mono" />
                             </div>
                             <div>
                                 <label class="admin-label">Trạng thái</label>
-                                <select id="articleStatus" required class="admin-input">
+                                <select name="status" id="articleStatus" required class="admin-input">
                                     <option value="XuatBan">Xuất bản</option>
                                     <option value="Nhao">Bản nháp</option>
                                 </select>
@@ -557,20 +584,49 @@ while ($row = $res_ch->fetch()) {
                     <div class="modal-form-full">
                         <div>
                             <label class="admin-label">Tóm tắt</label>
-                            <textarea id="articleSummary" required placeholder="Nhập tóm tắt..." class="admin-textarea"
+                            <textarea name="summary" id="articleSummary" required placeholder="Nhập tóm tắt..." class="admin-textarea"
                                 rows="3"></textarea>
                         </div>
                         <div>
                             <label class="admin-label">Nội dung HTML</label>
-                            <textarea id="articleContent" required placeholder="Nhập nội dung bài viết..."
+                            <textarea name="content" id="articleContent" placeholder="Nhập nội dung bài viết..."
                                 class="admin-textarea" rows="8"></textarea>
                         </div>
                     </div>
 
                     <div class="admin-modal__footer">
                         <button type="button" onclick="closeArticleModal()" class="btn-ghost">Hủy</button>
-                        <button type="submit" class="btn-save">
+                        <button type="submit" class="btn-save" onclick="return syncCKEditor()">
                             <span class="material-symbols-outlined">save</span> Lưu Bài Viết
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Category Modal ───────────────────────────────────── -->
+    <div id="categoryModal" class="admin-modal-overlay">
+        <div class="admin-modal" id="categoryModalContent" style="max-width: 500px;">
+            <div class="admin-modal__header">
+                <h3 id="categoryModalTitle" class="admin-modal__title">Thêm Danh Mục</h3>
+                <button onclick="closeCategoryModal()" class="admin-modal__close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="admin-modal__body">
+                <form id="categoryForm">
+                    <input type="hidden" id="categoryId" value="" />
+                    <div class="modal-form-full">
+                        <div>
+                            <label class="admin-label">Tên danh mục</label>
+                            <input type="text" id="categoryName" required placeholder="VD: Máy ảnh" class="admin-input" />
+                        </div>
+                    </div>
+                    <div class="admin-modal__footer" style="margin-top: 1.5rem;">
+                        <button type="button" onclick="closeCategoryModal()" class="btn-ghost">Hủy</button>
+                        <button type="submit" class="btn-save">
+                            <span class="material-symbols-outlined">save</span> Lưu
                         </button>
                     </div>
                 </form>
@@ -763,6 +819,7 @@ while ($row = $res_ch->fetch()) {
         </div>
     </div>
 
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
     <script src="assets/js/auth.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {

@@ -4,6 +4,32 @@ Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng 
 
 ---
 
+## [Phiên Bản Cập Nhật Ngày 11/06/2026] - Tích hợp Rich Text Editor (CKEditor 5), Đồng bộ CSDL bài viết & Quản lý Danh mục Sản phẩm an toàn
+
+### 📝 Tích hợp Trình soạn thảo văn bản Rich Text (CKEditor 5) cho Bài viết
+- **Editor cao cấp:** Thay thế thẻ `<textarea>` thông thường bằng **CKEditor 5** (phiên bản Classic CDN) cho ô nhập nội dung bài viết trong trang Admin. Quản trị viên dễ dàng định dạng văn bản (in đậm, in nghiêng, tiêu đề, liên kết, danh sách...).
+- **Upload ảnh trực tiếp qua CKEditor:** Hỗ trợ upload kéo-thả hoặc chọn tệp hình ảnh trực tiếp trong khu soạn thảo thông qua adapter `simpleUpload`. Cấu hình route API `upload_image` tại [admin/index.php](file:///c:/xampp/htdocs/webmayanh/admin/index.php) và phương thức xử lý upload an toàn [ArticleController::handleCKEditorUpload()](file:///c:/xampp/htdocs/webmayanh/control/ArticleController.php) lưu ảnh vào thư mục `uploads/articles/`.
+- **Đồng bộ hóa dữ liệu soạn thảo:** Hàm `syncCKEditor()` trong [admin.js](file:///c:/xampp/htdocs/webmayanh/assets/js/admin.js) tự động chuyển dữ liệu Rich Text từ CKEditor instance sang trường dữ liệu form `<textarea>` ẩn trước khi submit form.
+
+### 🗄️ Chuyển đổi và Đồng bộ Bài viết sang Cơ sở dữ liệu (Database MySQL)
+- **Cập nhật Database Schema:** Thêm bảng `bai_viet` vào tệp cấu trúc [webmayanh_structure.sql](file:///c:/xampp/htdocs/webmayanh/data/webmayanh_structure.sql) với các trường dữ liệu chuẩn: `ma_bv` (khóa chính), `tieu_de`, `slug` (duy nhất), `anh_bia`, `tom_tat`, `noi_dung`, `ma_tk_dang`, `trang_thai`, `ngay_dang`.
+- **Xây dựng Model PHP mới:** Tạo lớp [ArticleModel.php](file:///c:/xampp/htdocs/webmayanh/model/ArticleModel.php) sử dụng PDO prepared statements để thực hiện toàn bộ thao tác CRUD (Create, Read, Update, Delete) bài viết trực tiếp với CSDL, thay thế cho cơ chế lưu file JSON tạm thời cũ.
+- **Tái cấu trúc Controller & Đồng bộ Schema:** Cập nhật [ArticleController.php](file:///c:/xampp/htdocs/webmayanh/control/ArticleController.php) chuyển sang sử dụng PDO và tương tác với `ArticleModel`, tự động đồng bộ hóa các trường thông tin bài viết theo schema CSDL mới (`anh_bia`, `tom_tat`, `trang_thai`, v.v.).
+
+### 🏗️ Áp dụng chuẩn MVC cho Bài viết phía Frontend & Clean Code
+- **Bóc tách logic xử lý (MVC Routing):** Tái cấu trúc luồng tải trang Tin tức/Bài viết bằng cách chuyển toàn bộ logic truy vấn dữ liệu từ Views [baiviet.php](file:///c:/xampp/htdocs/webmayanh/view/client/baiviet.php) và [chitietbaiviet.php](file:///c:/xampp/htdocs/webmayanh/view/client/chitietbaiviet.php) sang [index.php](file:///c:/xampp/htdocs/webmayanh/index.php) đóng vai trò Router/Controller chính.
+- **Loại bỏ inline CSS:** Di chuyển và tách biệt toàn bộ các khai báo CSS inline trước đây trong views bài viết ra file stylesheet tĩnh tập trung [client.css](file:///c:/xampp/htdocs/webmayanh/assets/css/client.css) (phần `/* --- BLOG LIST --- */` và `/* --- BLOG DETAIL --- */`), tối ưu tốc độ render của trình duyệt.
+- **Render nội dung động an toàn:** Sử dụng hàm `html_entity_decode` trong trang [chitietbaiviet.php](file:///c:/xampp/htdocs/webmayanh/view/client/chitietbaiviet.php) để render chính xác mã HTML động từ CKEditor mà không bị escape các ký tự đặc biệt.
+
+### 📁 Ra mắt Tab Quản lý Danh mục (Category Management) & Ràng buộc Xóa an toàn
+- **Giao diện quản lý Admin:** Thêm tab "Quản lý danh mục" (`tab-categories`) vào Sidebar của trang quản trị [admin.php](file:///c:/xampp/htdocs/webmayanh/view/admin/admin.php) kèm theo bảng danh sách danh mục và modal thêm/sửa danh mục (`categoryModal`).
+- **Xử lý JavaScript (Client-side):** Triển khai hàm render danh mục, đóng/mở modal, gửi API thêm/sửa danh mục không đồng bộ (`fetch` POST), và hàm `deleteCategory` trong [admin.js](file:///c:/xampp/htdocs/webmayanh/assets/js/admin.js).
+- **Ràng buộc an toàn toàn vẹn dữ liệu (Backend-side):** 
+  - Thêm các endpoint xử lý `add_category`, `edit_category`, `delete_category` tại [AdminController.php](file:///c:/xampp/htdocs/webmayanh/control/AdminController.php).
+  - Riêng logic xóa danh mục (`delete_category`): Thực hiện truy vấn kiểm tra ràng buộc `SELECT COUNT(*) FROM hang_hoa WHERE ma_dm = ?`. Nếu danh mục đang chứa sản phẩm, hệ thống từ chối xóa và trả về thông báo lỗi trực quan cho người dùng. Chỉ cho phép xóa khi danh mục hoàn toàn trống.
+
+---
+
 ## [Phiên Bản Cập Nhật Ngày 07/06/2026] - Cập nhật Bản đồ Địa điểm cửa hàng sang Trụ sở chính (Cơ sở 613 Âu Cơ)
 
 ### 🗺️ Cập nhật & Đồng bộ Bản đồ Đại học Văn Hiến (Cơ sở 613 Âu Cơ)

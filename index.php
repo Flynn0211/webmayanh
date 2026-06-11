@@ -57,7 +57,7 @@ if ($action === 'client_logout') {
 }
 
 // Basic routing mapping
-$clientPages = ['trangchu', 'mayanh', 'ongkinh', 'phukien', 'chitietsanpham', 'giohang', 'donhang', 'login', 'taikhoan', 'baiviet', 'chitietbaiviet', 'lienhe'];
+$clientPages = ['trangchu', 'mayanh', 'ongkinh', 'phukien', 'chitietsanpham', 'giohang', 'donhang', 'login', 'taikhoan', 'lienhe'];
 
 if ($page === 'admin') {
     header("Location: admin/");
@@ -65,6 +65,22 @@ if ($page === 'admin') {
 } elseif ($page === 'donhang') {
     header("Location: index.php?page=taikhoan#orders");
     exit;
+} elseif ($page === 'baiviet') {
+    require_once 'control/ArticleController.php';
+    $articles = ArticleController::getAllArticles();
+    $publishedArticles = array_filter($articles, function($a) {
+        return $a['trang_thai'] === 'XuatBan';
+    });
+    include "view/client/baiviet.php";
+} elseif ($page === 'chitietbaiviet') {
+    require_once 'control/ArticleController.php';
+    $slug = isset($_GET['slug']) ? $_GET['slug'] : '';
+    $article = ArticleController::getArticleBySlug($slug);
+    if (!$article || $article['trang_thai'] !== 'XuatBan') {
+        echo "Bài viết không tồn tại hoặc đã bị ẩn.";
+        exit;
+    }
+    include "view/client/chitietbaiviet.php";
 } elseif (in_array($page, $clientPages)) {
     include "view/client/{$page}.php";
 } else {

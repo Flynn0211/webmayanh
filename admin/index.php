@@ -15,6 +15,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     AuthController::handleAdminLogout();
 }
 
+// Xử lý upload ảnh từ CKEditor
+if (isset($_GET['action']) && $_GET['action'] === 'upload_image') {
+    require_once __DIR__ . '/../control/ArticleController.php';
+    ArticleController::handleCKEditorUpload();
+}
+
 $login_error = "";
 
 // Xử lý đăng nhập POST qua Controller

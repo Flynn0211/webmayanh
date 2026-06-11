@@ -348,6 +348,67 @@ class AdminController {
                     echo json_encode(['success' => false, 'error' => $conn->errorInfo()[2]]);
                 }
             }
+            // --- XỬ LÝ THÊM DANH MỤC ---
+            elseif ($action === 'add_category') {
+                $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+                if ($name === '') {
+                    echo json_encode(['success' => false, 'error' => 'Tên danh mục không được để trống']);
+                    exit;
+                }
+                
+                // Tạo slug đơn giản
+                $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-'));
+                
+                $stmt = $conn->prepare("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES (?, ?)");
+                if ($stmt->execute([$name, $slug])) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'error' => $stmt->errorInfo()[2]]);
+                }
+            }
+            // --- XỬ LÝ CẬP NHẬT DANH MỤC ---
+            elseif ($action === 'edit_category') {
+                $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+                $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+                if ($name === '' || $id <= 0) {
+                    echo json_encode(['success' => false, 'error' => 'Dữ liệu không hợp lệ']);
+                    exit;
+                }
+                
+                $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-'));
+                
+                $stmt = $conn->prepare("UPDATE danh_muc SET ten_danh_muc = ?, slug = ? WHERE ma_dm = ?");
+                if ($stmt->execute([$name, $slug, $id])) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'error' => $stmt->errorInfo()[2]]);
+                }
+            }
+            // --- XỬ LÝ XÓA DANH MỤC ---
+            elseif ($action === 'delete_category') {
+                $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+                if ($id <= 0) {
+                    echo json_encode(['success' => false, 'error' => 'ID danh mục không hợp lệ']);
+                    exit;
+                }
+                
+                // KIỂM TRA RÀNG BUỘC SẢN PHẨM TRƯỚC KHI XÓA
+                $stmt_check = $conn->prepare("SELECT COUNT(*) as count FROM hang_hoa WHERE ma_dm = ?");
+                $stmt_check->execute([$id]);
+                $row = $stmt_check->fetch();
+                if ($row && $row['count'] > 0) {
+                    echo json_encode(['success' => false, 'error' => 'Không thể xóa danh mục đang có sản phẩm (' . $row['count'] . ' sản phẩm)! Vui lòng xóa hoặc di chuyển các sản phẩm này trước.']);
+                    exit;
+                }
+                
+                // Tiến hành xóa nếu an toàn
+                $stmt_del = $conn->prepare("DELETE FROM danh_muc WHERE ma_dm = ?");
+                if ($stmt_del->execute([$id])) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'error' => $stmt_del->errorInfo()[2]]);
+                }
+            }
             exit;
         }
     }
