@@ -6,7 +6,7 @@ class UserModel {
     /**
      * Lấy thông tin tài khoản bằng tên đăng nhập (chỉ lấy tài khoản đang hoạt động)
      *
-     * @param mysqli|false $conn Đối tượng kết nối CSDL
+     * @param PDO|false $conn Đối tượng kết nối CSDL
      * @param string $username Tên đăng nhập cần tìm
      * @return array|null Trả về mảng dữ liệu tài khoản nếu tìm thấy, ngược lại trả về null
      */
@@ -26,7 +26,7 @@ class UserModel {
      * Đăng ký một tài khoản khách hàng mới vào cơ sở dữ liệu
      * Mật khẩu đăng ký sẽ được tự động băm (hash) bằng password_hash() đảm bảo an toàn.
      *
-     * @param mysqli|false $conn Đối tượng kết nối CSDL
+     * @param PDO|false $conn Đối tượng kết nối CSDL
      * @param string $fullname Họ và tên đầy đủ
      * @param string $username Tên đăng nhập mong muốn
      * @param string $password Mật khẩu dạng thuần (sẽ băm trước khi lưu)

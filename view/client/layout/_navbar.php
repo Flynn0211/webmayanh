@@ -242,6 +242,24 @@ document.addEventListener('DOMContentLoaded', () => {
             indicator.style.width = activeLink.offsetWidth + 'px';
         }
     });
+
+    // 4. Xử lý Mobile Menu (Hamburger Drawer)
+    const menuBtn = document.querySelector('.nav-menu-btn');
+    const mobileDrawer = document.getElementById('mobileDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+
+    if (menuBtn && mobileDrawer && drawerOverlay && closeDrawerBtn) {
+        const toggleDrawer = () => {
+            mobileDrawer.classList.toggle('mobile-drawer--open');
+            drawerOverlay.classList.toggle('drawer-overlay--open');
+            document.body.style.overflow = mobileDrawer.classList.contains('mobile-drawer--open') ? 'hidden' : '';
+        };
+
+        menuBtn.addEventListener('click', toggleDrawer);
+        closeDrawerBtn.addEventListener('click', toggleDrawer);
+        drawerOverlay.addEventListener('click', toggleDrawer);
+    }
 });
 </script>
 
@@ -301,3 +319,40 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 </nav>
 
+<!-- Mobile Drawer Overlay -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<!-- Mobile Drawer Menu -->
+<div class="mobile-drawer" id="mobileDrawer">
+    <div class="mobile-drawer__header">
+        <span class="mobile-drawer__brand">LENS &amp; LIGHT</span>
+        <button class="mobile-drawer__close" id="closeDrawerBtn" aria-label="Đóng menu">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+    
+    <div class="mobile-drawer__content">
+        <a class="drawer-link <?= $activeNav === 'trangchu' ? 'drawer-link--active' : '' ?>" href="index.php?page=trangchu">Trang chủ</a>
+        <a class="drawer-link <?= $activeNav === 'mayanh'  ? 'drawer-link--active' : '' ?>" href="index.php?page=mayanh">Máy ảnh</a>
+        <a class="drawer-link <?= $activeNav === 'ongkinh' ? 'drawer-link--active' : '' ?>" href="index.php?page=ongkinh">Ống kính</a>
+        <a class="drawer-link <?= $activeNav === 'phukien' ? 'drawer-link--active' : '' ?>" href="index.php?page=phukien">Phụ kiện</a>
+        <a class="drawer-link <?= $activeNav === 'baiviet' ? 'drawer-link--active' : '' ?>" href="index.php?page=baiviet">Bài viết</a>
+        <a class="drawer-link <?= $activeNav === 'lienhe' ? 'drawer-link--active' : '' ?>" href="index.php?page=lienhe">Liên hệ</a>
+    </div>
+
+    <div class="mobile-drawer__footer">
+        <?php if ($_nav_logged_in): ?>
+            <div class="drawer-user-info">
+                <span class="material-symbols-outlined">account_circle</span>
+                <span><?= $_nav_fullname ?></span>
+            </div>
+            <a class="drawer-btn drawer-btn--outline" href="index.php?page=taikhoan">Quản lý tài khoản</a>
+            <?php if ($_nav_is_admin): ?>
+                <a class="drawer-btn drawer-btn--primary" href="index.php?page=admin">Vào trang Quản trị</a>
+            <?php endif; ?>
+            <a class="drawer-btn drawer-btn--danger" href="index.php?action=client_logout">Đăng xuất</a>
+        <?php else: ?>
+            <a class="drawer-btn drawer-btn--primary" href="index.php?page=login">Đăng nhập / Đăng ký</a>
+        <?php endif; ?>
+    </div>
+</div>

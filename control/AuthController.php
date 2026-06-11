@@ -11,7 +11,7 @@ class AuthController {
     /**
      * Xử lý xác thực đăng nhập phía khách hàng (Client Login).
      *
-     * @param mysqli|false $conn Kết nối CSDL
+     * @param PDO|false $conn Kết nối CSDL
      * @return array Mảng trạng thái lỗi hoặc thông báo thành công
      */
     public static function handleLogin($conn) {
@@ -76,7 +76,7 @@ class AuthController {
     /**
      * Xử lý đăng ký tài khoản khách hàng mới.
      *
-     * @param mysqli|false $conn Kết nối CSDL
+     * @param PDO|false $conn Kết nối CSDL
      * @return array Kết quả lỗi hoặc thành công
      */
     public static function handleRegister($conn) {
@@ -116,7 +116,7 @@ class AuthController {
     /**
      * Xử lý đăng nhập trực tiếp từ cổng Admin (Admin Portal Login).
      *
-     * @param mysqli|false $conn Kết nối CSDL
+     * @param PDO|false $conn Kết nối CSDL
      * @return string Trạng thái lỗi nếu đăng nhập thất bại
      */
     public static function handleAdminLogin($conn) {

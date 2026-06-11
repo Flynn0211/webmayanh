@@ -6,7 +6,7 @@ class ReviewModel {
     /**
      * Lấy toàn bộ danh sách đánh giá của một sản phẩm cụ thể (đã được duyệt hiển thị)
      *
-     * @param mysqli|false $conn Đối tượng kết nối CSDL
+     * @param PDO|false $conn Đối tượng kết nối CSDL
      * @param int $ma_hh Mã hàng hóa (sản phẩm)
      * @return array Danh sách các đánh giá của sản phẩm kèm thông tin người gửi
      */
@@ -31,7 +31,7 @@ class ReviewModel {
     /**
      * Thêm mới một bình luận đánh giá cho sản phẩm
      *
-     * @param mysqli|false $conn Đối tượng kết nối CSDL
+     * @param PDO|false $conn Đối tượng kết nối CSDL
      * @param int $ma_tk Mã tài khoản của khách hàng đánh giá
      * @param int $ma_hh Mã hàng hóa được đánh giá
      * @param int $so_sao Số sao đánh giá (1-5)
