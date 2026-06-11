@@ -165,8 +165,10 @@ while ($row = $res_ch->fetch()) {
 
 <body class="admin-body">
 
+    <div id="adminOverlay" class="admin-overlay" onclick="toggleAdminSidebar()"></div>
+
     <!-- ── Sidebar ─────────────────────────────────────────── -->
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar__logo">
             <a href="index.php?page=trangchu" class="admin-sidebar__logo-link">
                 <span class="material-symbols-outlined">camera</span>
@@ -253,7 +255,12 @@ while ($row = $res_ch->fetch()) {
     <main class="admin-main">
         <!-- Header -->
         <header class="admin-header">
-            <h1 id="pageTitle" class="admin-header__title">Quản lý sản phẩm</h1>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <button class="admin-notif-btn" aria-label="menu" onclick="toggleAdminSidebar()" style="display: none; padding: 0.5rem;" id="btnAdminToggle">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <h1 id="pageTitle" class="admin-header__title">Quản lý sản phẩm</h1>
+            </div>
             <div class="admin-header__actions">
                 <div class="admin-search">
                     <span class="material-symbols-outlined admin-search__icon">search</span>
@@ -845,6 +852,20 @@ while ($row = $res_ch->fetch()) {
             newCustomers: <?php echo $new_customers; ?>
         };
         window.dbMonthlyRevenue = <?php echo json_encode($chart_data); ?>;
+
+        function toggleAdminSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            const overlay = document.getElementById('adminOverlay');
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('admin-sidebar--open');
+                overlay.classList.toggle('admin-overlay--open');
+            }
+        }
+        
+        // Hiện nút menu admin trên mobile
+        if (window.innerWidth < 1024) {
+            document.getElementById('btnAdminToggle').style.display = 'block';
+        }
     </script>
     <script src="assets/js/admin.js?v=<?php echo time(); ?>"></script>
 </body>

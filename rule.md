@@ -63,7 +63,7 @@ webmayanh/
 
 ## 🗄️ 3. Quy tắc Cơ sở dữ liệu (Database)
 
-- **Thư viện:** Sử dụng `mysqli` (không dùng PDO).
+- **Thư viện:** Sử dụng `PDO` (không dùng mysqli).
 - **Biến kết nối:** `$conn` được khởi tạo từ `model/database.php`.
 - **Charset:** Luôn dùng `utf8mb4`.
 
@@ -273,7 +273,7 @@ CSS Partial: _navbar.php, _footer.php             (prefix _ cho partial/layout)
 /**
  * Lấy thông tin sản phẩm theo ID.
  *
- * @param mysqli $conn  Kết nối CSDL
+ * @param PDO $conn  Kết nối CSDL
  * @param int    $id    ID sản phẩm
  * @return array|null   Mảng dữ liệu sản phẩm hoặc null nếu không tìm thấy
  */

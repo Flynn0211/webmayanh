@@ -23,7 +23,7 @@ define('DB_NAME', 'webmayanh');
 // Cấu hình SMTP Email (Dùng cho SmtpMailer)
 define('SMTP_HOST', 'smtp.gmail.com');
 define('SMTP_PORT', 587); // hoặc 465 cho SSL
-define('SMTP_USER', 'your_email@gmail.com'); // Thay email thật vào đây
-define('SMTP_PASS', 'your_app_password'); // Thay App Password vào đây
+define('SMTP_USER', 'leduongtuananh.nhc@gmail.com'); // Thay email thật vào đây
+define('SMTP_PASS', 'riri tzyh lxen yspc'); // Thay App Password vào đây
 define('SMTP_FROM_NAME', 'Lens & Light Shop');
 ?>

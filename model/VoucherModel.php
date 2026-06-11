@@ -6,7 +6,7 @@ class VoucherModel {
     /**
      * Xác thực mã giảm giá dựa trên tổng tiền giỏ hàng và các giới hạn đi kèm.
      *
-     * @param mysqli|false $conn Đối tượng kết nối CSDL
+     * @param PDO|false $conn Đối tượng kết nối CSDL
      * @param string $voucherCode Chuỗi mã giảm giá (VD: WELCOME10, KM200)
      * @param float $totalRaw Tổng giá trị tiền hàng trước giảm giá
      * @return array Kết quả trả về gồm: valid (hợp lệ), discount (tiền giảm), message (thông điệp), id (mã voucher)

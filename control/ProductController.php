@@ -11,7 +11,7 @@ class ProductController {
     /**
      * Lấy toàn bộ danh sách sản phẩm đang bán, chuẩn hóa và định dạng dữ liệu cho Frontend tiêu thụ dưới dạng JSON.
      *
-     * @param mysqli|false $conn Kết nối CSDL
+     * @param PDO|false $conn Kết nối CSDL
      * @return array Danh sách sản phẩm được định dạng chuẩn
      */
     public static function getAllActiveProducts($conn) {

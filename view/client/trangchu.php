@@ -77,9 +77,9 @@
             <span class="material-symbols-outlined newsletter-section__icon">camera</span>
             <h2 class="newsletter-section__title">GIA NHẬP CỘNG ĐỒNG LENS &amp; LIGHT</h2>
             <p class="newsletter-section__desc">Nhận các thông tin sớm nhất về các sản phẩm giới hạn và kiến thức nhiếp ảnh chuyên sâu.</p>
-            <form class="newsletter-form">
-                <input class="newsletter-form__input" placeholder="Email của bạn" type="email" required/>
-                <button class="newsletter-form__btn" type="submit">ĐĂNG KÝ</button>
+            <form class="newsletter-form" id="homeNewsletterForm">
+                <input class="newsletter-form__input" id="homeNewsletterEmail" placeholder="Email của bạn" type="email" required/>
+                <button class="newsletter-form__btn" id="homeNewsletterBtn" type="submit">ĐĂNG KÝ</button>
             </form>
         </div>
     </section>

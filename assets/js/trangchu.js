@@ -60,6 +60,46 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     updateCartBadge();
+
+    // ── Đăng ký nhận bản tin (Newsletter) ─────────────────────────
+    const newsletterForm = document.getElementById('homeNewsletterForm');
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const emailInput = document.getElementById('homeNewsletterEmail');
+            const email = emailInput.value;
+            const btn = document.getElementById('homeNewsletterBtn');
+            const originalText = btn.textContent;
+
+            // Đổi trạng thái nút
+            btn.textContent = 'ĐANG GỬI...';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('email', email);
+
+            // Gửi request ngầm (Fire and forget - Optimistic UI)
+            fetch('index.php?action=subscribe_newsletter', {
+                method: 'POST',
+                body: formData
+            }).catch(err => console.error(err));
+
+            // Hiển thị thành công ngay lập tức
+            alert('Cảm ơn bạn đã đăng ký! LENS & LIGHT đã gửi một email xác nhận đến hòm thư của bạn.');
+            
+            // Cập nhật lại session local nếu user đang đăng nhập nhưng chưa có email
+            const user = getCurrentUser();
+            if (user && !user.email) {
+                user.email = email;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+            }
+
+            // Reset form
+            newsletterForm.reset();
+            btn.textContent = originalText;
+            btn.disabled = false;
+        });
+    }
 });
 
 // ── Yêu thích ────────────────────────────────────────────────

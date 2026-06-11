@@ -54,6 +54,14 @@ if ($action === 'client_logout') {
     require_once 'control/AuthController.php';
     AuthController::changePassword();
     exit;
+} elseif ($action === 'submit_contact') {
+    require_once 'control/ContactController.php';
+    ContactController::submitContact();
+    exit;
+} elseif ($action === 'subscribe_newsletter') {
+    require_once 'control/ContactController.php';
+    ContactController::handleNewsletter();
+    exit;
 }
 
 // Basic routing mapping

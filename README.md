@@ -19,24 +19,21 @@
 │       ├── auth.js          # AJAX Đăng nhập/Đăng ký & nút Yêu thích Global
 │       └── chitietsanpham.js# AJAX Nạp bài đánh giá, tính năng bình chọn sao
 │
-├── 📁 uploads/              # Lưu trữ dữ liệu động (Ảnh tải lên an toàn)
-│   ├── 📁 products/         # Ảnh sản phẩm do Admin tải lên (chính + ảnh phụ)
-│   └── 📁 articles/         # Ảnh minh họa bài viết CMS
-│
 ├── 📁 model/                # TẦNG DỮ LIỆU (Thực thi truy vấn CSDL qua PDO)
 │   ├── database.php         # Khởi tạo kết nối CSDL bằng PDO bảo mật tuyệt đối
 │   ├── ProductModel.php     # Truy vấn hàng hóa và khuyến mãi đang diễn ra
 │   ├── ReviewModel.php      # Quản lý bình luận, thêm đánh giá sản phẩm (API Admin)
 │   ├── UserModel.php        # Quản lý đăng ký, đăng nhập & nâng cấp mật khẩu hash
 │   ├── VoucherModel.php     # Xác thực điều kiện sử dụng mã giảm giá
-│   └── SmtpMailer.php       # Thư viện gửi mail qua Socket thô độc lập
+│   └── SmtpMailer.php       # Thư viện gửi mail qua PHPMailer + Gửi Email Marketing hàng loạt (BCC)
 │
 ├── 📁 control/              # TẦNG ĐIỀU KHIỂN & BẢO MẬT (Xử lý logic hệ thống)
 │   ├── ProductController.php# Xử lý hiển thị sản phẩm, chặn trùng lặp đánh giá
 │   ├── AuthController.php   # Quản lý Session đồng bộ, Đăng nhập/Đăng ký/Đổi mật khẩu
 │   ├── OrderController.php  # Quy trình thanh toán Transaction an toàn, trừ kho thông minh
 │   ├── ArticleController.php# Quản lý tin tức/bài viết CMS (CSDL articles.json)
-│   └── AdminController.php  # Xử lý upload ảnh base64, thêm/sửa/xóa sản phẩm
+│   ├── ContactController.php# Xử lý Form liên hệ & Đăng ký Newsletter tự động
+│   └── AdminController.php  # Xử lý upload ảnh base64, quản lý dữ liệu với PDO Prepared Statements
 │
 ├── 📁 view/                 # TẦNG HIỂN THỊ (HTML + PHP in dữ liệu)
 │   ├── 📁 client/           # Layout & trang dành cho Khách hàng
@@ -62,35 +59,43 @@
 ## 🛠️ Các Cơ Chế & Tính Năng Nổi Bật Gần Đây
 
 ### 1. Nâng cấp Bảo mật toàn diện với PDO (PHP Data Objects)
+
 - Chuyển đổi toàn bộ kiến trúc CSDL từ `mysqli` thuần sang `PDO`.
 - 100% truy vấn trên toàn bộ hệ thống sử dụng Prepared Statements (`$stmt->prepare()`, `$stmt->execute()`) để chặn đứng hoàn toàn rủi ro bị chèn mã độc SQL Injection.
 
 ### 2. Thuật toán Voucher Khuyến Mãi Nâng Cao
+
 - Thay vì chỉ tính tổng tiền sau cùng ở Giỏ hàng, hệ thống tiến hành thuật toán phân bổ tỷ lệ giảm giá từ Voucher xuống trực tiếp từng đơn giá riêng lẻ của mỗi sản phẩm.
 - Frontend sẽ gạch bỏ giá cũ và hiển thị giá trị mới (đã trừ voucher) ngay trên từng món hàng để tối ưu UX cho Khách hàng.
 
 ### 3. Tích hợp Google Maps Thông Minh
+
 - Website đã hỗ trợ trang Liên hệ tĩnh kết hợp Google Maps để khách hàng dễ dàng tìm đường.
 - Cải tiến phần Footer của toàn bộ trang web (Giao diện Sáng và Tối) đều chứa bản đồ mini thanh lịch (cao 80px) để hỗ trợ tìm đường từ mọi trang, trừ trang Liên hệ.
 
 ### 1. Cơ chế nhiều ảnh phụ sản phẩm (Option 2 - `anh_phu` JSON)
+
 - **Database:** Bảng `hang_hoa` bổ sung thêm cột `anh_phu` kiểu dữ liệu `TEXT` để lưu trữ một danh sách các ảnh phụ dạng mảng JSON (ví dụ: `["uploads/products/image1.jpg", "uploads/products/image2.jpg"]`).
 - **Admin:** Khi Thêm/Sửa sản phẩm, Admin có thể kéo thả tải lên cùng lúc nhiều hình ảnh phụ. Phía server (`AdminController::handleAjaxAction()`) sẽ tự động giải mã các chuỗi ảnh base64, lưu file an toàn vào thư mục `uploads/products/` và đóng gói thành chuỗi JSON để lưu trữ trực tiếp vào cột `anh_phu`.
 - **Client:** Trong trang chi tiết sản phẩm, hệ thống tự động giải mã mảng JSON này để hiển thị thành danh sách các ảnh nhỏ (thumbnail) ngay dưới ảnh chính, hỗ trợ click chuyển đổi hiển thị ảnh chính động mượt mà.
 
 ### 2. Kiểm tra chặn trùng lặp đánh giá sản phẩm
+
 - **Nghiệp vụ:** Để đảm bảo tính trung thực và ngăn chặn spam, **mỗi tài khoản khách hàng chỉ được đánh giá mỗi sản phẩm tối đa một lần duy nhất**.
 - **Kỹ thuật:** Phía server (`ProductController::handleAddReview()`) sẽ thực hiện kiểm tra kiểm soát lỗi trước khi ghi nhận đánh giá mới bằng cách đếm số lượng bản ghi tương ứng của tài khoản hiện hành trên bảng `binh_luan_danh_gia` (tên bảng chính xác trong CSDL). Nếu đã tồn tại đánh giá, hệ thống sẽ trả về phản hồi JSON thông báo lịch sự từ chối ghi nhận.
 
 ### 3. Chia ngăn quản lý đơn hàng động trong Admin Panel
+
 - **Trải nghiệm:** Bảng quản trị đơn hàng được tách làm 2 ngăn rõ rệt: **Đơn đang xử lý** (Chờ xác nhận, Đang xử lý, Đang giao...) và **Đã hoàn thành** (Đơn đã hoàn thành, Đã hủy).
 - **Real-time:** Khi Admin bấm chuyển trạng thái đơn hàng sang "Hoàn thành", hệ thống sẽ sử dụng AJAX gửi yêu cầu cập nhật xuống CSDL, đồng thời **tự động di chuyển dòng đơn hàng đó sang ngăn Đã hoàn thành** trên giao diện ngay lập tức mà không cần tải lại toàn bộ trang.
 
 ### 4. Đồng bộ trạng thái Session và bảo mật băm mật khẩu
+
 - **Session:** Đồng bộ triệt để trạng thái đăng nhập giữa Client và Admin Portal. Khi Admin đăng nhập, hệ thống cũng tự động kích hoạt Session Client tương ứng để tránh bị đá văng về trang chủ hoặc mất quyền truy cập.
 - **Bảo mật:** Toàn bộ mật khẩu của tài khoản đều được băm bảo mật bằng thuật toán băm chuẩn `password_hash()` (bcrypt). Hệ thống có tích hợp sẵn cơ chế **tự động nâng cấp mật khẩu** (khi tài khoản cũ dùng mật khẩu thô đăng nhập thành công, mật khẩu đó sẽ lập tức được băm và ghi đè an toàn vào CSDL).
 
 ### 5. Kỹ thuật hoạt họa FLIP bằng GPU & Micro-interactions 60fps cao cấp
+
 - **Thanh trượt ngang động (FLIP Underline):** Áp dụng thuật toán **FLIP (First, Last, Invert, Play)** cho thanh kẻ đỏ trượt ngang chỉ mục menu `.nav-indicator`. Chuyển đổi toàn bộ quá trình biến đổi từ thay đổi `left`/`width` (gây lag do CPU) sang **CSS transforms (`translateX` và `scaleX`)** tận dụng tăng tốc phần cứng từ GPU thông qua `will-change: transform`. Giúp thanh kẻ lướt êm ái 60fps/120fps trên mọi thiết bị khi chuyển tiếp trang.
 - **Tương tác phản hồi lực (Micro-interactions):** Đồng bộ các hiệu ứng hover nâng nổi, đổ bóng mờ ảo cho các nút bấm (`.btn-hero-primary`, `.btn-hero-ghost`...) và các icon trên thanh Navbar với các bước nhấn nhả đàn hồi vô cùng chuyên nghiệp.
 - **Đồng bộ hóa nhịp độ chuyển động:** Toàn bộ thẻ sản phẩm (`.product-card`, `.catalog-card`) sử dụng chung đường cong chuyển động Cubic Bezier `cubic-bezier(0.16, 1, 0.3, 1)` cho hiệu ứng phóng to ảnh và nhấc thẻ, tạo nên trải nghiệm người dùng cực kỳ đồng bộ, tinh tế và sang trọng.
@@ -100,7 +105,9 @@
 ## 🚀 Hướng dẫn Cấu hình & Sử dụng
 
 ### 1. Cấu hình hệ thống (config.php)
+
 Tạo hoặc mở file `config.php` ở thư mục gốc và điền các thông tin kết nối CSDL cũng như tài khoản gửi mail của bạn:
+
 ```php
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
@@ -116,6 +123,7 @@ define('SMTP_FROM_NAME', 'LENS & LIGHT');
 ```
 
 ### 2. Khởi chạy
+
 - Bạn có thể chạy ứng dụng qua phần mềm XAMPP bằng cách đưa dự án vào thư mục `htdocs` và truy cập `http://localhost/LapTrinhWebNangCao`.
 - Hoặc sử dụng máy chủ PHP tích hợp sẵn bằng cách mở terminal tại thư mục gốc và chạy lệnh:
   ```bash

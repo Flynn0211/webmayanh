@@ -267,10 +267,33 @@ $activeNav = 'lienhe';
     <?php include 'view/client/layout/_footer_dark.php'; ?>
 
     <script>
-        document.getElementById('contactForm').addEventListener('submit', function (e) {
+        document.getElementById('contactForm').addEventListener('submit', async function (e) {
             e.preventDefault();
+            
+            const btnSubmit = this.querySelector('.btn-submit');
+            const originalText = btnSubmit.textContent;
+            btnSubmit.textContent = 'ĐANG GỬI...';
+            btnSubmit.disabled = true;
+
+            const formData = new FormData();
+            formData.append('fullname', document.getElementById('fullname').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('phone', document.getElementById('phone').value);
+            formData.append('message', document.getElementById('message').value);
+
+            // "Fire and Forget": Bắn request đi và không cần chờ phản hồi (Optimistic UI)
+            fetch('index.php?action=submit_contact', {
+                method: 'POST',
+                body: formData
+            }).catch(error => console.error('Lỗi ngầm khi gửi liên hệ:', error));
+
+            // Hiển thị thông báo thành công NGAY LẬP TỨC cho người dùng (Độ trễ 0 giây)
             alert('Cảm ơn bạn đã liên hệ! Lời nhắn của bạn đã được ghi nhận. LENS & LIGHT sẽ phản hồi lại trong thời gian sớm nhất qua Email hoặc SĐT cung cấp.');
+            
+            // Xóa trắng form và đưa nút về trạng thái ban đầu
             this.reset();
+            btnSubmit.textContent = originalText;
+            btnSubmit.disabled = false;
         });
     </script>
     <script src="assets/js/auth.js?v=2.0"></script>

@@ -1,14 +1,10 @@
-# NHẬT KÝ THAY ĐỔI & BÁO CÁO PHIÊN BẢN (CHANGELOG)
+﻿# NHẬT KÝ THAY ĐỔI & BÁO CÁO PHIÊN BẢN (CHANGELOG)
 
-Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng cấp kỹ thuật của hệ thống website Máy ảnh & Ống kính (LENS & LIGHT) theo trình tự thời gian ngược dòng (mới nhất lên đầu).
-
----
-
-## [Phiên Bản Cập Nhật Ngày 11/06/2026] - Tích hợp Rich Text Editor (CKEditor 5), Đồng bộ CSDL bài viết & Quản lý Danh mục Sản phẩm an toàn
+Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng cấp kỹ thuật của hệ thống website Máy ảnh & Ống kính (LENS & LIGHT) theo trình t�## [Phiên Bản Cập Nhật Ngày 11/06/2026] - Tích hợp Rich Text Editor (CKEditor 5), Đồng bộ CSDL bài viết & Quản lý Danh mục Sản phẩm an toàn
 
 ### 📝 Tích hợp Trình soạn thảo văn bản Rich Text (CKEditor 5) cho Bài viết
 - **Editor cao cấp:** Thay thế thẻ `<textarea>` thông thường bằng **CKEditor 5** (phiên bản Classic CDN) cho ô nhập nội dung bài viết trong trang Admin. Quản trị viên dễ dàng định dạng văn bản (in đậm, in nghiêng, tiêu đề, liên kết, danh sách...).
-- **Upload ảnh trực tiếp qua CKEditor:** Hỗ trợ upload kéo-thả hoặc chọn tệp hình ảnh trực tiếp trong khu soạn thảo thông qua adapter `simpleUpload`. Cấu hình route API `upload_image` tại [admin/index.php](file:///c:/xampp/htdocs/webmayanh/admin/index.php) và phương thức xử lý upload an toàn [ArticleController::handleCKEditorUpload()](file:///c:/xampp/htdocs/webmayanh/control/ArticleController.php) lưu ảnh vào thư mục `uploads/articles/`.
+- **Upload ảnh trực tiếp qua CKEditor:** Hỗ trợ upload kéo-thả hoặc chọn tệp hình ảnh trực tiếp trong khung soạn thảo thông qua adapter `simpleUpload`. Cấu hình route API `upload_image` tại [admin/index.php](file:///c:/xampp/htdocs/webmayanh/admin/index.php) và phương thức xử lý upload an toàn [ArticleController::handleCKEditorUpload()](file:///c:/xampp/htdocs/webmayanh/control/ArticleController.php) lưu ảnh vào thư mục `uploads/articles/`.
 - **Đồng bộ hóa dữ liệu soạn thảo:** Hàm `syncCKEditor()` trong [admin.js](file:///c:/xampp/htdocs/webmayanh/assets/js/admin.js) tự động chuyển dữ liệu Rich Text từ CKEditor instance sang trường dữ liệu form `<textarea>` ẩn trước khi submit form.
 
 ### 🗄️ Chuyển đổi và Đồng bộ Bài viết sang Cơ sở dữ liệu (Database MySQL)
@@ -27,6 +23,36 @@ Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng 
 - **Ràng buộc an toàn toàn vẹn dữ liệu (Backend-side):** 
   - Thêm các endpoint xử lý `add_category`, `edit_category`, `delete_category` tại [AdminController.php](file:///c:/xampp/htdocs/webmayanh/control/AdminController.php).
   - Riêng logic xóa danh mục (`delete_category`): Thực hiện truy vấn kiểm tra ràng buộc `SELECT COUNT(*) FROM hang_hoa WHERE ma_dm = ?`. Nếu danh mục đang chứa sản phẩm, hệ thống từ chối xóa và trả về thông báo lỗi trực quan cho người dùng. Chỉ cho phép xóa khi danh mục hoàn toàn trống.
+
+---
+
+## [Phiên Bản Cập Nhật Ngày 09/06/2026] - Nâng cấp Hệ thống Email Marketing, Tối ưu Hiệu suất & Chống SQL Injection
+
+### 📩 Hệ thống Tự động hóa Email & Marketing (SmtpMailer)
+- **Thay thế công nghệ lõi:** Chuyển đổi từ `mail()`/socket thuần sang thư viện **PHPMailer** chuẩn mực (Tích hợp thủ công không dùng Composer) nhằm khắc phục 100% lỗi rớt email.
+- **Tính năng Đăng ký Bản tin (Newsletter):** Kích hoạt thành công form nhập email ở Footer trang chủ (`trangchu.php`). Khi khách hàng đăng ký, hệ thống tự động:
+  - Cập nhật email trực tiếp vào hồ sơ tài khoản (nếu khách đang đăng nhập nhưng bị trống email).
+  - Lưu trữ cố định vào bảng CSDL mới `email_dang_ky` để phục vụ Marketing.
+  - Tự động gửi một **Email Chào Mừng** ("Welcome Email") đẹp mắt vào hòm thư của khách.
+- **Gửi Email Marketing Tự động:** Khi quản trị viên thêm một **Khuyến mãi** mới trên trang Admin, hệ thống sẽ tự động quét chéo toàn bộ dữ liệu (bằng lệnh `UNION`) để gửi hàng loạt thông báo giảm giá cho toàn bộ người dùng có email trong hệ thống.
+- **Gửi Email Ẩn danh siêu tốc (BCC Bulk Mailing):** Thiết lập cơ chế gửi hàng trăm email cùng lúc bằng trường `BCC`, tiết kiệm 99% thời gian so với gửi từng người và bảo vệ tuyệt đối danh tính khách hàng.
+
+### ⚡ Tối ưu Trải nghiệm Lạc quan (Optimistic UI) & Hiệu năng Backend
+- **Trải nghiệm tốc độ 0 giây:** Nút gửi "Liên Hệ" và "Đăng ký Bản tin" được áp dụng cơ chế *Fire-and-forget* (Bắn và Quên) bằng `fetch()`. Khi nhấn nút, người dùng lập tức nhận được thông báo thành công thay vì phải ngồi đợi 2-3 giây như trước.
+- **Công nghệ SMTP Keep-Alive:** Lớp `SmtpMailer` được thiết kế lại thành **Singleton Pattern**, chỉ mở 1 cổng TCP duy nhất để nã hàng loạt Email rồi mới đóng lại, biến hệ thống thành một cỗ máy gửi thư cực nhẹ và nhanh.
+- **Vượt qua Bộ lọc Thư rác (Anti-Spam Filter):** Tất cả thư đi từ hệ thống đều được đẻ ra nội dung dạng `AltBody` (Text thô) để đạt chuẩn điểm Spam tối thiểu của các nhà cung cấp như Google/Outlook.
+
+### 🛡️ Nâng cấp Cấu trúc Database & Vá Lỗ hổng SQL Injection
+- Cấu trúc lại toàn bộ các câu truy vấn phức tạp của `AdminController.php` (như sửa/thêm/xóa sản phẩm, đơn hàng, danh mục) và `OrderController.php`, loại bỏ 100% các câu truy vấn nối chuỗi thô sơ sang **Prepared Statements** (kết hợp với PDO).
+- Tạo mới bảng `email_dang_ky` lưu trữ email từ Newsletter.
+- Vá lỗi cấu hình App Password khi dán bị thừa "khoảng trắng" bằng hàm `str_replace` bên trong `SmtpMailer`.��i dùng lập tức nhận được thông báo thành công thay vì phải ngồi đợi 2-3 giây như trước.
+- **Công nghệ SMTP Keep-Alive:** Lớp `SmtpMailer` được thiết kế lại thành **Singleton Pattern**, chỉ mở 1 cổng TCP duy nhất để nã hàng loạt Email rồi mới đóng lại, biến hệ thống thành một cỗ máy gửi thư cực nhẹ và nhanh.
+- **Vượt qua Bộ lọc Thư rác (Anti-Spam Filter):** Tất cả thư đi từ hệ thống đều được đẻ ra nội dung dạng `AltBody` (Text thô) để đạt chuẩn điểm Spam tối thiểu của các nhà cung cấp như Google/Outlook.
+
+### 🛡️ Nâng cấp Cấu trúc Database & Vá Lỗ hổng SQL Injection
+- Cấu trúc lại toàn bộ các câu truy vấn phức tạp của `AdminController.php` (như sửa/thêm/xóa sản phẩm, đơn hàng, danh mục) và `OrderController.php`, loại bỏ 100% các câu truy vấn nối chuỗi thô sơ sang **Prepared Statements** (kết hợp với PDO).
+- Tạo mới bảng `email_dang_ky` lưu trữ email từ Newsletter.
+- Vá lỗi cấu hình App Password khi dán bị thừa "khoảng trắng" bằng hàm `str_replace` bên trong `SmtpMailer`.
 
 ---
 

@@ -174,7 +174,9 @@ class OrderController {
                 $points = floor($totalThanhToan / 10000);
                 
                 // Lấy điểm hiện có và tính tổng
-                $res_pt = $conn->query("SELECT diem_tich_luy FROM tai_khoan WHERE ma_tk = $ma_khach_hang");
+                $stmt_pt = $conn->prepare("SELECT diem_tich_luy FROM tai_khoan WHERE ma_tk = ?");
+                $stmt_pt->execute([$ma_khach_hang]);
+                $res_pt = $stmt_pt;
                 $curr_pt = $res_pt->fetch()['diem_tich_luy'] + $points;
                 
                 // Phân cấp hạng thành viên mới
@@ -184,7 +186,8 @@ class OrderController {
                 elseif ($curr_pt >= 1000) $new_tier = 'Silver';
                 
                 // Cập nhật lại tài khoản
-                $conn->query("UPDATE tai_khoan SET diem_tich_luy = $curr_pt, hang_thanh_vien = '$new_tier' WHERE ma_tk = $ma_khach_hang");
+                $stmt_upd = $conn->prepare("UPDATE tai_khoan SET diem_tich_luy = ?, hang_thanh_vien = ? WHERE ma_tk = ?");
+                $stmt_upd->execute([$curr_pt, $new_tier, $ma_khach_hang]);
                 
                 // Lưu thông báo dạng email nội bộ để hiển thị trên web
                 $msg = "Đơn hàng #$ma_dh của bạn đã được đặt thành công. Tổng thanh toán: " . number_format($totalThanhToan) . " VND.";
@@ -202,7 +205,8 @@ class OrderController {
 
             // 5. Khấu trừ số lượng lượt sử dụng còn lại của Voucher mã giảm giá
             if ($ma_voucher) {
-                $conn->query("UPDATE voucher SET so_luong = GREATEST(0, so_luong - 1) WHERE ma_voucher = $ma_voucher");
+                $stmt_v = $conn->prepare("UPDATE voucher SET so_luong = GREATEST(0, so_luong - 1) WHERE ma_voucher = ?");
+                $stmt_v->execute([$ma_voucher]);
             }
 
             echo json_encode(['success' => true, 'order_id' => $ma_dh]);

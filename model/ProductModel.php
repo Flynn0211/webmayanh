@@ -7,7 +7,7 @@ class ProductModel {
      * Lấy toàn bộ danh sách sản phẩm đang hoạt động (trang_thai = 'DangBan')
      * Kết hợp (JOIN) với bảng danh mục, nhà cung cấp và thông tin khuyến mãi đang diễn ra.
      *
-     * @param mysqli|false $conn Đối tượng kết nối CSDL
+     * @param PDO|false $conn Đối tượng kết nối CSDL
      * @return array Danh sách các sản phẩm kèm giá đã giảm (nếu có khuyến mãi)
      */
     public static function getActiveProducts($conn) {
