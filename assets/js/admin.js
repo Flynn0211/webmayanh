@@ -1,3 +1,9 @@
+let adminApiBase = window.location.pathname;
+if (adminApiBase.match(/\/admin\/?$/)) {
+    adminApiBase = adminApiBase.replace(/\/admin\/?$/, '/admin/index.php');
+}
+let clientApiBase = adminApiBase.replace(/\/admin\/[^\/]*$/, '/index.php');
+
 // ====== DATA ======
 let products = window.dbProducts || [];
 let orders = window.dbOrders || [];
@@ -30,6 +36,7 @@ const tabNames = {
 };
 
 function switchTab(tabId) {
+    window.currentAdminTab = tabId;
     document.getElementById('pageTitle').innerText = tabNames[tabId];
 
     // Ẩn tất cả tabs
@@ -160,7 +167,7 @@ function initCKEditor(initialContent) {
     ClassicEditor
         .create(document.querySelector('#articleContent'), {
             simpleUpload: {
-                uploadUrl: 'index.php?action=upload_image'
+                uploadUrl: adminApiBase + '?action=upload_image'
             }
         })
         .then(editor => {
@@ -184,7 +191,7 @@ window.deleteArticle = function(id) {
     if (confirm('Bạn có chắc muốn xóa bài viết này?')) {
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = 'index.php?tab=articles';
+        form.action = adminApiBase + '?tab=articles';
         const actionInput = document.createElement('input');
         actionInput.type = 'hidden';
         actionInput.name = 'article_action';
@@ -284,7 +291,7 @@ window.deleteCategory = function(id) {
         formData.append('action', 'delete_category');
         formData.append('id', id);
 
-        fetch('index.php', {
+        fetch(adminApiBase + '?action=delete_category', {
             method: 'POST',
             body: formData
         })
@@ -292,7 +299,7 @@ window.deleteCategory = function(id) {
         .then(data => {
             if (data.success) {
                 alert('Xóa danh mục thành công!');
-                window.location.reload();
+                window.location.href = adminApiBase + '?tab=' + (window.currentAdminTab || 'revenue');
             } else {
                 alert('Lỗi: ' + (data.error || 'Không thể xóa danh mục!'));
             }
@@ -310,11 +317,12 @@ document.getElementById('categoryForm')?.addEventListener('submit', function(e) 
     const name = document.getElementById('categoryName').value;
 
     const formData = new FormData();
-    formData.append('action', id ? 'edit_category' : 'add_category');
+    const action = id ? 'edit_category' : 'add_category';
+    formData.append('action', action);
     if (id) formData.append('id', id);
     formData.append('name', name);
 
-    fetch('index.php', {
+    fetch(adminApiBase + '?action=' + action, {
         method: 'POST',
         body: formData
     })
@@ -322,7 +330,7 @@ document.getElementById('categoryForm')?.addEventListener('submit', function(e) 
     .then(data => {
         if (data.success) {
             alert('Lưu danh mục thành công!');
-            window.location.reload();
+            window.location.href = adminApiBase + '?tab=' + (window.currentAdminTab || 'revenue');
         } else {
             alert('Lỗi: ' + (data.error || 'Lưu thất bại!'));
         }
@@ -369,7 +377,7 @@ function renderAdminProducts() {
 
 // ── Orders ────────────────────────────────────────────────────
 window.updateOrderStatus = function(orderId, newStatus) {
-    fetch('../index.php?action=update_order_status', {
+    fetch(clientApiBase + '?action=update_order_status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_id: orderId, status: newStatus })
@@ -523,12 +531,12 @@ function renderAdminOrders() {
 // ── Customers ─────────────────────────────────────────────────
 window.toggleUserStatus = function(id) {
     if(!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này?')) return;
-    fetch(`admin/index.php?action=toggle_user_status&id=${id}`)
+    fetch(`${adminApiBase}?action=toggle_user_status&id=${id}`)
     .then(res => res.json())
     .then(data => {
         if (data.success) {
             alert('Cập nhật trạng thái thành công!');
-            location.reload();
+            window.location.href = adminApiBase + '?tab=' + (window.currentAdminTab || 'revenue');
         } else {
             alert('Lỗi: ' + (data.error || 'Không thể cập nhật'));
         }
@@ -644,7 +652,7 @@ function renderAdminEmployees() {
 
 // ── Reviews ───────────────────────────────────────────────────
 function renderAdminReviews() {
-    fetch('admin/index.php?action=get_reviews')
+    fetch(adminApiBase + '?action=get_reviews')
     .then(res => res.json())
     .then(data => {
         if (data.success) {
@@ -679,7 +687,7 @@ window.deleteReview = function(id) {
         const formData = new FormData();
         formData.append('id', id);
         
-        fetch('admin/index.php?action=delete_review', {
+        fetch(adminApiBase + '?action=delete_review', {
             method: 'POST',
             body: formData
         })
@@ -718,7 +726,7 @@ function renderAdminVouchers() {
 
 // ── Promotions ────────────────────────────────────────────────
 function renderAdminPromotions() {
-    fetch('admin/index.php?action=get_promotions')
+    fetch(adminApiBase + '?action=get_promotions')
     .then(res => res.json())
     .then(data => {
         if (data.success) {
@@ -906,7 +914,7 @@ function initModal() {
             formData.append('specs', specs);
             formData.append('additional_images', additional_images);
 
-            fetch(`admin/index.php?action=${action}`, {
+            fetch(`${adminApiBase}?action=${action}`, {
                 method: 'POST',
                 body: formData
             })
@@ -915,7 +923,7 @@ function initModal() {
                 if (data.success) {
                     alert(originalId ? 'Cập nhật sản phẩm thành công!' : 'Thêm sản phẩm thành công!');
                     closeProductModal();
-                    location.reload();
+                    window.location.href = adminApiBase + '?tab=' + (window.currentAdminTab || 'revenue');
                 } else {
                     alert('Lỗi: ' + (data.error || 'Không thể lưu sản phẩm'));
                 }
@@ -1006,14 +1014,14 @@ function closeProductModal() {
 
 function deleteProduct(id) {
     if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-        fetch(`admin/index.php?action=delete_product&id=${id}`, {
+        fetch(`${adminApiBase}?action=delete_product&id=${id}`, {
             method: 'POST'
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
                 alert('Xóa sản phẩm thành công!');
-                location.reload();
+                window.location.href = adminApiBase + '?tab=' + (window.currentAdminTab || 'revenue');
             } else {
                 alert('Lỗi: ' + (data.error || 'Không thể xóa'));
             }
@@ -1047,7 +1055,7 @@ window.addVoucherPrompt = function() {
     formData.append('quantity', qty);
     formData.append('expire', expire);
     
-    fetch('admin/index.php?action=add_voucher', {
+    fetch(adminApiBase + '?action=add_voucher', {
         method: 'POST',
         body: formData
     })
@@ -1055,7 +1063,7 @@ window.addVoucherPrompt = function() {
     .then(data => {
         if (data.success) {
             alert('Thêm voucher thành công!');
-            location.reload();
+            window.location.href = adminApiBase + '?tab=' + (window.currentAdminTab || 'revenue');
         } else {
             alert('Lỗi: ' + (data.error || 'Không thể tạo voucher'));
         }
@@ -1088,7 +1096,7 @@ window.addPromotionPrompt = function() {
         formData.append('discount', discount.trim());
         formData.append('expire', expire);
         
-        fetch('admin/index.php?action=add_promotion', {
+        fetch(adminApiBase + '?action=add_promotion', {
             method: 'POST',
             body: formData,
             credentials: 'same-origin'
@@ -1119,7 +1127,7 @@ window.deletePromotion = function(id) {
         const formData = new FormData();
         formData.append('id', id);
         
-        fetch('admin/index.php?action=delete_promotion', {
+        fetch(adminApiBase + '?action=delete_promotion', {
             method: 'POST',
             body: formData
         })
@@ -1153,7 +1161,7 @@ window.addUserPrompt = function() {
     formData.append('password', pass);
     formData.append('role', 'Admin');
     
-    fetch('admin/index.php?action=add_user', {
+    fetch(adminApiBase + '?action=add_user', {
         method: 'POST',
         body: formData
     })
@@ -1161,7 +1169,7 @@ window.addUserPrompt = function() {
     .then(data => {
         if (data.success) {
             alert('Thêm nhân viên thành công!');
-            location.reload();
+            window.location.href = adminApiBase + '?tab=' + (window.currentAdminTab || 'revenue');
         } else {
             alert('Lỗi: ' + (data.error || 'Không thể thêm nhân viên'));
         }
@@ -1176,6 +1184,4 @@ window.addUserPrompt = function() {
 document.addEventListener("DOMContentLoaded", function() {
     initModal();
     initArticleModal();
-    switchTab('products');
 });
-

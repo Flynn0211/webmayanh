@@ -17,7 +17,8 @@
 │   └── 📁 js/               # Tương tác AJAX động, giỏ hàng tạm, quản lý yêu thích
 │       ├── admin.js         # AJAX tương tác nghiệp vụ Admin
 │       ├── auth.js          # AJAX Đăng nhập/Đăng ký & nút Yêu thích Global
-│       └── chitietsanpham.js# AJAX Nạp bài đánh giá, tính năng bình chọn sao
+│       ├── chitietsanpham.js# AJAX Nạp bài đánh giá, tính năng bình chọn sao
+│       └── giohang.js       # AJAX xử lý đơn hàng, kho và phương thức thanh toán
 │
 ├── 📁 model/                # TẦNG DỮ LIỆU (Thực thi truy vấn CSDL qua PDO)
 │   ├── database.php         # Khởi tạo kết nối CSDL bằng PDO bảo mật tuyệt đối
@@ -25,29 +26,19 @@
 │   ├── ReviewModel.php      # Quản lý bình luận, thêm đánh giá sản phẩm (API Admin)
 │   ├── UserModel.php        # Quản lý đăng ký, đăng nhập & nâng cấp mật khẩu hash
 │   ├── VoucherModel.php     # Xác thực điều kiện sử dụng mã giảm giá
-│   └── SmtpMailer.php       # Thư viện gửi mail qua PHPMailer + Gửi Email Marketing hàng loạt (BCC)
+│   └── SmtpMailer.php       # Thư viện gửi mail qua PHPMailer
 │
 ├── 📁 control/              # TẦNG ĐIỀU KHIỂN & BẢO MẬT (Xử lý logic hệ thống)
 │   ├── ProductController.php# Xử lý hiển thị sản phẩm, chặn trùng lặp đánh giá
 │   ├── AuthController.php   # Quản lý Session đồng bộ, Đăng nhập/Đăng ký/Đổi mật khẩu
 │   ├── OrderController.php  # Quy trình thanh toán Transaction an toàn, trừ kho thông minh
-│   ├── ArticleController.php# Quản lý tin tức/bài viết CMS (CSDL articles.json)
+│   ├── ArticleController.php# Quản lý tin tức/bài viết (Base64 Database Upload)
 │   ├── ContactController.php# Xử lý Form liên hệ & Đăng ký Newsletter tự động
-│   └── AdminController.php  # Xử lý upload ảnh base64, quản lý dữ liệu với PDO Prepared Statements
+│   └── AdminController.php  # Xử lý cập nhật danh mục, sản phẩm, Base64
 │
 ├── 📁 view/                 # TẦNG HIỂN THỊ (HTML + PHP in dữ liệu)
 │   ├── 📁 client/           # Layout & trang dành cho Khách hàng
-│   │   ├── 📁 layout/       # Thành phần chung (_navbar.php, _footer.php...)
-│   │   ├── trangchu.php     # Trang chủ hiển thị banner và sản phẩm nổi bật
-│   │   ├── chitietsanpham.php # Chi tiết sản phẩm, slideshow ảnh & đánh giá
-│   │   ├── giohang.php      # Trang giỏ hàng, áp dụng voucher & thanh toán
-│   │   ├── donhang.php      # Lịch sử đơn hàng và cập nhật hành trình
-│   │   └── lienhe.php       # Trang liên hệ có tích hợp Google Maps
-│   │
 │   └── 📁 admin/            # Layout & trang dành cho Quản trị viên
-│       ├── 📁 layout/       # Sidebar, Topbar quản trị
-│       ├── admin.php        # Giao diện tổng hợp quản trị nâng cao
-│       └── login.php        # Trang đăng nhập quản trị
 │
 ├── config.php               # Lưu trữ cấu hình toàn hệ thống (Database, SMTP Email...)
 ├── index.php                # (Router) Cổng vào duy nhất điều phối mọi URL của hệ thống
@@ -56,57 +47,43 @@
 
 ---
 
-## 🛠️ Các Cơ Chế & Tính Năng Nổi Bật Gần Đây
+## 🛠️ Các Cơ Chế & Tính Năng Nổi Bật
 
-### 1. Nâng cấp Bảo mật toàn diện với PDO (PHP Data Objects)
+### 1. Kiến trúc Base64 Tích hợp CSDL (Mới cập nhật)
+- Loại bỏ hoàn toàn sự phụ thuộc vào file ảnh trên ổ cứng nội bộ. Toàn bộ tính năng upload (Ảnh Sản phẩm, Bài viết, ảnh phụ) đều được mã hóa theo chuẩn Base64 Real-time.
+- Dữ liệu ảnh được ghi thẳng vào CSDL (bảng `hang_hoa`, `bai_viet` dưới dạng `LONGTEXT`). Đảm bảo khả năng sao lưu, di dời dự án cực nhanh, an toàn 100%.
 
-- Chuyển đổi toàn bộ kiến trúc CSDL từ `mysqli` thuần sang `PDO`.
-- 100% truy vấn trên toàn bộ hệ thống sử dụng Prepared Statements (`$stmt->prepare()`, `$stmt->execute()`) để chặn đứng hoàn toàn rủi ro bị chèn mã độc SQL Injection.
+### 2. Thuật toán trừ kho (Smart Inventory) cực chuẩn
+- Khách hàng không thể thêm hoặc thanh toán số lượng vượt mức tồn kho thực tế. 
+- Ngay khi đặt lệnh mua, hệ thống sẽ dò tìm số lượng ở tất cả các chi nhánh kho (Multi-warehouse logic) để khấu trừ số lượng một cách an toàn thông qua cấu trúc Transaction của PHP PDO.
 
-### 2. Thuật toán Voucher Khuyến Mãi Nâng Cao
+### 3. Tự động Gửi Email Thông Báo Đơn Hàng
+- Khi khách hàng đặt đơn hàng mới thành công, hệ thống gửi email xác nhận.
+- Khi quản trị viên cập nhật trạng thái đơn hàng (từ Admin Panel) thành "Đang Giao", "Hoàn Thành" hoặc "Đã Hủy", một email chuẩn HTML chuyên nghiệp sẽ được bắn tự động đến hộp thư của người mua theo thời gian thực.
 
-- Thay vì chỉ tính tổng tiền sau cùng ở Giỏ hàng, hệ thống tiến hành thuật toán phân bổ tỷ lệ giảm giá từ Voucher xuống trực tiếp từng đơn giá riêng lẻ của mỗi sản phẩm.
-- Frontend sẽ gạch bỏ giá cũ và hiển thị giá trị mới (đã trừ voucher) ngay trên từng món hàng để tối ưu UX cho Khách hàng.
+### 4. Thuật toán Voucher & Thanh toán QR
+- Tích hợp quét mã VietQR tự động khi khách hàng chọn thanh toán chuyển khoản, tạo trải nghiệm mua sắm mượt mà.
+- Tính toán phân bổ tiền giảm giá Voucher theo từng mặt hàng đơn lẻ. Tích hợp ưu đãi theo Hạng thành viên (Silver, Gold, Diamond).
 
-### 3. Tích hợp Google Maps Thông Minh
+### 5. Chia ngăn quản lý đơn hàng động trong Admin Panel
+- Bảng quản trị đơn hàng được tách làm 2 ngăn rõ rệt: **Đơn đang xử lý** và **Đã hoàn thành**.
+- Cập nhật nhanh chóng trạng thái qua AJAX và chuyển ngăn dữ liệu tức thì mà không cần nạp lại trang, tiết kiệm thời gian vận hành.
 
-- Website đã hỗ trợ trang Liên hệ tĩnh kết hợp Google Maps để khách hàng dễ dàng tìm đường.
-- Cải tiến phần Footer của toàn bộ trang web (Giao diện Sáng và Tối) đều chứa bản đồ mini thanh lịch (cao 80px) để hỗ trợ tìm đường từ mọi trang, trừ trang Liên hệ.
-
-### 1. Cơ chế nhiều ảnh phụ sản phẩm (Option 2 - `anh_phu` JSON)
-
-- **Database:** Bảng `hang_hoa` bổ sung thêm cột `anh_phu` kiểu dữ liệu `TEXT` để lưu trữ một danh sách các ảnh phụ dạng mảng JSON (ví dụ: `["uploads/products/image1.jpg", "uploads/products/image2.jpg"]`).
-- **Admin:** Khi Thêm/Sửa sản phẩm, Admin có thể kéo thả tải lên cùng lúc nhiều hình ảnh phụ. Phía server (`AdminController::handleAjaxAction()`) sẽ tự động giải mã các chuỗi ảnh base64, lưu file an toàn vào thư mục `uploads/products/` và đóng gói thành chuỗi JSON để lưu trữ trực tiếp vào cột `anh_phu`.
-- **Client:** Trong trang chi tiết sản phẩm, hệ thống tự động giải mã mảng JSON này để hiển thị thành danh sách các ảnh nhỏ (thumbnail) ngay dưới ảnh chính, hỗ trợ click chuyển đổi hiển thị ảnh chính động mượt mà.
-
-### 2. Kiểm tra chặn trùng lặp đánh giá sản phẩm
-
-- **Nghiệp vụ:** Để đảm bảo tính trung thực và ngăn chặn spam, **mỗi tài khoản khách hàng chỉ được đánh giá mỗi sản phẩm tối đa một lần duy nhất**.
-- **Kỹ thuật:** Phía server (`ProductController::handleAddReview()`) sẽ thực hiện kiểm tra kiểm soát lỗi trước khi ghi nhận đánh giá mới bằng cách đếm số lượng bản ghi tương ứng của tài khoản hiện hành trên bảng `binh_luan_danh_gia` (tên bảng chính xác trong CSDL). Nếu đã tồn tại đánh giá, hệ thống sẽ trả về phản hồi JSON thông báo lịch sự từ chối ghi nhận.
-
-### 3. Chia ngăn quản lý đơn hàng động trong Admin Panel
-
-- **Trải nghiệm:** Bảng quản trị đơn hàng được tách làm 2 ngăn rõ rệt: **Đơn đang xử lý** (Chờ xác nhận, Đang xử lý, Đang giao...) và **Đã hoàn thành** (Đơn đã hoàn thành, Đã hủy).
-- **Real-time:** Khi Admin bấm chuyển trạng thái đơn hàng sang "Hoàn thành", hệ thống sẽ sử dụng AJAX gửi yêu cầu cập nhật xuống CSDL, đồng thời **tự động di chuyển dòng đơn hàng đó sang ngăn Đã hoàn thành** trên giao diện ngay lập tức mà không cần tải lại toàn bộ trang.
-
-### 4. Đồng bộ trạng thái Session và bảo mật băm mật khẩu
-
-- **Session:** Đồng bộ triệt để trạng thái đăng nhập giữa Client và Admin Portal. Khi Admin đăng nhập, hệ thống cũng tự động kích hoạt Session Client tương ứng để tránh bị đá văng về trang chủ hoặc mất quyền truy cập.
-- **Bảo mật:** Toàn bộ mật khẩu của tài khoản đều được băm bảo mật bằng thuật toán băm chuẩn `password_hash()` (bcrypt). Hệ thống có tích hợp sẵn cơ chế **tự động nâng cấp mật khẩu** (khi tài khoản cũ dùng mật khẩu thô đăng nhập thành công, mật khẩu đó sẽ lập tức được băm và ghi đè an toàn vào CSDL).
-
-### 5. Kỹ thuật hoạt họa FLIP bằng GPU & Micro-interactions 60fps cao cấp
-
-- **Thanh trượt ngang động (FLIP Underline):** Áp dụng thuật toán **FLIP (First, Last, Invert, Play)** cho thanh kẻ đỏ trượt ngang chỉ mục menu `.nav-indicator`. Chuyển đổi toàn bộ quá trình biến đổi từ thay đổi `left`/`width` (gây lag do CPU) sang **CSS transforms (`translateX` và `scaleX`)** tận dụng tăng tốc phần cứng từ GPU thông qua `will-change: transform`. Giúp thanh kẻ lướt êm ái 60fps/120fps trên mọi thiết bị khi chuyển tiếp trang.
-- **Tương tác phản hồi lực (Micro-interactions):** Đồng bộ các hiệu ứng hover nâng nổi, đổ bóng mờ ảo cho các nút bấm (`.btn-hero-primary`, `.btn-hero-ghost`...) và các icon trên thanh Navbar với các bước nhấn nhả đàn hồi vô cùng chuyên nghiệp.
-- **Đồng bộ hóa nhịp độ chuyển động:** Toàn bộ thẻ sản phẩm (`.product-card`, `.catalog-card`) sử dụng chung đường cong chuyển động Cubic Bezier `cubic-bezier(0.16, 1, 0.3, 1)` cho hiệu ứng phóng to ảnh và nhấc thẻ, tạo nên trải nghiệm người dùng cực kỳ đồng bộ, tinh tế và sang trọng.
+### 6. Nâng cấp Bảo mật toàn diện với PDO (PHP Data Objects)
+- Toàn bộ các câu truy vấn từ Client đến Admin đều dùng kỹ thuật Prepared Statements chặn đứng SQL Injection.
+- Mật khẩu người dùng và quản trị đều băm qua thuật toán mạnh mẽ `bcrypt` (`password_hash`).
 
 ---
 
-## 🚀 Hướng dẫn Cấu hình & Sử dụng
+## 🚀 Hướng dẫn Cấu hình & Khởi chạy
 
-### 1. Cấu hình hệ thống (config.php)
+### Bước 1: Nạp Cơ Sở Dữ Liệu
+Bạn không cần tạo thư mục ảnh, cũng như không cần lo lắng về dữ liệu rác. File CSDL mới nhất đã gói gọn toàn bộ kiến trúc (bao gồm cấu trúc LONGTEXT).
+- Tạo một Database mới trong MySQL (ví dụ: `webmayanh`).
+- Import nội dung file `data/webmayanh_structure.sql` vào cơ sở dữ liệu vừa tạo. File này đã bao gồm mọi bảng và một số bản ghi mẫu như tài khoản Admin, các Danh mục và Kho Hàng.
 
-Tạo hoặc mở file `config.php` ở thư mục gốc và điền các thông tin kết nối CSDL cũng như tài khoản gửi mail của bạn:
+### Bước 2: Cấu hình hệ thống (config.php)
+Mở file `config.php` ở thư mục gốc và tinh chỉnh lại theo thiết lập ở môi trường máy tính của bạn:
 
 ```php
 define('DB_HOST', 'localhost');
@@ -114,19 +91,22 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'webmayanh');
 
-// Cấu hình gửi mail tự động qua SMTP
+// Cấu hình gửi mail tự động qua SMTP (Tuỳ chọn)
 define('SMTP_HOST', 'smtp.gmail.com');
 define('SMTP_PORT', 587);
 define('SMTP_USER', 'your_email@gmail.com'); // Điền Email của bạn
-define('SMTP_PASS', 'your_app_password');    // Điền Mật khẩu ứng dụng (App Password)
+define('SMTP_PASS', 'your_app_password');    // Điền Mật khẩu ứng dụng của Gmail
 define('SMTP_FROM_NAME', 'LENS & LIGHT');
 ```
 
-### 2. Khởi chạy
-
-- Bạn có thể chạy ứng dụng qua phần mềm XAMPP bằng cách đưa dự án vào thư mục `htdocs` và truy cập `http://localhost/LapTrinhWebNangCao`.
-- Hoặc sử dụng máy chủ PHP tích hợp sẵn bằng cách mở terminal tại thư mục gốc và chạy lệnh:
+### Bước 3: Khởi chạy
+- Bạn có thể chạy qua phần mềm XAMPP bằng cách đưa dự án vào thư mục `htdocs` và truy cập `http://localhost/LapTrinhWebNangCao`.
+- Hoặc sử dụng máy chủ PHP tích hợp sẵn. Mở terminal tại thư mục gốc dự án và chạy:
   ```bash
   php -S localhost:8000
   ```
   Sau đó truy cập `http://localhost:8000` trên trình duyệt.
+
+**Thông tin đăng nhập Admin mặc định:**
+- Tài khoản: `admin`
+- Mật khẩu: `admin123`

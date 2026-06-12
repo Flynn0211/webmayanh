@@ -170,7 +170,7 @@ while ($row = $res_ch->fetch()) {
     <!-- ── Sidebar ─────────────────────────────────────────── -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar__logo">
-            <a href="index.php?page=trangchu" class="admin-sidebar__logo-link">
+            <a href="../index.php" class="admin-sidebar__logo-link">
                 <span class="material-symbols-outlined">camera</span>
                 LENS &amp; LIGHT
             </a>
@@ -242,7 +242,7 @@ while ($row = $res_ch->fetch()) {
                         <p class="admin-sidebar__user-role">Quản trị viên</p>
                     </div>
                 </div>
-                <a href="admin/index.php?action=logout" class="btn-table-action btn-table-action--delete"
+                <a href="?action=logout" class="btn-table-action btn-table-action--delete"
                     title="Đăng xuất"
                     style="display: flex; align-items: center; justify-content: center; padding: 0.25rem;">
                     <span class="material-symbols-outlined" style="font-size: 1.5rem;">logout</span>
@@ -539,7 +539,7 @@ while ($row = $res_ch->fetch()) {
                 </button>
             </div>
             <div class="admin-modal__body">
-                <form id="articleForm" method="POST" action="index.php?tab=articles" enctype="multipart/form-data">
+                <form id="articleForm" method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>?tab=articles" enctype="multipart/form-data" onsubmit="return syncCKEditor();">
                     <input type="hidden" name="article_action" id="articleAction" value="add" />
                     <input type="hidden" name="id" id="articleId" value="" />
                     <input type="hidden" name="old_image" id="articleOldImage" value="" />
@@ -829,13 +829,9 @@ while ($row = $res_ch->fetch()) {
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
     <script src="assets/js/auth.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const currentUser = getCurrentUser();
-            if (!currentUser || currentUser.role !== 'admin') {
-                alert('Bạn không có quyền truy cập trang Quản Trị!');
-                window.location.href = 'index.php?page=trangchu';
-            }
-        });
+          document.addEventListener('DOMContentLoaded', () => {
+              // Removed buggy frontend auth check that conflicts with PHP session
+          });
     </script>
     <script>
         // Live DB Injections

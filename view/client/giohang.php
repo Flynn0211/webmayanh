@@ -44,7 +44,7 @@
                 </div>
                 <div class="cart-summary__row">
                     <span class="cart-summary__row-label">GIAO HÀNG</span>
-                    <span class="cart-summary__row-val cart-summary__row-val--free text-mono-spec">MIỄN PHÍ</span>
+                    <span id="cartShippingFee" class="text-mono-spec" style="font-weight: 500; color: var(--primary);">CHƯA TÍNH</span>
                 </div>
                 <div class="cart-summary__row">
                     <span class="cart-summary__row-label">THUẾ (EST.)</span>
@@ -61,6 +61,39 @@
                 <div class="cart-summary__form-group" style="margin-top: 1rem;">
                     <label for="customerPhone" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.5rem; letter-spacing: 0.5px;">SỐ ĐIỆN THOẠI GIAO HÀNG *</label>
                     <input type="text" id="customerPhone" placeholder="Nhập số điện thoại..." style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit;" required>
+                </div>
+
+                <div class="cart-summary__form-group" style="margin-top: 1rem;">
+                    <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.5rem; letter-spacing: 0.5px;">ĐỊA CHỈ GIAO HÀNG *</label>
+                    
+                    <select id="provinceSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit;" required>
+                        <option value="" disabled selected>Chọn Tỉnh / Thành phố</option>
+                    </select>
+                    
+                    <select id="districtSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit;" required disabled>
+                        <option value="" disabled selected>Chọn Quận / Huyện</option>
+                    </select>
+                    
+                    <select id="wardSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit;" required disabled>
+                        <option value="" disabled selected>Chọn Phường / Xã</option>
+                    </select>
+                    
+                    <input type="text" id="addressDetail" placeholder="Số nhà, tên đường..." style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit;" required>
+                </div>
+
+                <div class="cart-summary__form-group" style="margin-top: 1rem;">
+                    <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.5rem; letter-spacing: 0.5px;">PHƯƠNG THỨC THANH TOÁN *</label>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.95rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="paymentMethod" value="COD" checked>
+                            <span>Thanh toán khi nhận hàng (COD)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="paymentMethod" value="BankTransfer">
+                            <span>Chuyển khoản qua Ngân hàng</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="cart-summary__form-group" style="margin-top: 1rem; margin-bottom: 1.5rem;">

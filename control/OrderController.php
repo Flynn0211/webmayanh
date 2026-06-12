@@ -38,6 +38,8 @@ class OrderController {
         $totalRaw = isset($data['totalRaw']) ? (float)$data['totalRaw'] : 0;
         $customerPhone = isset($data['customerPhone']) && !empty(trim($data['customerPhone'])) ? trim($data['customerPhone']) : '0900000000';
         $voucherCode = isset($data['voucherCode']) ? trim($data['voucherCode']) : '';
+        $customerAddress = isset($data['customerAddress']) ? trim($data['customerAddress']) : 'Chưa cung cấp';
+        $paymentMethod = isset($data['paymentMethod']) ? trim($data['paymentMethod']) : 'COD';
         
         // 1. Tìm thông tin khách hàng từ username để lấy ma_tk và hạng thành viên hiện tại
         $ma_khach_hang = null;
@@ -82,9 +84,24 @@ class OrderController {
         $newTotalRaw = 0;
         $calculatedItems = [];
         foreach ($items as $item) {
+            $ma_hh = (int)$item['id'];
             $priceStr = strval($item['price']);
             $priceRaw = (float)preg_replace('/[^0-9.]/', '', $priceStr);
             $qty = (int)$item['quantity'];
+            
+            // --- BỔ SUNG: KIỂM TRA TỒN KHO TRƯỚC KHI THANH TOÁN ---
+            $stmt_stock_check = $conn->prepare("SELECT SUM(so_luong_ton) as total_stock FROM ton_kho_chi_tiet WHERE ma_hh = ?");
+            $stmt_stock_check->execute([$ma_hh]);
+            $stockData = $stmt_stock_check->fetch();
+            $availableStock = $stockData ? (int)$stockData['total_stock'] : 0;
+            
+            if ($availableStock < $qty) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'Sản phẩm "' . (isset($item['name']) ? $item['name'] : 'Mã ' . $ma_hh) . '" chỉ còn ' . $availableStock . ' sản phẩm trong kho. Vui lòng giảm số lượng!'
+                ]);
+                exit;
+            }
             
             $itemTotal = $priceRaw * $qty;
             if ($discountRemaining > 0) {
@@ -98,6 +115,7 @@ class OrderController {
             
             $calculatedItems[] = [
                 'id' => (int)$item['id'],
+                'name' => isset($item['name']) ? $item['name'] : 'Sản phẩm',
                 'quantity' => $qty,
                 'priceRaw' => $discountedPrice
             ];
@@ -111,18 +129,23 @@ class OrderController {
         
         $membership_discount_amount = $newTotalRaw * ($membership_discount_percent / 100);
         
+        // Phí vận chuyển xác thực từ server
+        $phi_vc = 40000;
+        if (stripos($customerAddress, 'Hà Nội') !== false || stripos($customerAddress, 'Hồ Chí Minh') !== false) {
+            $phi_vc = 20000;
+        }
+
         // Tính tổng tiền thanh toán cuối cùng của đơn hàng (Không được nhỏ hơn 0)
-        $totalThanhToan = max(0, $newTotalRaw - $membership_discount_amount);
+        $totalThanhToan = max(0, $newTotalRaw - $membership_discount_amount) + $phi_vc;
 
         // --- KHỞI CHẠY GIAO DỊCH DATABASE TRANSACTION AN TOÀN ---
         $conn->beginTransaction();
         try {
             // A. Ghi thông tin đơn hàng chung vào bảng `don_hang`
-            $phi_vc = 0;
             $trang_thai = 'ChoXacNhan';
             
-            $stmt_order = $conn->prepare("INSERT INTO don_hang (ma_khach_hang, ma_voucher, ten_nguoi_nhan, sdt_nguoi_nhan, tong_tien_hang, phi_van_chuyen, giam_gia_voucher, tong_thanh_toan, phuong_thuc_thanh_toan, trang_thai_don) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'COD', ?)");
-            $stmt_order->execute([$ma_khach_hang, $ma_voucher, $customerName, $customerPhone, $totalRaw, $phi_vc, $giam_gia_tong, $totalThanhToan, $trang_thai]);
+            $stmt_order = $conn->prepare("INSERT INTO don_hang (ma_khach_hang, ma_voucher, ten_nguoi_nhan, sdt_nguoi_nhan, dia_chi_giao_hang, tong_tien_hang, phi_van_chuyen, giam_gia_voucher, tong_thanh_toan, phuong_thuc_thanh_toan, trang_thai_don) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt_order->execute([$ma_khach_hang, $ma_voucher, $customerName, $customerPhone, $customerAddress, $totalRaw, $phi_vc, $giam_gia_tong, $totalThanhToan, $paymentMethod, $trang_thai]);
             
             $ma_dh = $conn->lastInsertId();
 
@@ -189,7 +212,75 @@ class OrderController {
                 $stmt_upd = $conn->prepare("UPDATE tai_khoan SET diem_tich_luy = ?, hang_thanh_vien = ? WHERE ma_tk = ?");
                 $stmt_upd->execute([$curr_pt, $new_tier, $ma_khach_hang]);
                 
-                // Lưu thông báo dạng email nội bộ để hiển thị trên web
+                // --- TẠO MẪU EMAIL HTML CHUẨN SHOPEE ---
+                $htmlEmail = "
+                <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;'>
+                    <div style='background: #ea580c; color: white; padding: 20px; text-align: center;'>
+                        <h2 style='margin: 0;'>XÁC NHẬN ĐƠN HÀNG LENS & LIGHT</h2>
+                    </div>
+                    <div style='padding: 20px;'>
+                        <p>Xin chào <strong>$customerName</strong>,</p>
+                        <p>Cảm ơn bạn đã mua sắm tại LENS & LIGHT! Đơn hàng <strong>#$ma_dh</strong> của bạn đã được tiếp nhận và đang trong quá trình xử lý.</p>
+                        
+                        <h3 style='border-bottom: 2px solid #ea580c; padding-bottom: 5px; color: #ea580c;'>THÔNG TIN GIAO HÀNG</h3>
+                        <p><strong>Người nhận:</strong> $customerName ($customerPhone)<br/>
+                        <strong>Địa chỉ:</strong> $customerAddress<br/>
+                        <strong>Phương thức thanh toán:</strong> " . ($paymentMethod === 'BankTransfer' ? 'Chuyển khoản Ngân hàng' : 'Thanh toán khi nhận hàng (COD)') . "</p>
+                        
+                        <h3 style='border-bottom: 2px solid #ea580c; padding-bottom: 5px; color: #ea580c;'>CHI TIẾT ĐƠN HÀNG</h3>
+                        <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
+                            <tr style='background: #f9f9f9;'>
+                                <th style='padding: 10px; border: 1px solid #ddd; text-align: left;'>Sản phẩm</th>
+                                <th style='padding: 10px; border: 1px solid #ddd; text-align: center;'>SL</th>
+                                <th style='padding: 10px; border: 1px solid #ddd; text-align: right;'>Thành tiền</th>
+                            </tr>";
+                foreach ($calculatedItems as $it) {
+                    $htmlEmail .= "<tr>
+                                <td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($it['name']) . "</td>
+                                <td style='padding: 10px; border: 1px solid #ddd; text-align: center;'>" . $it['quantity'] . "</td>
+                                <td style='padding: 10px; border: 1px solid #ddd; text-align: right;'>" . number_format($it['priceRaw'] * $it['quantity']) . "đ</td>
+                            </tr>";
+                }
+                $htmlEmail .= "
+                        </table>
+                        
+                        <table style='width: 100%; border-collapse: collapse; font-weight: bold;'>
+                            <tr><td style='padding: 5px; text-align: right;'>Tổng tiền hàng:</td><td style='padding: 5px; text-align: right; width: 120px;'>" . number_format($totalRaw) . "đ</td></tr>
+                            <tr><td style='padding: 5px; text-align: right;'>Phí vận chuyển:</td><td style='padding: 5px; text-align: right;'>" . number_format($phi_vc) . "đ</td></tr>";
+                if ($giam_gia_tong > 0) {
+                    $htmlEmail .= "<tr><td style='padding: 5px; text-align: right; color: green;'>Giảm giá Voucher:</td><td style='padding: 5px; text-align: right; color: green;'>-" . number_format($giam_gia_tong) . "đ</td></tr>";
+                }
+                if ($membership_discount_amount > 0) {
+                    $htmlEmail .= "<tr><td style='padding: 5px; text-align: right; color: green;'>Giảm Thành Viên:</td><td style='padding: 5px; text-align: right; color: green;'>-" . number_format($membership_discount_amount) . "đ</td></tr>";
+                }
+                $htmlEmail .= "
+                            <tr style='font-size: 18px; color: #ea580c;'><td style='padding: 15px 5px; text-align: right;'>TỔNG THANH TOÁN:</td><td style='padding: 15px 5px; text-align: right;'>" . number_format($totalThanhToan) . "đ</td></tr>
+                        </table>";
+                        
+                if ($paymentMethod === 'BankTransfer') {
+                    $htmlEmail .= "
+                        <div style='background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-top: 20px; border: 1px solid #ffeeba;'>
+                            <h4 style='margin-top: 0;'>HƯỚNG DẪN CHUYỂN KHOẢN</h4>
+                            <p style='margin-bottom: 0;'>Vui lòng chuyển khoản số tiền <strong>" . number_format($totalThanhToan) . "đ</strong> theo thông tin sau hoặc quét mã QR Code:</p>
+                            
+                            <div style='display: flex; flex-direction: column; align-items: center; margin-top: 15px;'>
+                                <img src='https://img.vietqr.io/image/970422-0523134391-compact2.png?amount=" . $totalThanhToan . "&addInfo=THANH%20TOAN%20DH%20" . $ma_dh . "&accountName=LE%20DUONG%20TUAN%20ANH' alt='QR Code Thanh Toán' style='max-width: 250px; border-radius: 10px; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1);' />
+                            </div>
+
+                            <ul style='margin-top: 15px; background: rgba(255,255,255,0.5); padding: 10px 10px 10px 30px; border-radius: 5px;'>
+                                <li>Ngân hàng: <strong>MB Bank</strong></li>
+                                <li>Chủ tài khoản: <strong>LE DUONG TUAN ANH</strong></li>
+                                <li>Số tài khoản: <strong>0523134391</strong></li>
+                                <li>Nội dung CK: <strong>THANH TOAN DH $ma_dh</strong></li>
+                            </ul>
+                        </div>";
+                }
+                
+                $htmlEmail .= "
+                    </div>
+                </div>";
+
+                // Lưu thông báo dạng text ngắn nội bộ để hiển thị trên web
                 $msg = "Đơn hàng #$ma_dh của bạn đã được đặt thành công. Tổng thanh toán: " . number_format($totalThanhToan) . " VND.";
                 $stmt_email = $conn->prepare("INSERT INTO thong_bao_email (ma_tk_nhan, tieu_de, noi_dung) VALUES (?, 'Đặt hàng thành công', ?)");
                 if ($stmt_email) {
@@ -199,7 +290,7 @@ class OrderController {
                 // Thực hiện gửi Email thực tế thông qua SMTP Socket nếu khách hàng có email
                 if ($email_khach_hang && file_exists(__DIR__ . '/../model/SmtpMailer.php')) {
                     require_once __DIR__ . '/../model/SmtpMailer.php';
-                    SmtpMailer::sendMail($email_khach_hang, "Đặt hàng thành công #$ma_dh", $msg);
+                    SmtpMailer::sendMail($email_khach_hang, "LENS & LIGHT - Xác nhận đơn hàng #$ma_dh", $htmlEmail);
                 }
             }
 
@@ -208,8 +299,10 @@ class OrderController {
                 $stmt_v = $conn->prepare("UPDATE voucher SET so_luong = GREATEST(0, so_luong - 1) WHERE ma_voucher = ?");
                 $stmt_v->execute([$ma_voucher]);
             }
-
-            echo json_encode(['success' => true, 'order_id' => $ma_dh]);
+            
+            // 6. Xóa giỏ hàng local và trả về thông báo thành công
+            echo json_encode(['success' => true, 'order_id' => $ma_dh, 'totalThanhToan' => $totalThanhToan, 'paymentMethod' => $paymentMethod]);
+            exit;
         } catch (Exception $e) {
             // Nếu có bất kỳ lỗi nào xảy ra trong Transaction, tiến hành ROLLBACK khôi phục lại trạng thái ban đầu của CSDL
             $conn->rollBack();
@@ -332,6 +425,46 @@ class OrderController {
             if ($stmt_history) {
                 $stmt_history->execute([$orderId, $status]);
             }
+            
+            // --- BỔ SUNG: GỬI EMAIL CẬP NHẬT CHO NGƯỜI MUA ---
+            $stmt_info = $conn->prepare("SELECT tk.email, dh.ten_nguoi_nhan FROM don_hang dh JOIN tai_khoan tk ON dh.ma_khach_hang = tk.ma_tk WHERE dh.ma_dh = ?");
+            $stmt_info->execute([$orderId]);
+            $info = $stmt_info->fetch();
+            
+            if ($info && !empty($info['email'])) {
+                // Map status to human-readable format
+                $statusMap = [
+                    'ChoXacNhan' => 'Chờ Xác Nhận',
+                    'DangGiao'   => 'Đang Giao Hàng',
+                    'HoanThanh'  => 'Đã Hoàn Thành',
+                    'DaHuy'      => 'Đã Hủy'
+                ];
+                $readableStatus = isset($statusMap[$status]) ? $statusMap[$status] : $status;
+                
+                $htmlEmail = "
+                <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;'>
+                    <div style='background: #ea580c; color: white; padding: 20px; text-align: center;'>
+                        <h2 style='margin: 0;'>CẬP NHẬT ĐƠN HÀNG LENS & LIGHT</h2>
+                    </div>
+                    <div style='padding: 20px;'>
+                        <p>Xin chào <strong>{$info['ten_nguoi_nhan']}</strong>,</p>
+                        <p>Đơn hàng <strong>#{$orderId}</strong> của bạn vừa được cập nhật trạng thái mới.</p>
+                        <p style='font-size: 1.2rem; margin: 20px 0; text-align: center;'>Trạng thái hiện tại: <strong style='color: #ea580c; padding: 10px 15px; border: 1px solid #ea580c; border-radius: 5px; display: inline-block;'>{$readableStatus}</strong></p>
+                        <p>Bạn có thể theo dõi chi tiết hành trình đơn hàng tại mục Tài Khoản -> Đơn Hàng trên website LENS & LIGHT.</p>
+                        <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.</p>
+                        <p>Cảm ơn bạn đã tin tưởng mua sắm tại LENS & LIGHT!</p>
+                    </div>
+                    <div style='background: #f9f9f9; padding: 15px; text-align: center; font-size: 0.9em; color: #777;'>
+                        Đây là email tự động, vui lòng không phản hồi.
+                    </div>
+                </div>";
+                
+                if (file_exists(__DIR__ . '/../model/SmtpMailer.php')) {
+                    require_once __DIR__ . '/../model/SmtpMailer.php';
+                    SmtpMailer::sendMail($info['email'], "LENS & LIGHT - Cập nhật trạng thái đơn hàng #$orderId", $htmlEmail);
+                }
+            }
+            
             echo json_encode(['success' => true]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Cập nhật trạng thái đơn hàng thất bại.']);

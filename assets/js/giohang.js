@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch(e) {}
 
     window.appliedVoucher = null;
+    window.shippingFee = 0;
 
     function renderCart() {
         let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
@@ -40,6 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
             else { badge.classList.add('hidden'); }
         }
 
+        const summaryElem = document.querySelector('.cart-summary');
+
         if (cart.length === 0) {
             cartContainer.innerHTML = `
             <div class="cart-empty">
@@ -48,7 +51,10 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>`;
             subtotalElem.innerText = '0 ₫';
             totalElem.innerText    = '0 ₫';
+            if (summaryElem) summaryElem.style.display = 'none';
             return;
+        } else {
+            if (summaryElem) summaryElem.style.display = 'block';
         }
 
         let html  = '';
@@ -140,6 +146,13 @@ document.addEventListener("DOMContentLoaded", () => {
                                          <span class="text-mono-spec" style="color: var(--primary);">- ${formatPriceLocal(discountAmt)}</span>`;
                 discountRow.style.display = 'flex';
             }
+        }
+        
+        // Cộng thêm phí ship
+        finalTotal += window.shippingFee || 0;
+        const feeElem = document.getElementById('cartShippingFee');
+        if (feeElem) {
+            feeElem.innerText = (window.shippingFee > 0) ? formatPriceLocal(window.shippingFee) : 'CHƯA TÍNH';
         }
         
         totalElem.innerText = formatPriceLocal(finalTotal);
@@ -234,6 +247,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const phoneInput = document.getElementById('customerPhone');
         const voucherInput = document.getElementById('voucherCode');
+        const addressDetail = document.getElementById('addressDetail');
+        const provinceSel = document.getElementById('provinceSelect');
+        const districtSel = document.getElementById('districtSelect');
+        const wardSel = document.getElementById('wardSelect');
         
         let phone = phoneInput ? phoneInput.value.trim() : '';
         if (!phone) {
@@ -242,14 +259,45 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        if (!provinceSel.value || !districtSel.value || !wardSel.value || !addressDetail.value.trim()) {
+            alert("Vui lòng nhập đầy đủ địa chỉ giao hàng (Tỉnh, Quận, Phường, Số nhà).");
+            return;
+        }
+        
+        const fullAddress = addressDetail.value.trim() + ", " 
+            + wardSel.options[wardSel.selectedIndex].text + ", " 
+            + districtSel.options[districtSel.selectedIndex].text + ", " 
+            + provinceSel.options[provinceSel.selectedIndex].text;
+            
+        let paymentMethod = 'COD';
+        const paymentRadios = document.getElementsByName('paymentMethod');
+        if (paymentRadios) {
+            for (let radio of paymentRadios) {
+                if (radio.checked) {
+                    paymentMethod = radio.value;
+                    break;
+                }
+            }
+        }
+
         const checkoutData = {
             customerName: user.fullname,
             customerUsername: user.username,
             customerPhone: phone,
+            customerAddress: fullAddress,
+            paymentMethod: paymentMethod,
+            shippingFee: window.shippingFee || 0,
             voucherCode: window.appliedVoucher ? window.appliedVoucher.code : (voucherInput ? voucherInput.value.trim() : ''),
             items: cart,
             totalRaw: total
         };
+
+        const btnCheckout = document.getElementById('btnCheckout');
+        const originalText = btnCheckout.innerText;
+        btnCheckout.innerText = 'ĐANG XỬ LÝ...';
+        btnCheckout.disabled = true;
+        btnCheckout.style.opacity = '0.7';
+        btnCheckout.style.cursor = 'not-allowed';
 
         fetch('index.php?action=checkout', {
             method: 'POST',
@@ -268,17 +316,135 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.setItem('products', JSON.stringify(prods));
 
                 localStorage.removeItem(cartKey);
-                alert("Đặt hàng thành công! Cảm ơn bạn đã mua sắm tại LENS & LIGHT. (Mã đơn: " + data.order_id + ")");
-                window.location.href = 'index.php?page=trangchu';
+                
+                if (data.paymentMethod === 'BankTransfer' && data.totalThanhToan > 0) {
+                    const qrUrl = `https://img.vietqr.io/image/970422-0523134391-compact2.png?amount=${data.totalThanhToan}&addInfo=THANH%20TOAN%20DH%20${data.order_id}&accountName=LE%20DUONG%20TUAN%20ANH`;
+                    const overlay = document.createElement('div');
+                    overlay.style.position = 'fixed';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100vw';
+                    overlay.style.height = '100vh';
+                    overlay.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                    overlay.style.display = 'flex';
+                    overlay.style.alignItems = 'center';
+                    overlay.style.justifyContent = 'center';
+                    overlay.style.zIndex = '999999';
+                    
+                    const modal = document.createElement('div');
+                    modal.style.backgroundColor = '#fff';
+                    modal.style.padding = '30px';
+                    modal.style.borderRadius = '12px';
+                    modal.style.textAlign = 'center';
+                    modal.style.maxWidth = '400px';
+                    modal.innerHTML = `
+                        <h2 style="color: #ea580c; margin-top: 0; font-size: 1.5rem;">Đặt Hàng Thành Công!</h2>
+                        <p style="color: #333; margin-bottom: 20px;">Mã đơn: <strong>${data.order_id}</strong>. Vui lòng quét mã bên dưới để thanh toán.</p>
+                        <img src="${qrUrl}" alt="QR Code" style="max-width: 100%; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <button id="btnCloseQR" style="margin-top: 20px; background: var(--primary, #ea580c); color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold;">Hoàn tất & Về Trang Chủ</button>
+                    `;
+                    overlay.appendChild(modal);
+                    document.body.appendChild(overlay);
+
+                    document.getElementById('btnCloseQR').onclick = () => {
+                        window.location.href = 'index.php?page=trangchu';
+                    };
+                } else {
+                    alert("Đặt hàng thành công! Cảm ơn bạn đã mua sắm tại LENS & LIGHT. (Mã đơn: " + data.order_id + ")");
+                    window.location.href = 'index.php?page=trangchu';
+                }
             } else {
                 alert("Lỗi khi thanh toán: " + data.message);
+                btnCheckout.innerText = originalText;
+                btnCheckout.disabled = false;
+                btnCheckout.style.opacity = '1';
+                btnCheckout.style.cursor = 'pointer';
             }
         })
         .catch(err => {
             alert("Đã xảy ra lỗi mạng. Vui lòng thử lại!");
             console.error(err);
+            btnCheckout.innerText = originalText;
+            btnCheckout.disabled = false;
+            btnCheckout.style.opacity = '1';
+            btnCheckout.style.cursor = 'pointer';
         });
     };
+
+    // --- ĐỊA GIỚI HÀNH CHÍNH & PHÍ SHIP ---
+    const provinceSelect = document.getElementById('provinceSelect');
+    const districtSelect = document.getElementById('districtSelect');
+    const wardSelect = document.getElementById('wardSelect');
+    
+    if (provinceSelect) {
+        // Fetch Tỉnh/Thành
+        fetch('https://provinces.open-api.vn/api/p/')
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.code;
+                    opt.text = p.name;
+                    provinceSelect.add(opt);
+                });
+            })
+            .catch(err => console.error("API Tỉnh Thành Lỗi: ", err));
+
+        provinceSelect.addEventListener('change', function() {
+            const code = this.value;
+            const name = this.options[this.selectedIndex].text;
+            
+            // Reset quận/huyện và phường/xã
+            districtSelect.innerHTML = '<option value="" disabled selected>Chọn Quận / Huyện</option>';
+            wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
+            districtSelect.disabled = true;
+            wardSelect.disabled = true;
+            
+            // Tính phí ship
+            if (name.includes('Hà Nội') || name.includes('Hồ Chí Minh')) {
+                window.shippingFee = 20000;
+            } else {
+                window.shippingFee = 40000;
+            }
+            renderCart(); // Cập nhật lại tổng tiền
+
+            // Fetch Quận/Huyện
+            fetch(`https://provinces.open-api.vn/api/p/${code}?depth=2`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.districts) {
+                        data.districts.forEach(d => {
+                            const opt = document.createElement('option');
+                            opt.value = d.code;
+                            opt.text = d.name;
+                            districtSelect.add(opt);
+                        });
+                        districtSelect.disabled = false;
+                    }
+                });
+        });
+
+        districtSelect.addEventListener('change', function() {
+            const code = this.value;
+            wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
+            wardSelect.disabled = true;
+
+            // Fetch Phường/Xã
+            fetch(`https://provinces.open-api.vn/api/d/${code}?depth=2`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.wards) {
+                        data.wards.forEach(w => {
+                            const opt = document.createElement('option');
+                            opt.value = w.code;
+                            opt.text = w.name;
+                            wardSelect.add(opt);
+                        });
+                        wardSelect.disabled = false;
+                    }
+                });
+        });
+    }
 
     // Initial render is now called after fetching profile data (see above)
 });

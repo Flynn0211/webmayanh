@@ -9,45 +9,6 @@ require_once __DIR__ . '/../model/database.php';
 
 class AdminController {
     /**
-     * Hàm trợ giúp giải mã và lưu hình ảnh dạng Base64 được gửi từ Frontend lên máy chủ.
-     * Hỗ trợ lưu trữ dạng bất đồng bộ từ các widget kéo thả hình ảnh.
-     *
-     * @param string $base64_string Chuỗi dữ liệu ảnh Base64
-     * @param string $output_dir Thư mục đích lưu ảnh
-     * @return string|false Đường dẫn tương đối lưu tệp ảnh thành công, ngược lại trả về false
-     */
-    private static function save_base64_image($base64_string, $output_dir) {
-        // Sử dụng Regex tách định dạng ảnh và nội dung đã mã hóa Base64
-        if (preg_match('/^data:image\/(\w+);base64,/', $base64_string, $type)) {
-            $data = substr($base64_string, strpos($base64_string, ',') + 1);
-            $type = strtolower($type[1]);
-            
-            // Giới hạn các định dạng ảnh được phép lưu để đảm bảo an toàn máy chủ
-            if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png', 'webp'])) {
-                return false;
-            }
-            
-            $data = base64_decode($data);
-            if ($data === false) {
-                return false;
-            }
-            
-            // Tạo thư mục nếu chưa tồn tại
-            if (!file_exists($output_dir)) {
-                mkdir($output_dir, 0777, true);
-            }
-            
-            // Đặt tên tệp ngẫu nhiên chống trùng lặp và lưu file xuống đĩa cứng
-            $file_name = uniqid() . '.' . $type;
-            $file_path = $output_dir . '/' . $file_name;
-            file_put_contents($file_path, $data);
-            
-            return 'uploads/products/' . $file_name;
-        }
-        return false;
-    }
-
-    /**
      * Xử lý các yêu cầu nghiệp vụ AJAX Quản trị được gửi từ Panel quản lý.
      */
     public static function handleAjaxAction() {
@@ -189,34 +150,31 @@ class AdminController {
                     $conn->query("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES ('Máy ảnh', 'may-anh')");
                     $ma_dm = $conn->lastInsertId();
                 }
+
+                // 1.7 Đảm bảo kho hàng mặc định tồn tại an toàn
+                try {
+                    $stmt_kho = $conn->query("SELECT ma_kho FROM kho_hang WHERE ma_kho = 1");
+                    if ($stmt_kho && !$stmt_kho->fetch()) {
+                        $conn->query("INSERT INTO kho_hang (ma_kho, ten_kho) VALUES (1, 'Kho Tổng')");
+                    }
+                } catch (Exception $e) {
+                    // Ignore if table doesn't exist
+                }
                 
                 // 2. Chuẩn hóa giá bán (loại bỏ ký tự phân tách nghìn)
                 $price_cleaned = (float)preg_replace('/[^0-9.]/', '', $price);
                 
-                // 3. Xử lý ảnh chính (Base64 hoặc giữ nguyên đường dẫn cũ)
                 $saved_image = $image;
-                if (strpos($image, 'data:image') === 0) {
-                    $upload_dir = __DIR__ . '/../uploads/products';
-                    $saved_image = self::save_base64_image($image, $upload_dir);
-                    if (!$saved_image) {
-                        $saved_image = $image;
-                    }
-                }
+                // Không lưu file tĩnh nữa, lưu trực tiếp chuỗi Base64 vào DB
 
                 // 3.5. Xử lý mảng ảnh phụ (Option 2) lưu trữ dạng mảng JSON
                 $additional_images = isset($_POST['additional_images']) ? trim($_POST['additional_images']) : '[]';
                 $add_images_arr = json_decode($additional_images, true);
                 $saved_add_images = [];
                 if (is_array($add_images_arr)) {
-                    $upload_dir = __DIR__ . '/../uploads/products';
                     foreach ($add_images_arr as $img_val) {
-                        if (strpos($img_val, 'data:image') === 0) {
-                            $saved_path = self::save_base64_image($img_val, $upload_dir);
-                            if ($saved_path) {
-                                $saved_add_images[] = $saved_path;
-                            }
-                        } else if (!empty($img_val)) {
-                            $saved_add_images[] = $img_val;
+                        if (!empty($img_val)) {
+                            $saved_add_images[] = $img_val; // Lưu nguyên chuỗi Base64
                         }
                     }
                 }
@@ -253,7 +211,6 @@ class AdminController {
                     }
                 }
             } 
-            // --- XỬ LÝ XÓA SẢN PHẨM ---
             elseif ($action === 'delete_product') {
                 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
                 // Xóa các bảng liên quan trước để tránh lỗi ràng buộc khóa ngoại (Constraint)
@@ -261,6 +218,11 @@ class AdminController {
                 $stmt1->execute([$id]);
                 $stmt2 = $conn->prepare("DELETE FROM chi_tiet_don_hang WHERE ma_hh = ?");
                 $stmt2->execute([$id]);
+                $stmt_km = $conn->prepare("DELETE FROM chi_tiet_khuyen_mai WHERE ma_hh = ?");
+                $stmt_km->execute([$id]);
+                $stmt_bl = $conn->prepare("DELETE FROM binh_luan_danh_gia WHERE ma_hh = ?");
+                $stmt_bl->execute([$id]);
+                
                 $stmt3 = $conn->prepare("DELETE FROM hang_hoa WHERE ma_hh = ?");
                 $res = $stmt3->execute([$id]);
                 if ($res) {

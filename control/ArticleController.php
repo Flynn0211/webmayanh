@@ -61,20 +61,26 @@ class ArticleController {
             $content = isset($_POST['content']) ? trim($_POST['content']) : '';
             $status = isset($_POST['status']) ? trim($_POST['status']) : 'XuatBan';
             $imagePath = isset($_POST['old_image']) ? $_POST['old_image'] : '';
-            // Mặc định user đăng bài, trong thực tế sẽ lấy từ session
-            $ma_tk = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 1; 
+            $ma_tk = 1;
+            if (isset($_SESSION['admin_username'])) {
+                $stmt_tk = $conn->prepare("SELECT ma_tk FROM tai_khoan WHERE username = ?");
+                $stmt_tk->execute([$_SESSION['admin_username']]);
+                if ($row_tk = $stmt_tk->fetch()) {
+                    $ma_tk = $row_tk['ma_tk'];
+                }
+            }
 
             // Xử lý upload tệp hình ảnh đại diện của bài viết
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = __DIR__ . '/../uploads/articles/';
-                if (!file_exists($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
-                $filename = time() . '_' . basename($_FILES['image']['name']);
-                $targetFile = $uploadDir . $filename;
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
-                    $imagePath = 'uploads/articles/' . $filename;
-                }
+                // Mã hóa trực tiếp sang Base64
+                $fileTmp = $_FILES['image']['tmp_name'];
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, $fileTmp);
+                finfo_close($finfo);
+                
+                $data = file_get_contents($fileTmp);
+                $base64 = 'data:' . $mimeType . ';base64,' . base64_encode($data);
+                $imagePath = $base64;
             }
 
             $data = [
@@ -88,12 +94,18 @@ class ArticleController {
             ];
 
             if ($action === 'add') {
-                ArticleModel::addArticle($conn, $data);
+                $success = ArticleModel::addArticle($conn, $data);
             } else {
-                ArticleModel::updateArticle($conn, $id, $data);
+                $success = ArticleModel::updateArticle($conn, $id, $data);
             }
             
-            echo "<script>window.location.href='index.php?tab=articles';</script>";
+            if (!$success) {
+                // In ra lỗi để debug
+                $errorInfo = $conn->errorInfo();
+                die("Lỗi thao tác CSDL: " . print_r($errorInfo, true));
+            }
+            
+            echo "<script>window.location.href='" . htmlspecialchars($_SERVER['PHP_SELF']) . "?tab=articles';</script>";
             exit;
         }
 
@@ -103,7 +115,7 @@ class ArticleController {
             if ($id > 0) {
                 ArticleModel::deleteArticle($conn, $id);
             }
-            echo "<script>window.location.href='index.php?tab=articles';</script>";
+            echo "<script>window.location.href='" . htmlspecialchars($_SERVER['PHP_SELF']) . "?tab=articles';</script>";
             exit;
         }
     }
@@ -114,6 +126,13 @@ class ArticleController {
      */
     public static function handleCKEditorUpload() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['upload'])) {
+            // Xác thực bắt buộc: chỉ Admin mới được upload ảnh
+            if (session_status() === PHP_SESSION_NONE) session_start();
+            if (empty($_SESSION['admin_logged_in'])) {
+                echo json_encode(['error' => ['message' => 'Lỗi: Không có quyền truy cập.']]);
+                exit;
+            }
+
             $file = $_FILES['upload'];
             
             // Kiểm tra lỗi
@@ -122,32 +141,31 @@ class ArticleController {
                 exit;
             }
 
-            $uploadDir = __DIR__ . '/../uploads/articles/';
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
+            // Kiểm tra định dạng file an toàn (Security Fix)
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            $fileExtension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            
+            // Kiểm tra MIME type thực tế của file để chống giả mạo đuôi
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+            
+            $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+            if (!in_array($fileExtension, $allowedExtensions) || !in_array($mimeType, $allowedMimeTypes)) {
+                echo json_encode(['error' => ['message' => 'Lỗi: Định dạng file không được phép! Chỉ chấp nhận ảnh JPG, PNG, GIF, WEBP.']]);
+                exit;
             }
 
-            // Tạo tên file duy nhất tránh trùng lặp
-            $filename = time() . '_' . basename($file['name']);
-            $targetFile = $uploadDir . $filename;
+            // Xử lý ghi trực tiếp ảnh dưới dạng Base64
+            $data = file_get_contents($file['tmp_name']);
+            $base64 = 'data:' . $mimeType . ';base64,' . base64_encode($data);
 
-            // Di chuyển file
-            if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-                // Đường dẫn trả về cho CKEditor (có thể là đường dẫn tuyệt đối hoặc tương đối)
-                // Phụ thuộc vào cấu trúc URL của dự án. Ở đây trả về relative path từ thư mục gốc.
-                
-                // Lấy URL base hiện tại (thường thì admin đang ở /admin/, nên trả về ../uploads/articles/...)
-                // Tuy nhiên, để linh hoạt, ta dùng đường dẫn tuyệt đối tĩnh dựa trên HTTP_HOST
-                $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-                $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . "/webmayanh/";
-                $url = $base_url . 'uploads/articles/' . $filename;
-
-                echo json_encode([
-                    'url' => $url
-                ]);
-            } else {
-                echo json_encode(['error' => ['message' => 'Không thể lưu file.']]);
-            }
+            echo json_encode([
+                'uploaded' => 1,
+                'fileName' => $file['name'],
+                'url' => $base64
+            ]);
             exit;
         }
     }
