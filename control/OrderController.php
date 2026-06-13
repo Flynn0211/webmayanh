@@ -8,12 +8,21 @@
 require_once __DIR__ . '/../model/database.php';
 
 class OrderController {
+    private $conn;
+    private $voucherModel;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+        
+        $this->voucherModel = new VoucherModel($conn);
+    }
+
     /**
      * Xử lý quy trình Checkout (Thanh toán & Tạo đơn hàng mới).
      */
-    public static function handleCheckout() {
-        global $conn;
-        if ($conn === false) {
+    public function handleCheckout() {
+        
+        if ($this->conn === false) {
             echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
             return;
         }
@@ -46,7 +55,7 @@ class OrderController {
         $hang_thanh_vien = 'None';
         $email_khach_hang = null;
         if (!empty($customerUsername)) {
-            $stmt = $conn->prepare("SELECT ma_tk, hang_thanh_vien, diem_tich_luy, email FROM tai_khoan WHERE username = ?");
+            $stmt = $this->conn->prepare("SELECT ma_tk, hang_thanh_vien, diem_tich_luy, email FROM tai_khoan WHERE username = ?");
             if ($stmt) {
                 $stmt->execute([$customerUsername]);
                 if ($row = $stmt->fetch()) {
@@ -69,8 +78,8 @@ class OrderController {
         $voucherType = '';
         $voucherValue = 0;
         if (!empty($voucherCode)) {
-            require_once __DIR__ . '/../model/VoucherModel.php';
-            $voucherData = VoucherModel::validateVoucher($conn, $voucherCode, $totalRaw);
+            
+            $voucherData = $this->voucherModel->validateVoucher($voucherCode, $totalRaw);
             if ($voucherData['valid']) {
                 $giam_gia_tong = $voucherData['discount'];
                 $ma_voucher = $voucherData['id'];
@@ -90,7 +99,7 @@ class OrderController {
             $qty = (int)$item['quantity'];
             
             // --- BỔ SUNG: KIỂM TRA TỒN KHO TRƯỚC KHI THANH TOÁN ---
-            $stmt_stock_check = $conn->prepare("SELECT SUM(so_luong_ton) as total_stock FROM ton_kho_chi_tiet WHERE ma_hh = ?");
+            $stmt_stock_check = $this->conn->prepare("SELECT SUM(so_luong_ton) as total_stock FROM ton_kho_chi_tiet WHERE ma_hh = ?");
             $stmt_stock_check->execute([$ma_hh]);
             $stockData = $stmt_stock_check->fetch();
             $availableStock = $stockData ? (int)$stockData['total_stock'] : 0;
@@ -139,26 +148,26 @@ class OrderController {
         $totalThanhToan = max(0, $newTotalRaw - $membership_discount_amount) + $phi_vc;
 
         // --- KHỞI CHẠY GIAO DỊCH DATABASE TRANSACTION AN TOÀN ---
-        $conn->beginTransaction();
+        $this->conn->beginTransaction();
         try {
             // A. Ghi thông tin đơn hàng chung vào bảng `don_hang`
             $trang_thai = 'ChoXacNhan';
             
-            $stmt_order = $conn->prepare("INSERT INTO don_hang (ma_khach_hang, ma_voucher, ten_nguoi_nhan, sdt_nguoi_nhan, dia_chi_giao_hang, tong_tien_hang, phi_van_chuyen, giam_gia_voucher, tong_thanh_toan, phuong_thuc_thanh_toan, trang_thai_don) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt_order = $this->conn->prepare("INSERT INTO don_hang (ma_khach_hang, ma_voucher, ten_nguoi_nhan, sdt_nguoi_nhan, dia_chi_giao_hang, tong_tien_hang, phi_van_chuyen, giam_gia_voucher, tong_thanh_toan, phuong_thuc_thanh_toan, trang_thai_don) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt_order->execute([$ma_khach_hang, $ma_voucher, $customerName, $customerPhone, $customerAddress, $totalRaw, $phi_vc, $giam_gia_tong, $totalThanhToan, $paymentMethod, $trang_thai]);
             
-            $ma_dh = $conn->lastInsertId();
+            $ma_dh = $this->conn->lastInsertId();
 
             // B. Ghi lịch sử hành trình giao hàng đầu tiên
-            $stmt_history = $conn->prepare("INSERT INTO lich_su_giao_hang (ma_dh, trang_thai, mo_ta) VALUES (?, ?, 'Đơn hàng mới được tạo thành công')");
+            $stmt_history = $this->conn->prepare("INSERT INTO lich_su_giao_hang (ma_dh, trang_thai, mo_ta) VALUES (?, ?, 'Đơn hàng mới được tạo thành công')");
             $stmt_history->execute([$ma_dh, $trang_thai]);
 
             // C. Thêm chi tiết từng mặt hàng và thực hiện trừ kho thông minh đa kho
-            $stmt_item = $conn->prepare("INSERT INTO chi_tiet_don_hang (ma_dh, ma_hh, so_luong, gia_luc_mua) VALUES (?, ?, ?, ?)");
+            $stmt_item = $this->conn->prepare("INSERT INTO chi_tiet_don_hang (ma_dh, ma_hh, so_luong, gia_luc_mua) VALUES (?, ?, ?, ?)");
             
             // Lấy danh sách các kho có chứa sản phẩm hiện tại, sắp xếp ưu tiên kho nhiều hàng nhất để trừ trước
-            $stmt_get_stock = $conn->prepare("SELECT ma_kho, so_luong_ton FROM ton_kho_chi_tiet WHERE ma_hh = ? AND so_luong_ton > 0 ORDER BY so_luong_ton DESC");
-            $stmt_update_stock = $conn->prepare("UPDATE ton_kho_chi_tiet SET so_luong_ton = ? WHERE ma_hh = ? AND ma_kho = ?");
+            $stmt_get_stock = $this->conn->prepare("SELECT ma_kho, so_luong_ton FROM ton_kho_chi_tiet WHERE ma_hh = ? AND so_luong_ton > 0 ORDER BY so_luong_ton DESC");
+            $stmt_update_stock = $this->conn->prepare("UPDATE ton_kho_chi_tiet SET so_luong_ton = ? WHERE ma_hh = ? AND ma_kho = ?");
 
             foreach ($calculatedItems as $item) {
                 $ma_hh = $item['id'];
@@ -189,7 +198,7 @@ class OrderController {
             }
 
             // Thực hiện COMMIT ghi nhận toàn bộ thay đổi thành công xuống ổ đĩa cứng CSDL
-            $conn->commit();
+            $this->conn->commit();
 
             // 4. Các nghiệp vụ sau khi Transaction thành công: Cộng điểm thành viên, lưu thông báo & gửi email
             if ($ma_khach_hang) {
@@ -197,7 +206,7 @@ class OrderController {
                 $points = floor($totalThanhToan / 10000);
                 
                 // Lấy điểm hiện có và tính tổng
-                $stmt_pt = $conn->prepare("SELECT diem_tich_luy FROM tai_khoan WHERE ma_tk = ?");
+                $stmt_pt = $this->conn->prepare("SELECT diem_tich_luy FROM tai_khoan WHERE ma_tk = ?");
                 $stmt_pt->execute([$ma_khach_hang]);
                 $res_pt = $stmt_pt;
                 $curr_pt = $res_pt->fetch()['diem_tich_luy'] + $points;
@@ -209,7 +218,7 @@ class OrderController {
                 elseif ($curr_pt >= 1000) $new_tier = 'Silver';
                 
                 // Cập nhật lại tài khoản
-                $stmt_upd = $conn->prepare("UPDATE tai_khoan SET diem_tich_luy = ?, hang_thanh_vien = ? WHERE ma_tk = ?");
+                $stmt_upd = $this->conn->prepare("UPDATE tai_khoan SET diem_tich_luy = ?, hang_thanh_vien = ? WHERE ma_tk = ?");
                 $stmt_upd->execute([$curr_pt, $new_tier, $ma_khach_hang]);
                 
                 // --- TẠO MẪU EMAIL HTML CHUẨN SHOPEE ---
@@ -282,7 +291,7 @@ class OrderController {
 
                 // Lưu thông báo dạng text ngắn nội bộ để hiển thị trên web
                 $msg = "Đơn hàng #$ma_dh của bạn đã được đặt thành công. Tổng thanh toán: " . number_format($totalThanhToan) . " VND.";
-                $stmt_email = $conn->prepare("INSERT INTO thong_bao_email (ma_tk_nhan, tieu_de, noi_dung) VALUES (?, 'Đặt hàng thành công', ?)");
+                $stmt_email = $this->conn->prepare("INSERT INTO thong_bao_email (ma_tk_nhan, tieu_de, noi_dung) VALUES (?, 'Đặt hàng thành công', ?)");
                 if ($stmt_email) {
                     $stmt_email->execute([$ma_khach_hang, $msg]);
                 }
@@ -296,7 +305,7 @@ class OrderController {
 
             // 5. Khấu trừ số lượng lượt sử dụng còn lại của Voucher mã giảm giá
             if ($ma_voucher) {
-                $stmt_v = $conn->prepare("UPDATE voucher SET so_luong = GREATEST(0, so_luong - 1) WHERE ma_voucher = ?");
+                $stmt_v = $this->conn->prepare("UPDATE voucher SET so_luong = GREATEST(0, so_luong - 1) WHERE ma_voucher = ?");
                 $stmt_v->execute([$ma_voucher]);
             }
             
@@ -305,7 +314,7 @@ class OrderController {
             exit;
         } catch (Exception $e) {
             // Nếu có bất kỳ lỗi nào xảy ra trong Transaction, tiến hành ROLLBACK khôi phục lại trạng thái ban đầu của CSDL
-            $conn->rollBack();
+            $this->conn->rollBack();
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống khi tạo đơn hàng: ' . $e->getMessage()]);
         }
     }
@@ -313,8 +322,8 @@ class OrderController {
     /**
      * API kiểm tra mã voucher qua AJAX
      */
-    public static function checkVoucher() {
-        global $conn;
+    public function checkVoucher() {
+        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
         $input = file_get_contents('php://input');
         $data = json_decode($input, true);
@@ -322,17 +331,17 @@ class OrderController {
         $code = isset($data['code']) ? trim($data['code']) : '';
         $totalRaw = isset($data['totalRaw']) ? (float)$data['totalRaw'] : 0;
         
-        require_once __DIR__ . '/../model/VoucherModel.php';
-        $res = VoucherModel::validateVoucher($conn, $code, $totalRaw);
+        
+        $res = $this->voucherModel->validateVoucher($code, $totalRaw);
         echo json_encode($res);
     }
 
     /**
      * Lấy toàn bộ lịch sử đơn hàng của tài khoản đang đăng nhập (AJAX GET).
      */
-    public static function getClientOrders() {
-        global $conn;
-        if ($conn === false) {
+    public function getClientOrders() {
+        
+        if ($this->conn === false) {
             echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
             return;
         }
@@ -346,7 +355,7 @@ class OrderController {
 
         // Lấy mã tài khoản
         $ma_kh = null;
-        $stmt = $conn->prepare("SELECT ma_tk FROM tai_khoan WHERE username = ?");
+        $stmt = $this->conn->prepare("SELECT ma_tk FROM tai_khoan WHERE username = ?");
         $stmt->execute([$username]);
         if ($row = $stmt->fetch()) {
             $ma_kh = $row['ma_tk'];
@@ -359,7 +368,7 @@ class OrderController {
 
         // Truy vấn lấy các đơn hàng của khách hàng sắp xếp mới nhất lên đầu
         $orders = [];
-        $stmt_order = $conn->prepare("SELECT ma_dh as id, ngay_dat as date_val, tong_thanh_toan as total_val, trang_thai_don as status FROM don_hang WHERE ma_khach_hang = ? ORDER BY ma_dh DESC");
+        $stmt_order = $this->conn->prepare("SELECT ma_dh as id, ngay_dat as date_val, tong_thanh_toan as total_val, trang_thai_don as status FROM don_hang WHERE ma_khach_hang = ? ORDER BY ma_dh DESC");
         $stmt_order->execute([$ma_kh]);
         
         while ($o = $stmt_order->fetch()) {
@@ -372,7 +381,7 @@ class OrderController {
             ];
 
             // Truy vấn lấy danh sách chi tiết các sản phẩm trong đơn hàng tương ứng
-            $stmt_item = $conn->prepare("SELECT c.ma_hh as id, h.ten_hang_hoa as name, h.anh as image, c.so_luong as quantity, c.gia_luc_mua as price_val, n.ten_ncc as brand FROM chi_tiet_don_hang c JOIN hang_hoa h ON c.ma_hh = h.ma_hh LEFT JOIN nha_cung_cap n ON h.ma_ncc = n.ma_ncc WHERE c.ma_dh = ?");
+            $stmt_item = $this->conn->prepare("SELECT c.ma_hh as id, h.ten_hang_hoa as name, h.anh as image, c.so_luong as quantity, c.gia_luc_mua as price_val, n.ten_ncc as brand FROM chi_tiet_don_hang c JOIN hang_hoa h ON c.ma_hh = h.ma_hh LEFT JOIN nha_cung_cap n ON h.ma_ncc = n.ma_ncc WHERE c.ma_dh = ?");
             $stmt_item->execute([$o['id']]);
             while ($i = $stmt_item->fetch()) {
                 $i['price'] = number_format($i['price_val']) . ' ₫';
@@ -387,9 +396,9 @@ class OrderController {
     /**
      * Cập nhật trạng thái đơn hàng (Sử dụng bởi Ban Quản Trị trong Admin Panel).
      */
-    public static function handleUpdateStatus() {
-        global $conn;
-        if ($conn === false) {
+    public function handleUpdateStatus() {
+        
+        if ($this->conn === false) {
             echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
             return;
         }
@@ -417,17 +426,17 @@ class OrderController {
         $status = trim($data['status']);
 
         // Cập nhật trạng thái đơn hàng
-        $stmt = $conn->prepare("UPDATE don_hang SET trang_thai_don = ? WHERE ma_dh = ?");
+        $stmt = $this->conn->prepare("UPDATE don_hang SET trang_thai_don = ? WHERE ma_dh = ?");
         
         if ($stmt->execute([$status, $orderId])) {
             // Đồng thời ghi nhận hành trình cập nhật vào lịch sử giao dịch đơn hàng
-            $stmt_history = $conn->prepare("INSERT INTO lich_su_giao_hang (ma_dh, trang_thai, mo_ta) VALUES (?, ?, 'Trạng thái đơn hàng được cập nhật bởi Ban quản lý')");
+            $stmt_history = $this->conn->prepare("INSERT INTO lich_su_giao_hang (ma_dh, trang_thai, mo_ta) VALUES (?, ?, 'Trạng thái đơn hàng được cập nhật bởi Ban quản lý')");
             if ($stmt_history) {
                 $stmt_history->execute([$orderId, $status]);
             }
             
             // --- BỔ SUNG: GỬI EMAIL CẬP NHẬT CHO NGƯỜI MUA ---
-            $stmt_info = $conn->prepare("SELECT tk.email, dh.ten_nguoi_nhan FROM don_hang dh JOIN tai_khoan tk ON dh.ma_khach_hang = tk.ma_tk WHERE dh.ma_dh = ?");
+            $stmt_info = $this->conn->prepare("SELECT tk.email, dh.ten_nguoi_nhan FROM don_hang dh JOIN tai_khoan tk ON dh.ma_khach_hang = tk.ma_tk WHERE dh.ma_dh = ?");
             $stmt_info->execute([$orderId]);
             $info = $stmt_info->fetch();
             

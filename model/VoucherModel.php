@@ -3,22 +3,27 @@
  * Lớp VoucherModel xử lý các truy vấn và kiểm tra điều kiện áp dụng mã giảm giá (voucher).
  */
 class VoucherModel {
+    private $conn;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+    }
+
     /**
      * Xác thực mã giảm giá dựa trên tổng tiền giỏ hàng và các giới hạn đi kèm.
      *
-     * @param PDO|false $conn Đối tượng kết nối CSDL
      * @param string $voucherCode Chuỗi mã giảm giá (VD: WELCOME10, KM200)
      * @param float $totalRaw Tổng giá trị tiền hàng trước giảm giá
      * @return array Kết quả trả về gồm: valid (hợp lệ), discount (tiền giảm), message (thông điệp), id (mã voucher)
      */
-    public static function validateVoucher($conn, $voucherCode, $totalRaw) {
+    public function validateVoucher($voucherCode, $totalRaw) {
         // Kiểm tra kết nối CSDL và dữ liệu đầu vào
-        if ($conn === false || empty($voucherCode)) {
+        if ($this->conn === false || empty($voucherCode)) {
             return ['valid' => false, 'discount' => 0, 'message' => 'Lỗi kết nối hoặc mã giảm giá trống.'];
         }
 
         // Truy vấn tìm kiếm voucher đang hoạt động
-        $stmt = $conn->prepare("SELECT * FROM voucher WHERE ma_code = ? AND trang_thai = 'HoatDong'");
+        $stmt = $this->conn->prepare("SELECT * FROM voucher WHERE ma_code = ? AND trang_thai = 'HoatDong'");
         if ($stmt) {
             $stmt->execute([$voucherCode]);
             if ($row = $stmt->fetch()) {

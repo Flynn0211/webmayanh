@@ -20,14 +20,14 @@ $js_login_success = "";
 
 // 1. Process client login
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_login'])) {
-    $res = AuthController::handleLogin($conn);
+    $res = (new AuthController($conn))->handleLogin($conn);
     $login_error = $res['error'];
     $js_login_success = $res['success'];
 }
 
 // 2. Process client registration
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_register'])) {
-    $res = AuthController::handleRegister($conn);
+    $res = (new AuthController($conn))->handleRegister($conn);
     $login_error = $res['error'];
     $js_login_success = $res['success'];
 }

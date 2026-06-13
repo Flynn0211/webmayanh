@@ -12,20 +12,20 @@ if ($conn === false) {
 
 // Xử lý đăng xuất
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
-    AuthController::handleAdminLogout();
+    (new AuthController($conn))->handleAdminLogout();
 }
 
 // Xử lý upload ảnh từ CKEditor
 if (isset($_GET['action']) && $_GET['action'] === 'upload_image') {
     require_once __DIR__ . '/../control/ArticleController.php';
-    ArticleController::handleCKEditorUpload();
+    (new ArticleController($conn))->handleCKEditorUpload();
 }
 
 $login_error = "";
 
 // Xử lý đăng nhập POST qua Controller
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_admin'])) {
-    $login_error = AuthController::handleAdminLogin($conn);
+    $login_error = (new AuthController($conn))->handleAdminLogin($conn);
 }
 
 // Kiểm tra xem đã đăng nhập chưa

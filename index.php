@@ -3,64 +3,59 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 require_once 'config.php';
+require_once 'model/database.php';
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'trangchu';
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
 // Handle standalone actions (e.g., logout, checkout)
 if ($action === 'client_logout') {
-    require_once 'model/database.php';
     require_once 'control/AuthController.php';
-    AuthController::handleClientLogout();
+    (new AuthController($conn))->handleClientLogout();
     exit;
 } elseif ($action === 'checkout') {
     require_once 'control/OrderController.php';
-    OrderController::handleCheckout();
+    (new OrderController($conn))->handleCheckout();
     exit;
 } elseif ($action === 'get_orders') {
     require_once 'control/OrderController.php';
-    OrderController::getClientOrders();
+    (new OrderController($conn))->getClientOrders();
     exit;
 } elseif ($action === 'update_order_status') {
     require_once 'control/OrderController.php';
-    OrderController::handleUpdateStatus();
+    (new OrderController($conn))->handleUpdateStatus();
     exit;
 } elseif ($action === 'check_voucher') {
     require_once 'control/OrderController.php';
-    OrderController::checkVoucher();
+    (new OrderController($conn))->checkVoucher();
     exit;
 } elseif ($action === 'get_reviews') {
-    require_once 'model/database.php';
     require_once 'control/ProductController.php';
-    ProductController::getReviews();
+    (new ProductController($conn))->getReviews();
     exit;
 } elseif ($action === 'add_review') {
-    require_once 'model/database.php';
     require_once 'control/ProductController.php';
-    ProductController::handleAddReview();
+    (new ProductController($conn))->handleAddReview();
     exit;
 } elseif ($action === 'get_profile') {
-    require_once 'model/database.php';
     require_once 'control/AuthController.php';
-    AuthController::getProfile();
+    (new AuthController($conn))->getProfile();
     exit;
 } elseif ($action === 'update_profile') {
-    require_once 'model/database.php';
     require_once 'control/AuthController.php';
-    AuthController::updateProfile();
+    (new AuthController($conn))->updateProfile();
     exit;
 } elseif ($action === 'change_password') {
-    require_once 'model/database.php';
     require_once 'control/AuthController.php';
-    AuthController::changePassword();
+    (new AuthController($conn))->changePassword();
     exit;
 } elseif ($action === 'submit_contact') {
     require_once 'control/ContactController.php';
-    ContactController::submitContact();
+    (new ContactController($conn))->submitContact();
     exit;
 } elseif ($action === 'subscribe_newsletter') {
     require_once 'control/ContactController.php';
-    ContactController::handleNewsletter();
+    (new ContactController($conn))->handleNewsletter();
     exit;
 }
 
@@ -75,7 +70,7 @@ if ($page === 'admin') {
     exit;
 } elseif ($page === 'baiviet') {
     require_once 'control/ArticleController.php';
-    $articles = ArticleController::getAllArticles();
+    $articles = (new ArticleController($conn))->getAllArticles();
     $publishedArticles = array_filter($articles, function($a) {
         return $a['trang_thai'] === 'XuatBan';
     });
@@ -83,7 +78,7 @@ if ($page === 'admin') {
 } elseif ($page === 'chitietbaiviet') {
     require_once 'control/ArticleController.php';
     $slug = isset($_GET['slug']) ? $_GET['slug'] : '';
-    $article = ArticleController::getArticleBySlug($slug);
+    $article = (new ArticleController($conn))->getArticleBySlug($slug);
     if (!$article || $article['trang_thai'] !== 'XuatBan') {
         echo "Bài viết không tồn tại hoặc đã bị ẩn.";
         exit;

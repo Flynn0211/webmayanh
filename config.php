@@ -20,10 +20,10 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'webmayanh');
 
-// Cấu hình SMTP Email (Dùng cho SmtpMailer)
+// Cấu hình SMTP Email 
 define('SMTP_HOST', 'smtp.gmail.com');
-define('SMTP_PORT', 587); // hoặc 465 cho SSL
-define('SMTP_USER', 'leduongtuananh.nhc@gmail.com'); // Thay email thật vào đây
-define('SMTP_PASS', 'riri tzyh lxen yspc'); // Thay App Password vào đây
+define('SMTP_PORT', 587);
+define('SMTP_USER', 'leduongtuananh.nhc@gmail.com'); // Email 
+define('SMTP_PASS', 'riri tzyh lxen yspc'); // App Password 
 define('SMTP_FROM_NAME', 'Lens & Light Shop');
 ?>

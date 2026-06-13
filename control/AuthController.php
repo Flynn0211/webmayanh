@@ -5,16 +5,25 @@
  */
 
 // Nạp tầng nghiệp vụ CSDL của tài khoản người dùng
-require_once __DIR__ . '/../model/UserModel.php';
+
 
 class AuthController {
+    private $conn;
+    private $userModel;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+        
+        $this->userModel = new UserModel($conn);
+    }
+
     /**
      * Xử lý xác thực đăng nhập phía khách hàng (Client Login).
      *
      * @param PDO|false $conn Kết nối CSDL
      * @return array Mảng trạng thái lỗi hoặc thông báo thành công
      */
-    public static function handleLogin($conn) {
+    public function handleLogin($conn) {
         $login_error = "";
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_login'])) {
@@ -22,7 +31,7 @@ class AuthController {
             $password = isset($_POST['password']) ? trim($_POST['password']) : '';
 
             // Lấy thông tin tài khoản bằng tên đăng nhập
-            $row = UserModel::getUserByUsername($conn, $username);
+            $row = $this->userModel->getUserByUsername($username);
             if ($row) {
                 $is_password_correct = false;
                 
@@ -35,7 +44,7 @@ class AuthController {
                     $is_password_correct = true;
                     // Tự động nâng cấp mật khẩu thô lên băm bcrypt lưu xuống CSDL
                     $newHash = password_hash($password, PASSWORD_DEFAULT);
-                    $upgradeStmt = $conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
+                    $upgradeStmt = $this->conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
                     if ($upgradeStmt) {
                         $upgradeStmt->execute([$newHash, $username]);
                     }
@@ -79,7 +88,7 @@ class AuthController {
      * @param PDO|false $conn Kết nối CSDL
      * @return array Kết quả lỗi hoặc thành công
      */
-    public static function handleRegister($conn) {
+    public function handleRegister($conn) {
         $login_error = "";
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_register'])) {
@@ -88,12 +97,12 @@ class AuthController {
             $password = isset($_POST['password']) ? trim($_POST['password']) : '';
 
             // Kiểm tra tính duy nhất của tên đăng nhập
-            $existing = UserModel::getUserByUsername($conn, $username);
+            $existing = $this->userModel->getUserByUsername($username);
             if ($existing) {
                 $login_error = "Tên đăng nhập này đã tồn tại trên hệ thống!";
             } else {
                 // Thực thi thêm mới tài khoản
-                if (UserModel::registerUser($conn, $fullname, $username, $password)) {
+                if ($this->userModel->registerUser($fullname, $username, $password)) {
                     // Tự động đăng nhập người dùng ngay sau khi đăng ký thành công
                     $_SESSION['client_logged_in'] = true;
                     $_SESSION['client_username']  = $username;
@@ -119,7 +128,7 @@ class AuthController {
      * @param PDO|false $conn Kết nối CSDL
      * @return string Trạng thái lỗi nếu đăng nhập thất bại
      */
-    public static function handleAdminLogin($conn) {
+    public function handleAdminLogin($conn) {
         $login_error = "";
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_admin'])) {
@@ -129,7 +138,7 @@ class AuthController {
             if (empty($username) || empty($password)) {
                 $login_error = "Vui lòng điền đầy đủ thông tin đăng nhập.";
             } else {
-                $row = UserModel::getUserByUsername($conn, $username);
+                $row = $this->userModel->getUserByUsername($username);
                 if ($row) {
                     if ($row['loai_tk'] === 'Admin') {
                         $is_password_correct = false;
@@ -138,7 +147,7 @@ class AuthController {
                         } elseif ($password === $row['mat_khau']) {
                             $is_password_correct = true;
                             $newHash = password_hash($password, PASSWORD_DEFAULT);
-                            $upgradeStmt = $conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
+                            $upgradeStmt = $this->conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
                             if ($upgradeStmt) {
                                 $upgradeStmt->execute([$newHash, $username]);
                             }
@@ -177,7 +186,7 @@ class AuthController {
     /**
      * Thực hiện Đăng xuất tài khoản khách hàng (Client Logout).
      */
-    public static function handleClientLogout() {
+    public function handleClientLogout() {
         unset($_SESSION['client_logged_in']);
         unset($_SESSION['client_username']);
         unset($_SESSION['client_fullname']);
@@ -191,7 +200,7 @@ class AuthController {
     /**
      * Thực hiện Đăng xuất tài khoản quản trị (Admin Logout).
      */
-    public static function handleAdminLogout() {
+    public function handleAdminLogout() {
         unset($_SESSION['admin_logged_in']);
         unset($_SESSION['admin_username']);
         unset($_SESSION['admin_fullname']);
@@ -211,9 +220,9 @@ class AuthController {
     /**
      * Lấy dữ liệu hồ sơ cá nhân và tự động đồng bộ lại hạng thành viên dựa trên điểm tích lũy (AJAX GET).
      */
-    public static function getProfile() {
-        global $conn;
-        if ($conn === false) {
+    public function getProfile() {
+        
+        if ($this->conn === false) {
             echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
             return;
         }
@@ -224,7 +233,7 @@ class AuthController {
             return;
         }
 
-        $stmt = $conn->prepare("SELECT ho_ten, email, sdt, hang_thanh_vien, diem_tich_luy FROM tai_khoan WHERE username = ?");
+        $stmt = $this->conn->prepare("SELECT ho_ten, email, sdt, hang_thanh_vien, diem_tich_luy FROM tai_khoan WHERE username = ?");
         $stmt->execute([$username]);
         if ($row = $stmt->fetch()) {
             // Tự động phân cấp hạng thành viên thực tế dựa trên tổng điểm tích lũy
@@ -237,7 +246,7 @@ class AuthController {
             $row['hang_thanh_vien'] = $tier;
             
             // Cập nhật ngược lại CSDL để đồng bộ dữ liệu
-            $stmt_u = $conn->prepare("UPDATE tai_khoan SET hang_thanh_vien = ? WHERE username = ?");
+            $stmt_u = $this->conn->prepare("UPDATE tai_khoan SET hang_thanh_vien = ? WHERE username = ?");
             $stmt_u->execute([$tier, $username]);
 
             echo json_encode(['success' => true, 'profile' => $row]);
@@ -249,9 +258,9 @@ class AuthController {
     /**
      * Cập nhật thông tin chi tiết hồ sơ cá nhân của khách hàng (AJAX POST).
      */
-    public static function updateProfile() {
-        global $conn;
-        if ($conn === false) {
+    public function updateProfile() {
+        
+        if ($this->conn === false) {
             echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
             return;
         }
@@ -274,7 +283,7 @@ class AuthController {
         $email = isset($data['email']) ? trim($data['email']) : '';
         $sdt = isset($data['sdt']) ? trim($data['sdt']) : '';
 
-        $stmt = $conn->prepare("UPDATE tai_khoan SET ho_ten = ?, email = ?, sdt = ? WHERE username = ?");
+        $stmt = $this->conn->prepare("UPDATE tai_khoan SET ho_ten = ?, email = ?, sdt = ? WHERE username = ?");
         if ($stmt->execute([$ho_ten, $email, $sdt, $username])) {
             // Đồng bộ lại các biến Session
             $_SESSION['client_fullname'] = $ho_ten;
@@ -289,9 +298,9 @@ class AuthController {
     /**
      * Xử lý thay đổi mật khẩu tài khoản khách hàng (AJAX POST).
      */
-    public static function changePassword() {
-        global $conn;
-        if ($conn === false) {
+    public function changePassword() {
+        
+        if ($this->conn === false) {
             echo json_encode(['success' => false, 'message' => 'Lỗi kết nối cơ sở dữ liệu.']);
             return;
         }
@@ -314,14 +323,14 @@ class AuthController {
         $newPwd = $data['new_password'];
 
         // Lấy mã băm mật khẩu hiện tại trong CSDL để so khớp
-        $stmt = $conn->prepare("SELECT mat_khau FROM tai_khoan WHERE username = ?");
+        $stmt = $this->conn->prepare("SELECT mat_khau FROM tai_khoan WHERE username = ?");
         $stmt->execute([$username]);
         
         if ($row = $stmt->fetch()) {
             if (password_verify($oldPwd, $row['mat_khau'])) {
                 // Mã hóa băm mật khẩu mới trước khi lưu trữ
                 $newHash = password_hash($newPwd, PASSWORD_DEFAULT);
-                $updateStmt = $conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
+                $updateStmt = $this->conn->prepare("UPDATE tai_khoan SET mat_khau = ? WHERE username = ?");
                 if ($updateStmt->execute([$newHash, $username])) {
                     echo json_encode(['success' => true, 'message' => 'Đổi mật khẩu thành công']);
                 } else {

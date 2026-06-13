@@ -18,7 +18,7 @@ $_nav_fullname   = $_nav_logged_in ? htmlspecialchars($_SESSION['client_fullname
 // Handle client logout action
 if (isset($_GET['action']) && $_GET['action'] === 'client_logout') {
     require_once __DIR__ . '/../../../control/AuthController.php';
-    AuthController::handleClientLogout();
+    (new AuthController($conn))->handleClientLogout();
 }
 
 // Load database connection
@@ -29,7 +29,7 @@ require_once __DIR__ . '/../../../control/ProductController.php';
 
 $db_products = [];
 if (isset($conn) && $conn) {
-    $db_products = ProductController::getAllActiveProducts($conn);
+    $db_products = (new ProductController($conn))->getAllActiveProducts($conn);
 }
 ?>
 <!-- Màn hình Preloader chào mừng Premium -->

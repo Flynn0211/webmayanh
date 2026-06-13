@@ -2,7 +2,13 @@
 require_once __DIR__ . '/../model/SmtpMailer.php';
 
 class ContactController {
-    public static function submitContact() {
+    private $conn;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+    }
+
+    public function submitContact() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fullname = isset($_POST['fullname']) ? trim($_POST['fullname']) : '';
             $email = isset($_POST['email']) ? trim($_POST['email']) : '';
@@ -64,7 +70,7 @@ class ContactController {
      * Xử lý đăng ký nhận bản tin (Newsletter)
      * Kèm theo tính năng tự động cập nhật email cho tài khoản nếu đang trống
      */
-    public static function handleNewsletter() {
+    public function handleNewsletter() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['success' => false, 'message' => 'Invalid Request']);
             return;
@@ -77,8 +83,8 @@ class ContactController {
         }
 
         // 1. Lưu email vào bảng những người đăng ký (nếu chưa có)
-        global $conn;
-        $stmt_ins = $conn->prepare("INSERT IGNORE INTO email_dang_ky (email) VALUES (?)");
+        
+        $stmt_ins = $this->conn->prepare("INSERT IGNORE INTO email_dang_ky (email) VALUES (?)");
         $stmt_ins->execute([$email]);
 
         // 2. Nếu user đang đăng nhập mà chưa có email, tự động cập nhật email vào CSDL
@@ -89,12 +95,12 @@ class ContactController {
             $username = $_SESSION['user']['username'];
             
             // Kiểm tra email hiện tại của tài khoản
-            $stmt = $conn->prepare("SELECT email FROM tai_khoan WHERE username = ?");
+            $stmt = $this->conn->prepare("SELECT email FROM tai_khoan WHERE username = ?");
             $stmt->execute([$username]);
             $row = $stmt->fetch();
             
             if ($row && empty($row['email'])) {
-                $update = $conn->prepare("UPDATE tai_khoan SET email = ? WHERE username = ?");
+                $update = $this->conn->prepare("UPDATE tai_khoan SET email = ? WHERE username = ?");
                 $update->execute([$email, $username]);
                 // Cập nhật lại session
                 $_SESSION['user']['email'] = $email;

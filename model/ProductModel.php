@@ -3,16 +3,21 @@
  * Lớp ProductModel xử lý các truy vấn liên quan đến hàng hóa (sản phẩm) từ cơ sở dữ liệu.
  */
 class ProductModel {
+    private $conn;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+    }
+
     /**
      * Lấy toàn bộ danh sách sản phẩm đang hoạt động (trang_thai = 'DangBan')
      * Kết hợp (JOIN) với bảng danh mục, nhà cung cấp và thông tin khuyến mãi đang diễn ra.
      *
-     * @param PDO|false $conn Đối tượng kết nối CSDL
      * @return array Danh sách các sản phẩm kèm giá đã giảm (nếu có khuyến mãi)
      */
-    public static function getActiveProducts($conn) {
+    public function getActiveProducts() {
         // Kiểm tra kết nối cơ sở dữ liệu
-        if ($conn === false) {
+        if ($this->conn === false) {
             return [];
         }
 
@@ -46,7 +51,7 @@ class ProductModel {
                 WHERE hh.trang_thai = 'DangBan'
                 GROUP BY hh.ma_hh";
 
-        $res = $conn->query($sql);
+        $res = $this->conn->query($sql);
         $products = [];
         if ($res) {
             while ($row = $res->fetch()) {
@@ -56,4 +61,3 @@ class ProductModel {
         return $products;
     }
 }
-

@@ -1,23 +1,28 @@
 <?php
 /**
  * Lớp ArticleController quản lý toàn bộ các bài viết (blog/tin tức) của hệ thống CMS
- * Sử dụng ArticleModel để tương tác với cơ sở dữ liệu MySQL thay vì JSON như trước.
  */
-
 require_once __DIR__ . '/../model/database.php';
 require_once __DIR__ . '/../model/ArticleModel.php';
 
 class ArticleController {
+    private $conn;
+    private $articleModel;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+        $this->articleModel = new ArticleModel($conn);
+    }
+
     /**
      * Lấy toàn bộ danh sách bài viết từ Database.
      *
      * @param bool $onlyPublished Nếu true, chỉ lấy các bài viết có trạng thái XuatBan.
      * @return array Danh sách bài viết
      */
-    public static function getAllArticles($onlyPublished = false) {
-        global $conn;
+    public function getAllArticles($onlyPublished = false) {
         $status = $onlyPublished ? 'XuatBan' : null;
-        return ArticleModel::getAllArticles($conn, $status);
+        return $this->articleModel->getAllArticles($status);
     }
 
     /**
@@ -26,9 +31,8 @@ class ArticleController {
      * @param string $slug Đường dẫn tĩnh
      * @return array|false Trả về thông tin bài viết nếu tìm thấy, ngược lại trả về false
      */
-    public static function getArticleBySlug($slug) {
-        global $conn;
-        return ArticleModel::getArticleBySlug($conn, $slug);
+    public function getArticleBySlug($slug) {
+        return $this->articleModel->getArticleBySlug($slug);
     }
 
     /**
@@ -37,16 +41,14 @@ class ArticleController {
      * @param int $id ID bài viết
      * @return array|false
      */
-    public static function getArticleById($id) {
-        global $conn;
-        return ArticleModel::getArticleById($conn, $id);
+    public function getArticleById($id) {
+        return $this->articleModel->getArticleById($id);
     }
 
     /**
      * Xử lý các hành động nghiệp vụ của quản trị viên (POST) cho bài viết.
      */
-    public static function handleAdminAction() {
-        global $conn;
+    public function handleAdminAction() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
         
         $action = isset($_POST['article_action']) ? $_POST['article_action'] : '';
@@ -63,7 +65,7 @@ class ArticleController {
             $imagePath = isset($_POST['old_image']) ? $_POST['old_image'] : '';
             $ma_tk = 1;
             if (isset($_SESSION['admin_username'])) {
-                $stmt_tk = $conn->prepare("SELECT ma_tk FROM tai_khoan WHERE username = ?");
+                $stmt_tk = $this->conn->prepare("SELECT ma_tk FROM tai_khoan WHERE username = ?");
                 $stmt_tk->execute([$_SESSION['admin_username']]);
                 if ($row_tk = $stmt_tk->fetch()) {
                     $ma_tk = $row_tk['ma_tk'];
@@ -94,14 +96,14 @@ class ArticleController {
             ];
 
             if ($action === 'add') {
-                $success = ArticleModel::addArticle($conn, $data);
+                $success = $this->articleModel->addArticle($data);
             } else {
-                $success = ArticleModel::updateArticle($conn, $id, $data);
+                $success = $this->articleModel->updateArticle($id, $data);
             }
             
             if (!$success) {
                 // In ra lỗi để debug
-                $errorInfo = $conn->errorInfo();
+                $errorInfo = $this->conn->errorInfo();
                 die("Lỗi thao tác CSDL: " . print_r($errorInfo, true));
             }
             
@@ -113,7 +115,7 @@ class ArticleController {
         if ($action === 'delete') {
             $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
             if ($id > 0) {
-                ArticleModel::deleteArticle($conn, $id);
+                $this->articleModel->deleteArticle($id);
             }
             echo "<script>window.location.href='" . htmlspecialchars($_SERVER['PHP_SELF']) . "?tab=articles';</script>";
             exit;
@@ -124,7 +126,7 @@ class ArticleController {
      * Xử lý API Upload hình ảnh từ CKEditor
      * CKEditor yêu cầu trả về JSON có dạng { "url": "..." } khi thành công.
      */
-    public static function handleCKEditorUpload() {
+    public function handleCKEditorUpload() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['upload'])) {
             // Xác thực bắt buộc: chỉ Admin mới được upload ảnh
             if (session_status() === PHP_SESSION_NONE) session_start();

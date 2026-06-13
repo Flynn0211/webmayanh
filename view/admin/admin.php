@@ -3,7 +3,7 @@ ob_start();
 require_once __DIR__ . '/../../model/database.php';
 require_once __DIR__ . '/../../control/ArticleController.php';
 
-ArticleController::handleAdminAction();
+(new ArticleController($conn))->handleAdminAction();
 if ($conn === false) {
     die("Kết nối cơ sở dữ liệu thất bại.");
 }
@@ -11,7 +11,7 @@ if ($conn === false) {
 require_once __DIR__ . '/../../control/AdminController.php';
 
 // Route AJAX calls to AdminController
-AdminController::handleAjaxAction();
+(new AdminController($conn))->handleAjaxAction();
 
 // ── Load database collections ──────────────────────────────────
 // 0. Categories (Seed if empty)
@@ -839,7 +839,7 @@ while ($row = $res_ch->fetch()) {
         window.dbProducts = <?php echo json_encode($dbProducts); ?>;
         window.dbOrders = <?php echo json_encode($dbOrders); ?>;
         window.dbVouchers = <?php echo json_encode($dbVouchers); ?>;
-        window.dbArticles = <?php echo json_encode(ArticleController::getAllArticles()); ?>;
+        window.dbArticles = <?php echo json_encode((new ArticleController($conn))->getAllArticles()); ?>;
         window.dbCustomers = <?php echo json_encode($dbCustomers); ?>;
         window.dbEmployees = <?php echo json_encode($dbEmployees); ?>;
         window.dbStats = {

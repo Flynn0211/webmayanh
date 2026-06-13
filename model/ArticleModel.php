@@ -1,10 +1,16 @@
 <?php
 class ArticleModel {
+    private $conn;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+    }
+
     /**
      * Lấy toàn bộ danh sách bài viết
      */
-    public static function getAllArticles($conn, $status = null) {
-        if ($conn === false) return [];
+    public function getAllArticles($status = null) {
+        if ($this->conn === false) return [];
         $sql = "SELECT bv.*, tk.ho_ten AS tac_gia 
                 FROM bai_viet bv 
                 LEFT JOIN tai_khoan tk ON bv.ma_tk = tk.ma_tk ";
@@ -13,7 +19,7 @@ class ArticleModel {
         }
         $sql .= "ORDER BY bv.ngay_tao DESC";
         
-        $stmt = $conn->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         if ($status) {
             $stmt->bindValue(':status', $status, PDO::PARAM_STR);
         }
@@ -24,13 +30,13 @@ class ArticleModel {
     /**
      * Lấy chi tiết bài viết theo slug
      */
-    public static function getArticleBySlug($conn, $slug) {
-        if ($conn === false) return false;
+    public function getArticleBySlug($slug) {
+        if ($this->conn === false) return false;
         $sql = "SELECT bv.*, tk.ho_ten AS tac_gia 
                 FROM bai_viet bv 
                 LEFT JOIN tai_khoan tk ON bv.ma_tk = tk.ma_tk 
                 WHERE bv.slug = :slug LIMIT 1";
-        $stmt = $conn->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':slug', $slug, PDO::PARAM_STR);
         $stmt->execute();
         return $stmt->fetch();
@@ -39,13 +45,13 @@ class ArticleModel {
     /**
      * Lấy chi tiết bài viết theo ID
      */
-    public static function getArticleById($conn, $id) {
-        if ($conn === false) return false;
+    public function getArticleById($id) {
+        if ($this->conn === false) return false;
         $sql = "SELECT bv.*, tk.ho_ten AS tac_gia 
                 FROM bai_viet bv 
                 LEFT JOIN tai_khoan tk ON bv.ma_tk = tk.ma_tk 
                 WHERE bv.ma_bv = :id LIMIT 1";
-        $stmt = $conn->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch();
@@ -54,11 +60,11 @@ class ArticleModel {
     /**
      * Thêm bài viết mới
      */
-    public static function addArticle($conn, $data) {
-        if ($conn === false) return false;
+    public function addArticle($data) {
+        if ($this->conn === false) return false;
         $sql = "INSERT INTO bai_viet (tieu_de, slug, anh_dai_dien, mo_ta_ngan, noi_dung, ma_tk, trang_thai) 
                 VALUES (:tieu_de, :slug, :anh_dai_dien, :mo_ta_ngan, :noi_dung, :ma_tk, :trang_thai)";
-        $stmt = $conn->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         return $stmt->execute([
             ':tieu_de' => $data['tieu_de'],
             ':slug' => $data['slug'],
@@ -73,8 +79,8 @@ class ArticleModel {
     /**
      * Cập nhật bài viết
      */
-    public static function updateArticle($conn, $id, $data) {
-        if ($conn === false) return false;
+    public function updateArticle($id, $data) {
+        if ($this->conn === false) return false;
         $sql = "UPDATE bai_viet SET 
                 tieu_de = :tieu_de, 
                 slug = :slug, 
@@ -83,7 +89,7 @@ class ArticleModel {
                 noi_dung = :noi_dung, 
                 trang_thai = :trang_thai 
                 WHERE ma_bv = :id";
-        $stmt = $conn->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         return $stmt->execute([
             ':tieu_de' => $data['tieu_de'],
             ':slug' => $data['slug'],
@@ -98,10 +104,10 @@ class ArticleModel {
     /**
      * Xóa bài viết
      */
-    public static function deleteArticle($conn, $id) {
-        if ($conn === false) return false;
+    public function deleteArticle($id) {
+        if ($this->conn === false) return false;
         $sql = "DELETE FROM bai_viet WHERE ma_bv = :id";
-        $stmt = $conn->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();
     }

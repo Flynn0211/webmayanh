@@ -8,12 +8,18 @@
 require_once __DIR__ . '/../model/database.php';
 
 class AdminController {
+    private $conn;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+    }
+
     /**
      * Xử lý các yêu cầu nghiệp vụ AJAX Quản trị được gửi từ Panel quản lý.
      */
-    public static function handleAjaxAction() {
-        global $conn;
-        if ($conn === false) {
+    public function handleAjaxAction() {
+        
+        if ($this->conn === false) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Database connection failed']);
             exit;
@@ -34,7 +40,7 @@ class AdminController {
                         LEFT JOIN chi_tiet_khuyen_mai ct ON km.ma_km = ct.ma_km
                         LEFT JOIN hang_hoa hh ON ct.ma_hh = hh.ma_hh
                         ORDER BY km.ma_km DESC";
-                $res = $conn->query($sql);
+                $res = $this->conn->query($sql);
                 $promos = [];
                 if ($res) {
                     while ($row = $res->fetch()) {
@@ -62,7 +68,7 @@ class AdminController {
                         LEFT JOIN tai_khoan t ON b.ma_tk = t.ma_tk 
                         LEFT JOIN hang_hoa h ON b.ma_hh = h.ma_hh 
                         ORDER BY b.ngay_bl DESC";
-                $res = $conn->query($sql);
+                $res = $this->conn->query($sql);
                 $reviews = [];
                 if ($res) {
                     while ($row = $res->fetch()) {
@@ -131,31 +137,31 @@ class AdminController {
                 
                 // 1. Tìm hoặc tạo mới Nhà cung cấp (ma_ncc) dựa trên tên Thương hiệu nhập vào
                 $ma_ncc = 1;
-                $stmt = $conn->prepare("SELECT ma_ncc FROM nha_cung_cap WHERE LOWER(ten_ncc) = LOWER(?)");
+                $stmt = $this->conn->prepare("SELECT ma_ncc FROM nha_cung_cap WHERE LOWER(ten_ncc) = LOWER(?)");
                 $stmt->execute([$brand]);
                 if ($row = $stmt->fetch()) {
                     $ma_ncc = $row['ma_ncc'];
                 } else {
-                    $stmt_ins = $conn->prepare("INSERT INTO nha_cung_cap (ten_ncc, sdt_lien_he, dia_chi) VALUES (?, '0900000000', 'Unknown')");
+                    $stmt_ins = $this->conn->prepare("INSERT INTO nha_cung_cap (ten_ncc, sdt_lien_he, dia_chi) VALUES (?, '0900000000', 'Unknown')");
                     $stmt_ins->execute([$brand]);
-                    $ma_ncc = $conn->lastInsertId();
+                    $ma_ncc = $this->conn->lastInsertId();
                 }
                 
                 // 1.5. Đảm bảo danh mục tồn tại an toàn
                 $ma_dm = 1;
-                $stmt_cat = $conn->query("SELECT ma_dm FROM danh_muc LIMIT 1");
+                $stmt_cat = $this->conn->query("SELECT ma_dm FROM danh_muc LIMIT 1");
                 if ($row_cat = $stmt_cat->fetch()) {
                     $ma_dm = $row_cat['ma_dm'];
                 } else {
-                    $conn->query("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES ('Máy ảnh', 'may-anh')");
-                    $ma_dm = $conn->lastInsertId();
+                    $this->conn->query("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES ('Máy ảnh', 'may-anh')");
+                    $ma_dm = $this->conn->lastInsertId();
                 }
 
                 // 1.7 Đảm bảo kho hàng mặc định tồn tại an toàn
                 try {
-                    $stmt_kho = $conn->query("SELECT ma_kho FROM kho_hang WHERE ma_kho = 1");
+                    $stmt_kho = $this->conn->query("SELECT ma_kho FROM kho_hang WHERE ma_kho = 1");
                     if ($stmt_kho && !$stmt_kho->fetch()) {
-                        $conn->query("INSERT INTO kho_hang (ma_kho, ten_kho) VALUES (1, 'Kho Tổng')");
+                        $this->conn->query("INSERT INTO kho_hang (ma_kho, ten_kho) VALUES (1, 'Kho Tổng')");
                     }
                 } catch (Exception $e) {
                     // Ignore if table doesn't exist
@@ -185,11 +191,11 @@ class AdminController {
                 
                 // Thực thi thêm mới sản phẩm
                 if ($action === 'add_product') {
-                    $stmt_add = $conn->prepare("INSERT INTO hang_hoa (ma_dm, ma_ncc, ten_hang_hoa, slug, anh, anh_phu, mo_ta, thong_so_ky_thuat, gia_hien_tai) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt_add = $this->conn->prepare("INSERT INTO hang_hoa (ma_dm, ma_ncc, ten_hang_hoa, slug, anh, anh_phu, mo_ta, thong_so_ky_thuat, gia_hien_tai) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     if ($stmt_add->execute([$categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned])) {
-                        $new_id = $conn->lastInsertId();
+                        $new_id = $this->conn->lastInsertId();
                         // Lưu số lượng tồn kho mặc định vào kho số 1
-                        $stmt_stock = $conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
+                        $stmt_stock = $this->conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
                         $stmt_stock->execute([$new_id, $stock]);
                         echo json_encode(['success' => true, 'id' => $new_id]);
                     } else {
@@ -198,12 +204,12 @@ class AdminController {
                 } else {
                     // Cập nhật thông tin sản phẩm hiện tại
                     $original_id = (int)$id;
-                    $stmt_edit = $conn->prepare("UPDATE hang_hoa SET ma_dm = ?, ma_ncc = ?, ten_hang_hoa = ?, slug = ?, anh = ?, anh_phu = ?, mo_ta = ?, thong_so_ky_thuat = ?, gia_hien_tai = ? WHERE ma_hh = ?");
+                    $stmt_edit = $this->conn->prepare("UPDATE hang_hoa SET ma_dm = ?, ma_ncc = ?, ten_hang_hoa = ?, slug = ?, anh = ?, anh_phu = ?, mo_ta = ?, thong_so_ky_thuat = ?, gia_hien_tai = ? WHERE ma_hh = ?");
                     if ($stmt_edit->execute([$categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned, $original_id])) {
                         // Xóa cũ thêm mới số lượng tồn kho
-                        $stmt_del = $conn->prepare("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = ?");
+                        $stmt_del = $this->conn->prepare("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = ?");
                         $stmt_del->execute([$original_id]);
-                        $stmt_stock = $conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
+                        $stmt_stock = $this->conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
                         $stmt_stock->execute([$original_id, $stock]);
                         echo json_encode(['success' => true]);
                     } else {
@@ -214,21 +220,21 @@ class AdminController {
             elseif ($action === 'delete_product') {
                 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
                 // Xóa các bảng liên quan trước để tránh lỗi ràng buộc khóa ngoại (Constraint)
-                $stmt1 = $conn->prepare("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = ?");
+                $stmt1 = $this->conn->prepare("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = ?");
                 $stmt1->execute([$id]);
-                $stmt2 = $conn->prepare("DELETE FROM chi_tiet_don_hang WHERE ma_hh = ?");
+                $stmt2 = $this->conn->prepare("DELETE FROM chi_tiet_don_hang WHERE ma_hh = ?");
                 $stmt2->execute([$id]);
-                $stmt_km = $conn->prepare("DELETE FROM chi_tiet_khuyen_mai WHERE ma_hh = ?");
+                $stmt_km = $this->conn->prepare("DELETE FROM chi_tiet_khuyen_mai WHERE ma_hh = ?");
                 $stmt_km->execute([$id]);
-                $stmt_bl = $conn->prepare("DELETE FROM binh_luan_danh_gia WHERE ma_hh = ?");
+                $stmt_bl = $this->conn->prepare("DELETE FROM binh_luan_danh_gia WHERE ma_hh = ?");
                 $stmt_bl->execute([$id]);
                 
-                $stmt3 = $conn->prepare("DELETE FROM hang_hoa WHERE ma_hh = ?");
+                $stmt3 = $this->conn->prepare("DELETE FROM hang_hoa WHERE ma_hh = ?");
                 $res = $stmt3->execute([$id]);
                 if ($res) {
                     echo json_encode(['success' => true]);
                 } else {
-                    echo json_encode(['success' => false, 'error' => $conn->errorInfo()[2]]);
+                    echo json_encode(['success' => false, 'error' => $this->conn->errorInfo()[2]]);
                 }
             } 
             // --- XỬ LÝ THÊM MỚI VOUCHER GIẢM GIÁ ---
@@ -245,7 +251,7 @@ class AdminController {
                 $ngay_bat_dau = date('Y-m-d H:i:s');
                 $ngay_het_han = date('Y-m-d H:i:s', strtotime($expire));
                 
-                $stmt_v = $conn->prepare("INSERT INTO voucher (ma_code, loai_giam_gia, gia_tri_giam, don_toi_thieu, so_luong, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, ?, 0.00, ?, ?, ?, 'HoatDong')");
+                $stmt_v = $this->conn->prepare("INSERT INTO voucher (ma_code, loai_giam_gia, gia_tri_giam, don_toi_thieu, so_luong, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, ?, 0.00, ?, ?, ?, 'HoatDong')");
                 if ($stmt_v->execute([$code, $loai_giam_gia, $discount_val, $quantity, $ngay_bat_dau, $ngay_het_han])) {
                     echo json_encode(['success' => true]);
                 } else {
@@ -257,7 +263,7 @@ class AdminController {
                 $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
                 $status = isset($_POST['status']) ? trim($_POST['status']) : '';
                 
-                $stmt_o = $conn->prepare("UPDATE don_hang SET trang_thai_don = ? WHERE ma_dh = ?");
+                $stmt_o = $this->conn->prepare("UPDATE don_hang SET trang_thai_don = ? WHERE ma_dh = ?");
                 if ($stmt_o->execute([$status, $id])) {
                     echo json_encode(['success' => true]);
                 } else {
@@ -275,24 +281,24 @@ class AdminController {
                 $ngay_bat_dau = date('Y-m-d H:i:s');
                 $ngay_het_han = date('Y-m-d H:i:s', strtotime($expire));
                 
-                $conn->beginTransaction();
+                $this->conn->beginTransaction();
                 try {
-                    $stmt_km = $conn->prepare("INSERT INTO khuyen_mai (loai_giam_gia, gia_tri_giam, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, ?, ?, 'HoatDong')");
+                    $stmt_km = $this->conn->prepare("INSERT INTO khuyen_mai (loai_giam_gia, gia_tri_giam, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, ?, ?, 'HoatDong')");
                     $stmt_km->execute([$loai_giam_gia, $discount_val, $ngay_bat_dau, $ngay_het_han]);
-                    $ma_km = $conn->lastInsertId();
+                    $ma_km = $this->conn->lastInsertId();
                     
                     if ($product_id > 0) {
-                        $stmt_ct = $conn->prepare("INSERT INTO chi_tiet_khuyen_mai (ma_km, ma_hh) VALUES (?, ?)");
+                        $stmt_ct = $this->conn->prepare("INSERT INTO chi_tiet_khuyen_mai (ma_km, ma_hh) VALUES (?, ?)");
                         $stmt_ct->execute([$ma_km, $product_id]);
                     }
                     
-                    $conn->commit();
+                    $this->conn->commit();
                     
                     // --- GỬI EMAIL THÔNG BÁO CHO TẤT CẢ KHÁCH HÀNG ĐÃ ĐĂNG KÝ ---
                     try {
                         // Lấy toàn bộ email từ bảng người đăng ký VÀ các tài khoản có khai báo email
                         $sql = "SELECT email FROM email_dang_ky UNION SELECT email FROM tai_khoan WHERE email IS NOT NULL AND email != ''";
-                        $stmt_emails = $conn->query($sql);
+                        $stmt_emails = $this->conn->query($sql);
                         $bccList = [];
                         while ($row = $stmt_emails->fetch()) {
                             if (filter_var($row['email'], FILTER_VALIDATE_EMAIL)) {
@@ -305,7 +311,7 @@ class AdminController {
                             // Nếu có áp dụng cho 1 sản phẩm cụ thể thì lấy tên sản phẩm
                             $prodName = "Tất cả sản phẩm";
                             if ($product_id > 0) {
-                                $stmt_pn = $conn->prepare("SELECT ten_hang_hoa FROM hang_hoa WHERE ma_hh = ?");
+                                $stmt_pn = $this->conn->prepare("SELECT ten_hang_hoa FROM hang_hoa WHERE ma_hh = ?");
                                 $stmt_pn->execute([$product_id]);
                                 if ($r = $stmt_pn->fetch()) {
                                     $prodName = $r['ten_hang_hoa'];
@@ -343,32 +349,32 @@ class AdminController {
 
                     echo json_encode(['success' => true]);
                 } catch(Exception $e) {
-                    $conn->rollBack();
+                    $this->conn->rollBack();
                     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
                 }
             }
             // --- XỬ LÝ XÓA KHUYẾN MÃI ---
             elseif ($action === 'delete_promotion') {
                 $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-                $stmt1 = $conn->prepare("DELETE FROM chi_tiet_khuyen_mai WHERE ma_km = ?");
+                $stmt1 = $this->conn->prepare("DELETE FROM chi_tiet_khuyen_mai WHERE ma_km = ?");
                 $stmt1->execute([$id]);
-                $stmt2 = $conn->prepare("DELETE FROM khuyen_mai WHERE ma_km = ?");
+                $stmt2 = $this->conn->prepare("DELETE FROM khuyen_mai WHERE ma_km = ?");
                 $res = $stmt2->execute([$id]);
                 if ($res) {
                     echo json_encode(['success' => true]);
                 } else {
-                    echo json_encode(['success' => false, 'error' => $conn->errorInfo()[2]]);
+                    echo json_encode(['success' => false, 'error' => $this->conn->errorInfo()[2]]);
                 }
             }
             // --- XỬ LÝ XÓA ĐÁNH GIÁ ---
             elseif ($action === 'delete_review') {
                 $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-                $stmt_del = $conn->prepare("DELETE FROM binh_luan_danh_gia WHERE ma_bl = ?");
+                $stmt_del = $this->conn->prepare("DELETE FROM binh_luan_danh_gia WHERE ma_bl = ?");
                 $res = $stmt_del->execute([$id]);
                 if ($res) {
                     echo json_encode(['success' => true]);
                 } else {
-                    echo json_encode(['success' => false, 'error' => $conn->errorInfo()[2]]);
+                    echo json_encode(['success' => false, 'error' => $this->conn->errorInfo()[2]]);
                 }
             }
             // --- XỬ LÝ THÊM DANH MỤC ---
@@ -382,7 +388,7 @@ class AdminController {
                 // Tạo slug đơn giản
                 $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-'));
                 
-                $stmt = $conn->prepare("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES (?, ?)");
+                $stmt = $this->conn->prepare("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES (?, ?)");
                 if ($stmt->execute([$name, $slug])) {
                     echo json_encode(['success' => true]);
                 } else {
@@ -400,7 +406,7 @@ class AdminController {
                 
                 $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-'));
                 
-                $stmt = $conn->prepare("UPDATE danh_muc SET ten_danh_muc = ?, slug = ? WHERE ma_dm = ?");
+                $stmt = $this->conn->prepare("UPDATE danh_muc SET ten_danh_muc = ?, slug = ? WHERE ma_dm = ?");
                 if ($stmt->execute([$name, $slug, $id])) {
                     echo json_encode(['success' => true]);
                 } else {
@@ -416,7 +422,7 @@ class AdminController {
                 }
                 
                 // KIỂM TRA RÀNG BUỘC SẢN PHẨM TRƯỚC KHI XÓA
-                $stmt_check = $conn->prepare("SELECT COUNT(*) as count FROM hang_hoa WHERE ma_dm = ?");
+                $stmt_check = $this->conn->prepare("SELECT COUNT(*) as count FROM hang_hoa WHERE ma_dm = ?");
                 $stmt_check->execute([$id]);
                 $row = $stmt_check->fetch();
                 if ($row && $row['count'] > 0) {
@@ -425,7 +431,7 @@ class AdminController {
                 }
                 
                 // Tiến hành xóa nếu an toàn
-                $stmt_del = $conn->prepare("DELETE FROM danh_muc WHERE ma_dm = ?");
+                $stmt_del = $this->conn->prepare("DELETE FROM danh_muc WHERE ma_dm = ?");
                 if ($stmt_del->execute([$id])) {
                     echo json_encode(['success' => true]);
                 } else {
