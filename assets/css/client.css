@@ -1,9 +1,9 @@
 /* ============================================================
-   CLIENT.CSS â€“ ToÃ n bá»™ component cho trang khÃ¡ch hÃ ng
+   CLIENT.CSS – Toàn bộ component cho trang khách hàng
    ============================================================ */
 
 
-/* â”€â”€ Glassmorphism â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Glassmorphism ─────────────────────────────────────────── */
 .glass-dark {
     background: rgba(28, 27, 27, 0.7);
     backdrop-filter: blur(12px);
@@ -56,7 +56,7 @@
     display: none;
     align-items: center;
     gap: 1.5rem;
-    position: relative; /* Äá»‹nh vá»‹ cho thanh káº» Ä‘á» nav-indicator trÆ°á»£t ngang */
+    position: relative; /* Định vị cho thanh kẻ đỏ nav-indicator trượt ngang */
 }
 @media (min-width: 768px) { .site-nav__links { display: flex; } }
 
@@ -82,24 +82,24 @@
     transition: color 0.25s;
     cursor: pointer;
     white-space: nowrap;
-    padding-bottom: 6px; /* Táº¡o khoáº£ng trá»‘ng dÆ°á»›i chÃ¢n chá»¯ giá»‘ng thiáº¿t káº¿ ban Ä‘áº§u */
+    padding-bottom: 6px; /* Tạo khoảng trống dưới chân chữ giống thiết kế ban đầu */
 }
 .nav-link:hover,
 .nav-link--active { color: var(--primary); }
 
-/* Äá»‹nh nghÄ©a thanh káº» Ä‘á» trÆ°á»£t ngang Ä‘á»™ng (Dynamic Sliding Underline) */
+/* Định nghĩa thanh kẻ đỏ trượt ngang động (Dynamic Sliding Underline) */
 .nav-indicator {
     position: absolute;
-    bottom: 0; /* Náº±m sÃ¡t mÃ©p dÆ°á»›i cÃ¹ng cá»§a container Ä‘Ã£ táº¡o khoáº£ng trá»‘ng */
+    bottom: 0; /* Nằm sát mép dưới cùng của container đã tạo khoảng trống */
     left: 0;
     height: 2px;
     background-color: var(--primary);
     border-radius: 99px;
-    pointer-events: none; /* KhÃ´ng cáº£n trá»Ÿ sá»± kiá»‡n nháº¥p chuá»™t cá»§a Menu */
+    pointer-events: none; /* Không cản trở sự kiện nhấp chuột của Menu */
     will-change: transform;
 }
 
-/* â”€â”€ Custom Auth Buttons Alignment â”€â”€ */
+/* ── Custom Auth Buttons Alignment ── */
 .auth-logout-btn {
     display: inline-flex !important;
     align-items: center;
@@ -473,11 +473,7 @@
     text-decoration: none;
     transition: color 0.25s;
     margin-bottom: 0.75rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: block;
 }
 .product-card:hover .product-card__name { color: var(--primary); }
 
@@ -678,7 +674,7 @@
 
 
 /* ============================================================
-   MAYANH PAGE â€“ Page header, filter bar, product grid catalog
+   MAYANH PAGE – Page header, filter bar, product grid catalog
    ============================================================ */
 .page-header {
     width: 100%;
@@ -818,7 +814,7 @@
 }
 .filter-sort:focus { border-color: var(--primary); }
 
-/* Catalog product card (mayanh page â€“ different from home card) */
+/* Catalog product card (mayanh page – different from home card) */
 .catalog-grid {
     max-width: var(--container-max);
     margin-inline: auto;
@@ -984,7 +980,7 @@
 }
 .detail-image { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
 
-/* â”€â”€ Thumbnails for gallery â”€â”€ */
+/* ── Thumbnails for gallery ── */
 .detail-thumbnails-container {
     display: flex;
     gap: 0.75rem;
@@ -1520,7 +1516,7 @@
 
 
 /* ============================================================
-   DONHANG PAGE â€“ Tabs, Orders, Favorites
+   DONHANG PAGE – Tabs, Orders, Favorites
    ============================================================ */
 .order-page__title {
     font-family: 'Geist', sans-serif;
@@ -2391,12 +2387,12 @@
    CINEMATIC TRANSITIONS FOR PRODUCT DETAIL PAGE (chitietsanpham)
    ============================================================ */
 
-/* Reset opacity cho main á»Ÿ trang chi tiáº¿t sáº£n pháº©m Ä‘á»ƒ cháº¡y hiá»‡u á»©ng phÃ¢n táº§ng cá»§a con */
+/* Reset opacity cho main ở trang chi tiết sản phẩm để chạy hiệu ứng phân tầng của con */
 body.entry-product main {
     opacity: 1 !important;
 }
 
-/* Khai bÃ¡o tráº¡ng thÃ¡i xuáº¥t phÃ¡t cho cÃ¡c pháº§n tá»­ phÃ¢n táº§ng */
+/* Khai báo trạng thái xuất phát cho các phần tử phân tầng */
 body.entry-product .breadcrumb {
     opacity: 0;
     transform: translateY(-8px);
@@ -2476,130 +2472,6 @@ body.entry-product .reviews-section {
     }
 }
 
-/* --- BLOG LIST --- */
-.blog-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2rem;
-    padding: 4rem 5%;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-.blog-card {
-    background: var(--surface-color);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-}
-.blog-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-}
-.blog-card__img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-}
-.blog-card__body {
-    padding: 1.5rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-.blog-card__date {
-    font-size: 0.85rem;
-    color: var(--text-color-light);
-    margin-bottom: 0.5rem;
-}
-.blog-card__title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.blog-card__summary {
-    font-size: 0.95rem;
-    color: var(--text-color-muted);
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    flex: 1;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.blog-card__readmore {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 600;
-    color: var(--primary-color);
-    text-transform: uppercase;
-    font-size: 0.85rem;
-}
-.blog-empty-msg {
-    text-align: center;
-    grid-column: 1 / -1;
-    padding: 3rem;
-    color: var(--text-color-light);
-}
-.blog-icon-sm {
-    font-size: 18px;
-}
-
-/* --- BLOG DETAIL --- */
-.article-detail {
-    max-width: 800px;
-    margin: 4rem auto;
-    padding: 0 5%;
-}
-.article-detail__title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 1rem;
-}
-.article-detail__meta {
-    color: var(--text-color-light);
-    font-size: 0.95rem;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.article-detail__author {
-    margin-left: 1rem;
-    color: var(--primary-color);
-}
-.article-detail__img {
-    width: 100%;
-    border-radius: 8px;
-    margin-bottom: 3rem;
-}
-.article-detail__content {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: var(--text-color);
-}
-.article-detail__content p {
-    margin-bottom: 1.5rem;
-}
-.article-detail__content h2, .article-detail__content h3 {
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
-}
 /* ============================================================
    MOBILE DRAWER (Hamburger Menu)
    ============================================================ */
