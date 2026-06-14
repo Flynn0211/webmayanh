@@ -1,4 +1,4 @@
-// File: assets/js/ongkinh.js
+// Tệp tin: assets/js/ongkinh.js
 
 document.addEventListener("DOMContentLoaded", function() {
     const productGrid   = document.getElementById('productGrid');
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     updateCartBadge();
 
-    // ── Helpers ──────────────────────────────────────────────
+    // ── Hàm Hỗ Trợ (Helpers) ──────────────────────────────
     function getBrandClass(brand) {
         if (!brand) return 'catalog-card__brand--default';
         const b = brand.toLowerCase();
@@ -35,8 +35,8 @@ document.addEventListener("DOMContentLoaded", function() {
         return parseInt(String(priceStr).replace(/\D/g, '')) || 0;
     }
 
-    // ── Render ────────────────────────────────────────────────
-    // ── Pagination Variables ──────────────────────────────────
+    // ── Render Giao Diện ────────────────────────────────
+    // ── Khai báo Biến Phân Trang ──────────────────────────
     let currentPage = 1;
     const itemsPerPage = 8;
 
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
-    // ── Render ────────────────────────────────────────────────
+    // ── Render Giao Diện ────────────────────────────────
     function renderProducts(resetPage = true) {
         if (resetPage) currentPage = 1;
         // Exclude camera items and show only accessories precisely
@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 300);
     }
 
-    // ── Events ────────────────────────────────────────────────
+    // ── Lắng nghe Sự kiện ───────────────────────────────
     brandBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             brandBtns.forEach(b => b.classList.remove('brand-btn--active'));

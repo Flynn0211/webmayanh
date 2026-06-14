@@ -4,7 +4,7 @@ if (adminApiBase.match(/\/admin\/?$/)) {
 }
 let clientApiBase = adminApiBase.replace(/\/admin\/[^\/]*$/, '/index.php');
 
-// ====== DATA ======
+// ====== DỮ LIỆU TẠM (MOCK DATA) ======
 let products = window.dbProducts || [];
 let orders = window.dbOrders || [];
 let vouchers = window.dbVouchers || [];

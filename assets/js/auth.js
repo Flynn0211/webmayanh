@@ -1,4 +1,4 @@
-// File: js/auth.js
+// Tệp tin: js/auth.js
 // Fake login and register have been removed because they are handled securely by backend PHP (login.php)
 
 

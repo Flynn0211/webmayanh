@@ -1,4 +1,4 @@
-// File: assets/js/taikhoan.js
+// Tệp tin: assets/js/taikhoan.js
 
 document.addEventListener("DOMContentLoaded", () => {
     const user = getCurrentUser();

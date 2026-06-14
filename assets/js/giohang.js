@@ -1,4 +1,4 @@
-// File: js/giohang.js
+// Tệp tin: js/giohang.js
 
 document.addEventListener("DOMContentLoaded", () => {
     const user = getCurrentUser();

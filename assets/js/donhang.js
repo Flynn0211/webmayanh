@@ -1,4 +1,4 @@
-// File: js/donhang.js
+// Tệp tin: js/donhang.js
 
 document.addEventListener("DOMContentLoaded", () => {
     const user = getCurrentUser();

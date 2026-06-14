@@ -1,4 +1,4 @@
-// File: js/trangchu.js
+// Tệp tin: js/trangchu.js
 
 document.addEventListener("DOMContentLoaded", function() {
     let liveProducts = window.dbProducts || [];
