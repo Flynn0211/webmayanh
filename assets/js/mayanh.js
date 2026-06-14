@@ -36,7 +36,28 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ── Render ────────────────────────────────────────────────
-    function renderProducts() {
+    // ── Pagination Variables ──────────────────────────────────
+    let currentPage = 1;
+    const itemsPerPage = 8;
+
+    window.changePage = function(page) {
+        currentPage = page;
+        renderProducts(false);
+        const grid = document.getElementById('productGrid');
+        if (grid) {
+            const headerOffset = 100;
+            const elementPosition = grid.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            window.scrollTo({
+                 top: offsetPosition,
+                 behavior: "smooth"
+            });
+        }
+    };
+
+    // ── Render ────────────────────────────────────────────────
+    function renderProducts(resetPage = true) {
+        if (resetPage) currentPage = 1;
         // Exclude lens items and show only cameras precisely
         let filtered = allProducts.filter(p => p.category === 'camera');
 
@@ -53,16 +74,31 @@ document.addEventListener("DOMContentLoaded", function() {
         if (sortSelect.value === 'price_asc')  filtered.sort((a, b) => getRawPrice(a.price) - getRawPrice(b.price));
         if (sortSelect.value === 'price_desc') filtered.sort((a, b) => getRawPrice(b.price) - getRawPrice(a.price));
 
+        
+
+        const existingPagination = document.getElementById('paginationControls');
+        if (existingPagination) existingPagination.remove();
+
+        
+
         if (filtered.length === 0) {
             noProductsMsg.classList.remove('hidden');
             productGrid.innerHTML = '';
             productGrid.appendChild(noProductsMsg);
             return;
         }
-
         noProductsMsg.classList.add('hidden');
 
-        productGrid.innerHTML = filtered.map(product => {
+        const totalPages = Math.ceil(filtered.length / itemsPerPage);
+        const start = (currentPage - 1) * itemsPerPage;
+        const currentProducts = filtered.slice(start, start + itemsPerPage);
+
+        productGrid.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        productGrid.style.opacity = '0';
+        productGrid.style.transform = 'translateY(10px)';
+
+        setTimeout(() => {
+            productGrid.innerHTML = currentProducts.map(product => {
             const badge = product.brand.toLowerCase() === 'leica'
                 ? '<div class="catalog-card__badge">Limited</div>'
                 : '';
@@ -95,6 +131,19 @@ document.addEventListener("DOMContentLoaded", function() {
                 </div>
             </div>`;
         }).join('');
+
+            if (totalPages > 1) {
+                let paginationHTML = '<div id="paginationControls" style="display: flex; justify-content: center; gap: 0.5rem; width: 100%; margin-top: 2rem; grid-column: 1 / -1;">';
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHTML += `<button onclick="window.changePage(${i})" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid ${i === currentPage ? 'var(--primary)' : 'var(--border-color)'}; background: ${i === currentPage ? 'var(--primary)' : 'transparent'}; color: ${i === currentPage ? '#fff' : 'inherit'}; cursor: pointer; transition: 0.3s; border-radius: 4px; font-family: 'Geist', sans-serif;">${i}</button>`;
+                }
+                paginationHTML += '</div>';
+                productGrid.insertAdjacentHTML('beforeend', paginationHTML);
+            }
+
+            productGrid.style.opacity = '1';
+            productGrid.style.transform = 'translateY(0)';
+        }, 300);
     }
 
     // ── Events ────────────────────────────────────────────────

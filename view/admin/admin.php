@@ -90,31 +90,31 @@ while ($row = $res_u->fetch()) {
 
 // 4. BI Stats Calculations
 $week_rev = 0;
-$res_w = $conn->query("SELECT SUM(c.so_luong * c.gia_luc_mua) as rev FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don != 'Đã hủy' AND d.ngay_dat >= DATE_SUB(NOW(), INTERVAL 1 WEEK)");
+$res_w = $conn->query("SELECT SUM(c.so_luong * c.gia_luc_mua) as rev FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don = 'Hoàn Thành' AND d.ngay_dat >= DATE_SUB(NOW(), INTERVAL 1 WEEK)");
 if ($row = $res_w->fetch()) {
     $week_rev = (float) $row['rev'];
 }
 
 $month_rev = 0;
-$res_m = $conn->query("SELECT SUM(c.so_luong * c.gia_luc_mua) as rev FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don != 'Đã hủy' AND d.ngay_dat >= DATE_SUB(NOW(), INTERVAL 1 MONTH)");
+$res_m = $conn->query("SELECT SUM(c.so_luong * c.gia_luc_mua) as rev FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don = 'Hoàn Thành' AND d.ngay_dat >= DATE_SUB(NOW(), INTERVAL 1 MONTH)");
 if ($row = $res_m->fetch()) {
     $month_rev = (float) $row['rev'];
 }
 
 $year_rev = 0;
-$res_yr = $conn->query("SELECT SUM(c.so_luong * c.gia_luc_mua) as rev FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don != 'Đã hủy' AND d.ngay_dat >= DATE_SUB(NOW(), INTERVAL 1 YEAR)");
+$res_yr = $conn->query("SELECT SUM(c.so_luong * c.gia_luc_mua) as rev FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don = 'Hoàn Thành' AND d.ngay_dat >= DATE_SUB(NOW(), INTERVAL 1 YEAR)");
 if ($row = $res_yr->fetch()) {
     $year_rev = (float) $row['rev'];
 }
 
 $total_orders = 0;
-$res_to = $conn->query("SELECT COUNT(*) as cnt FROM don_hang WHERE trang_thai_don != 'Đã hủy'");
+$res_to = $conn->query("SELECT COUNT(*) as cnt FROM don_hang WHERE trang_thai_don = 'Hoàn Thành'");
 if ($row = $res_to->fetch()) {
     $total_orders = (int) $row['cnt'];
 }
 
 $products_sold = 0;
-$res_ps = $conn->query("SELECT SUM(so_luong) as cnt FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don != 'Đã hủy'");
+$res_ps = $conn->query("SELECT SUM(so_luong) as cnt FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don = 'Hoàn Thành'");
 if ($row = $res_ps->fetch()) {
     $products_sold = (int) $row['cnt'];
 }
@@ -127,7 +127,7 @@ if ($row = $res_nc->fetch()) {
 
 // 5. Chart Data (Past 12 Months)
 $chart_data = [];
-$res_ch = $conn->query("SELECT MONTH(ngay_dat) as m, YEAR(ngay_dat) as y, SUM(so_luong * gia_luc_mua) as revenue FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don != 'Đã hủy' AND ngay_dat >= DATE_SUB(NOW(), INTERVAL 12 MONTH) GROUP BY YEAR(ngay_dat), MONTH(ngay_dat) ORDER BY y, m");
+$res_ch = $conn->query("SELECT MONTH(ngay_dat) as m, YEAR(ngay_dat) as y, SUM(so_luong * gia_luc_mua) as revenue FROM chi_tiet_don_hang c JOIN don_hang d ON c.ma_dh = d.ma_dh WHERE d.trang_thai_don = 'Hoàn Thành' AND ngay_dat >= DATE_SUB(NOW(), INTERVAL 12 MONTH) GROUP BY YEAR(ngay_dat), MONTH(ngay_dat) ORDER BY y, m");
 while ($row = $res_ch->fetch()) {
     $chart_data[] = [
         'label' => 'T' . $row['m'],
@@ -170,7 +170,7 @@ while ($row = $res_ch->fetch()) {
     <!-- ── Sidebar ─────────────────────────────────────────── -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar__logo">
-            <a href="../index.php" class="admin-sidebar__logo-link">
+            <a href="index.php" class="admin-sidebar__logo-link">
                 <span class="material-symbols-outlined">camera</span>
                 LENS &amp; LIGHT
             </a>

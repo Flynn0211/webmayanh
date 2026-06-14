@@ -3,7 +3,24 @@
 document.addEventListener("DOMContentLoaded", function() {
     let liveProducts = window.dbProducts || [];
 
-    const products    = liveProducts.filter(p => p.category === 'camera');
+        const products    = liveProducts.filter(p => p.category === 'camera');
+    
+    let currentPage = 1;
+    const itemsPerPage = 8;
+    window.changePage = function(page) {
+        currentPage = page;
+        renderHomeProducts();
+        const grid = document.getElementById('productGrid');
+        if (grid) {
+            const headerOffset = 100;
+            const elementPosition = grid.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            window.scrollTo({
+                 top: offsetPosition,
+                 behavior: "smooth"
+            });
+        }
+    };
     const productGrid = document.getElementById('productGrid');
 
     function getBrandClass(brand) {
@@ -24,7 +41,20 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     if (productGrid) {
-        productGrid.innerHTML = products.map(product => {
+        function renderHomeProducts() {
+        const existingPagination = document.getElementById('paginationControls');
+        if (existingPagination) existingPagination.remove();
+
+        const totalPages = Math.ceil(products.length / itemsPerPage);
+        const start = (currentPage - 1) * itemsPerPage;
+        const currentProducts = products.slice(start, start + itemsPerPage);
+
+        productGrid.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        productGrid.style.opacity = '0';
+        productGrid.style.transform = 'translateY(10px)';
+
+        setTimeout(() => {
+            productGrid.innerHTML = currentProducts.map(product => {
             const badge = product.brand.toLowerCase() === 'leica'
                 ? '<div class="product-card__badge">Limited</div>'
                 : '';
@@ -57,6 +87,21 @@ document.addEventListener("DOMContentLoaded", function() {
             </div>
             `;
         }).join('');
+
+            if (totalPages > 1) {
+                let paginationHTML = '<div id="paginationControls" style="display: flex; justify-content: center; gap: 0.5rem; width: 100%; margin-top: 2rem; grid-column: 1 / -1;">';
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHTML += `<button onclick="window.changePage(${i})" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid ${i === currentPage ? 'var(--primary)' : 'var(--border-color)'}; background: ${i === currentPage ? 'var(--primary)' : 'transparent'}; color: ${i === currentPage ? '#fff' : 'inherit'}; cursor: pointer; transition: 0.3s; border-radius: 4px; font-family: 'Geist', sans-serif;">${i}</button>`;
+                }
+                paginationHTML += '</div>';
+                productGrid.insertAdjacentHTML('beforeend', paginationHTML);
+            }
+
+            productGrid.style.opacity = '1';
+            productGrid.style.transform = 'translateY(0)';
+        }, 300);
+    }
+    renderHomeProducts();
     }
 
     updateCartBadge();
