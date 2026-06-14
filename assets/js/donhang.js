@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderFavorites() {
         const favKey  = `favorites_${user.username}`;
         let favs      = JSON.parse(localStorage.getItem(favKey)) || [];
-        const products= JSON.parse(localStorage.getItem('products')) || [];
+        const products= window.dbProducts || JSON.parse(localStorage.getItem('products')) || [];
 
         if (favs.length === 0) {
             favoritesContainer.innerHTML = `

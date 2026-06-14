@@ -172,7 +172,7 @@
     </section>
 </main>
 
-<?php include 'view/client/layout/_footer_light.php'; ?>
+<?php include 'view/client/layout/_footer_dark.php'; ?>
 
 <!-- Edit Profile Modal -->
 <div id="editProfileModal" class="modal-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s;">

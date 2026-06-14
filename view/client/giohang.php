@@ -119,7 +119,7 @@
     </div>
 </main>
 
-<?php include 'view/client/layout/_footer_light.php'; ?>
+<?php include 'view/client/layout/_footer_dark.php'; ?>
 
 <script src="assets/js/auth.js?v=2.0"></script>
 <script src="assets/js/giohang.js"></script>

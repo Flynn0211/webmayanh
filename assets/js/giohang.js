@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
             totalRawAll += (parseInt(String(item.price).replace(/\D/g, '')) || 0) * item.quantity;
         });
 
-        const products = JSON.parse(localStorage.getItem('products')) || [];
+        const products = window.dbProducts || JSON.parse(localStorage.getItem('products')) || [];
 
         let discountRemaining = 0;
         if (window.appliedVoucher) {
@@ -308,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(data => {
             if (data.success) {
                 // Trừ tồn kho local (vì trang chủ vẫn dùng localProducts)
-                let prods = JSON.parse(localStorage.getItem('products')) || [];
+                let prods = window.dbProducts || JSON.parse(localStorage.getItem('products')) || [];
                 cart.forEach(ci => {
                     const pi = prods.findIndex(p => p.id == ci.id);
                     if (pi > -1) prods[pi].stock = Math.max(0, (prods[pi].stock || 10) - ci.quantity);

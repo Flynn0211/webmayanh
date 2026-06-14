@@ -5,7 +5,7 @@
  */
 
 // Nạp tầng nghiệp vụ CSDL của tài khoản người dùng
-
+require_once __DIR__ . '/../model/UserModel.php';
 
 class AuthController {
     private $conn;
