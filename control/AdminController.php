@@ -296,6 +296,13 @@ class AdminController {
                     if ($product_id > 0) {
                         $stmt_ct = $this->conn->prepare("INSERT INTO chi_tiet_khuyen_mai (ma_km, ma_hh) VALUES (?, ?)");
                         $stmt_ct->execute([$ma_km, $product_id]);
+                    } else {
+                        // Áp dụng cho tất cả sản phẩm đang bán
+                        $stmt_all = $this->conn->query("SELECT ma_hh FROM hang_hoa WHERE trang_thai = 'DangBan'");
+                        $stmt_ct = $this->conn->prepare("INSERT INTO chi_tiet_khuyen_mai (ma_km, ma_hh) VALUES (?, ?)");
+                        while ($row = $stmt_all->fetch()) {
+                            $stmt_ct->execute([$ma_km, $row['ma_hh']]);
+                        }
                     }
                     
                     $this->conn->commit();

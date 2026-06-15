@@ -244,7 +244,7 @@ class AuthController {
         if ($row = $stmt->fetch()) {
             // Tự động phân cấp hạng thành viên thực tế dựa trên tổng điểm tích lũy
             $pts = (int)$row['diem_tich_luy'];
-            $tier = 'Thường';
+            $tier = 'None';
             if ($pts >= 10000) $tier = 'Diamond';
             elseif ($pts >= 5000) $tier = 'Gold';
             elseif ($pts >= 1000) $tier = 'Silver';
