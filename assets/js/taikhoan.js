@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     alert(data.message || 'Lỗi cập nhật');
                 }
             })
-            .catch(err => alert('Lỗi kết nối'));
+            .catch(err => alert('Lỗi kết nối: ' + err.message));
         });
     }
 

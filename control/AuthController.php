@@ -289,15 +289,19 @@ class AuthController {
         $email = isset($data['email']) ? trim($data['email']) : '';
         $sdt = isset($data['sdt']) ? trim($data['sdt']) : '';
 
-        $stmt = $this->conn->prepare("UPDATE tai_khoan SET ho_ten = ?, email = ?, sdt = ? WHERE username = ?");
-        if ($stmt->execute([$ho_ten, $email, $sdt, $username])) {
-            // Đồng bộ lại các biến Session
-            $_SESSION['client_fullname'] = $ho_ten;
-            $_SESSION['client_email'] = $email;
-            $_SESSION['client_phone'] = $sdt;
-            echo json_encode(['success' => true, 'message' => 'Cập nhật thông tin thành công']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Lỗi khi cập nhật vào cơ sở dữ liệu']);
+        try {
+            $stmt = $this->conn->prepare("UPDATE tai_khoan SET ho_ten = ?, email = ?, sdt = ? WHERE username = ?");
+            if ($stmt->execute([$ho_ten, $email, $sdt, $username])) {
+                // Đồng bộ lại các biến Session
+                $_SESSION['client_fullname'] = $ho_ten;
+                $_SESSION['client_email'] = $email;
+                $_SESSION['client_phone'] = $sdt;
+                echo json_encode(['success' => true, 'message' => 'Cập nhật thông tin thành công']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Lỗi khi cập nhật vào cơ sở dữ liệu']);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi CSDL: ' . $e->getMessage()]);
         }
     }
 
