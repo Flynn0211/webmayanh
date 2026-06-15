@@ -170,17 +170,17 @@ class AdminController {
                 // 2. Chuẩn hóa giá bán (loại bỏ ký tự phân tách nghìn)
                 $price_cleaned = (float)preg_replace('/[^0-9.]/', '', $price);
                 
-                $saved_image = $image;
-                // Không lưu file tĩnh nữa, lưu trực tiếp chuỗi Base64 vào DB
+                // Giải mã Base64 và lưu thành File tĩnh thay vì lưu thẳng vào DB
+                $saved_image = $this->saveBase64Image($image, "main");
 
                 // 3.5. Xử lý mảng ảnh phụ (Option 2) lưu trữ dạng mảng JSON
                 $additional_images = isset($_POST['additional_images']) ? trim($_POST['additional_images']) : '[]';
                 $add_images_arr = json_decode($additional_images, true);
                 $saved_add_images = [];
                 if (is_array($add_images_arr)) {
-                    foreach ($add_images_arr as $img_val) {
+                    foreach ($add_images_arr as $idx => $img_val) {
                         if (!empty($img_val)) {
-                            $saved_add_images[] = $img_val; // Lưu nguyên chuỗi Base64
+                            $saved_add_images[] = $this->saveBase64Image($img_val, "sub_$idx");
                         }
                     }
                 }
@@ -440,5 +440,39 @@ class AdminController {
             }
             exit;
         }
+    }
+
+    /**
+     * Hàm hỗ trợ giải mã Base64 thành File ảnh vật lý và lưu vào uploads/products/
+     */
+    private function saveBase64Image($base64String, $prefix = 'img') {
+        // Nếu không phải định dạng base64 (ví dụ đã là URL tĩnh), giữ nguyên
+        if (strpos($base64String, 'data:image/') !== 0) {
+            return $base64String;
+        }
+
+        // Tách header type và phần dữ liệu data
+        list($type, $data) = explode(';', $base64String);
+        list(, $data)      = explode(',', $data);
+        
+        $ext = 'png';
+        if (strpos($type, 'jpeg') !== false || strpos($type, 'jpg') !== false) {
+            $ext = 'jpg';
+        } elseif (strpos($type, 'webp') !== false) {
+            $ext = 'webp';
+        } elseif (strpos($type, 'gif') !== false) {
+            $ext = 'gif';
+        }
+
+        $filename = "img_" . uniqid() . "_{$prefix}.{$ext}";
+        $filepath = "uploads/products/{$filename}";
+
+        $decodedData = base64_decode($data);
+        if ($decodedData !== false) {
+            file_put_contents(__DIR__ . '/../' . $filepath, $decodedData);
+            return $filepath;
+        }
+
+        return $base64String;
     }
 }
