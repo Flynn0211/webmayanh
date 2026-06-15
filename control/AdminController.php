@@ -472,6 +472,33 @@ class AdminController {
                     echo json_encode(['success' => false, 'error' => $stmt_del->errorInfo()[2]]);
                 }
             }
+            // --- XỬ LÝ THÊM TÀI KHOẢN (NHÂN VIÊN/ADMIN) ---
+            elseif ($action === 'add_user') {
+                $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+                $username = isset($_POST['username']) ? trim($_POST['username']) : '';
+                $password = isset($_POST['password']) ? $_POST['password'] : '';
+                $role = isset($_POST['role']) ? trim($_POST['role']) : 'Admin';
+                
+                if (empty($name) || empty($username) || empty($password)) {
+                    echo json_encode(['success' => false, 'error' => 'Thiếu thông tin bắt buộc']);
+                    exit;
+                }
+                
+                $stmt_check = $this->conn->prepare("SELECT ma_tk FROM tai_khoan WHERE username = ?");
+                $stmt_check->execute([$username]);
+                if ($stmt_check->fetch()) {
+                    echo json_encode(['success' => false, 'error' => 'Tên đăng nhập đã tồn tại']);
+                    exit;
+                }
+                
+                $hashed = password_hash($password, PASSWORD_DEFAULT);
+                $stmt_add = $this->conn->prepare("INSERT INTO tai_khoan (ho_ten, username, mat_khau, loai_tk, trang_thai) VALUES (?, ?, ?, ?, 'HoatDong')");
+                if ($stmt_add->execute([$name, $username, $hashed, $role])) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Lỗi CSDL khi tạo tài khoản']);
+                }
+            }
             exit;
         }
     }
