@@ -63,6 +63,20 @@ document.addEventListener("DOMContentLoaded", () => {
             if (summaryElem) summaryElem.style.display = 'block';
         }
 
+        const products = window.dbProducts || JSON.parse(localStorage.getItem('products')) || [];
+        
+        let cartUpdated = false;
+        cart.forEach(item => {
+            const currentProduct = products.find(p => String(p.id) === String(item.id));
+            if (currentProduct && currentProduct.price !== item.price) {
+                item.price = currentProduct.price;
+                cartUpdated = true;
+            }
+        });
+        if (cartUpdated) {
+            localStorage.setItem(cartKey, JSON.stringify(cart));
+        }
+
         let html  = '';
         let total = 0;
         let totalRawAll = 0;
@@ -92,6 +106,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 discountRemaining -= deduct;
             }
             
+            const origProd     = products.find(p => String(p.id) === String(item.id));
+            const displayImage = origProd ? origProd.image : (item.image || '');
+
             let displayPriceHtml = '';
             if (itemTotalDiscounted < itemTotalOriginal) {
                 const currentUnitPrice = itemTotalDiscounted / item.quantity;
@@ -100,11 +117,16 @@ document.addEventListener("DOMContentLoaded", () => {
                                         <span style="color: var(--primary); font-weight: bold;">${formatPriceLocal(itemTotalDiscounted)}</span>
                                     </div>`;
             } else {
-                displayPriceHtml = `<span>${formatPriceLocal(rawPrice * item.quantity)}</span>`;
+                if (origProd && origProd.raw_original_price > origProd.raw_price) {
+                    const originalTotal = origProd.raw_original_price * item.quantity;
+                    displayPriceHtml = `<div style="display:flex; flex-direction:column; align-items:flex-end;">
+                                            <span style="text-decoration: line-through; font-size: 0.85em; color: #888;">${formatPriceLocal(originalTotal)}</span>
+                                            <span style="color: var(--primary); font-weight: bold;">${formatPriceLocal(rawPrice * item.quantity)}</span>
+                                        </div>`;
+                } else {
+                    displayPriceHtml = `<span>${formatPriceLocal(rawPrice * item.quantity)}</span>`;
+                }
             }
-            
-            const origProd     = products.find(p => p.id == item.id);
-            const displayImage = origProd ? origProd.image : (item.image || '');
             
             total += itemTotalDiscounted;
 
