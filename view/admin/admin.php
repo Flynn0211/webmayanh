@@ -345,8 +345,11 @@ while ($row = $res_ch->fetch()) {
                                 <span class="material-symbols-outlined">add</span> Thêm
                             </button>
                         </div>
-                        <div class="admin-filter-bar" style="display:flex; gap:1rem; margin-bottom:1rem; align-items:center; flex-wrap:wrap; padding: 0 1.5rem;">
-                            <input type="text" id="productSearchInput" placeholder="Tìm kiếm sản phẩm (Tên, ID, Thương hiệu)..." class="admin-input" oninput="renderAdminProducts()" style="max-width:300px; flex:1;">
+                        <div class="admin-filter-bar">
+                            <div class="admin-search-wrapper">
+                                <span class="material-symbols-outlined">search</span>
+                                <input type="text" id="productSearchInput" placeholder="Tìm kiếm sản phẩm (Tên, ID)..." class="admin-input" oninput="renderAdminProducts()">
+                            </div>
                             <select id="productFilterBrand" class="admin-input" onchange="renderAdminProducts()" style="max-width:200px;">
                                 <option value="">Tất cả thương hiệu</option>
                             </select>

@@ -297,6 +297,43 @@
     letter-spacing: -0.01em;
 }
 
+.admin-filter-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 1rem 1.5rem;
+    background: var(--surface-container-lowest);
+    border-bottom: 1px solid rgba(228,190,188,.3);
+}
+
+.admin-filter-bar .admin-input {
+    margin-bottom: 0;
+    height: 42px;
+    box-sizing: border-box;
+}
+
+.admin-search-wrapper {
+    position: relative;
+    flex: 1;
+    max-width: 320px;
+}
+
+.admin-search-wrapper .material-symbols-outlined {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--on-surface-variant);
+    pointer-events: none;
+    font-size: 1.25rem;
+}
+
+.admin-search-wrapper .admin-input {
+    padding-left: 2.75rem;
+    width: 100%;
+}
+
 .table-wrap { overflow-x: auto; flex: 1; }
 
 .admin-table {
