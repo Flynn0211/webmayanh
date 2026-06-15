@@ -170,9 +170,9 @@ while ($row = $res_ch->fetch()) {
     <!-- ── Sidebar ─────────────────────────────────────────── -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar__logo">
-            <a href="index.php" class="admin-sidebar__logo-link">
+            <a href="../index.php" class="admin-sidebar__logo-link">
                 <span class="material-symbols-outlined">camera</span>
-                LENS &amp; LIGHT
+                <span>LENS & LIGHT</span>
             </a>
         </div>
 

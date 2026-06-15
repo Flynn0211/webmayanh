@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // ── Render Giao Diện ────────────────────────────────
     // ── Khai báo Biến Phân Trang ──────────────────────────
     let currentPage = 1;
-    const itemsPerPage = 16;
+    const itemsPerPage = 8;
 
     window.changePage = function(page) {
         currentPage = page;
