@@ -1,3 +1,9 @@
+/**
+ * Tệp tin: chitietsanpham.js
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến chitietsanpham
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
 document.addEventListener("DOMContentLoaded", function() {
     // Utilities format from trangchu.js
     function getBrandColor(brand) {

@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: ReviewModel.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến ReviewModel
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Lớp ReviewModel quản lý các thao tác truy vấn và ghi dữ liệu đánh giá, bình luận của sản phẩm.
  */
 class ReviewModel {

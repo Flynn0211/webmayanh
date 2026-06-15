@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: AuthController.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến AuthController
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Lớp AuthController điều phối toàn bộ các xử lý liên quan đến xác thực tài khoản (Đăng nhập, Đăng ký, Đăng xuất)
  * Đồng bộ trạng thái phiên (Session) giữa khách hàng (Client) và quản trị viên (Admin), tự động cập nhật băm mật khẩu bảo mật cao (bcrypt) và quản lý hồ sơ tài khoản.
  */

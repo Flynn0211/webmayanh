@@ -1,3 +1,9 @@
+/**
+ * Tệp tin: phukien.js
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến phukien
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
 // Tệp tin: assets/js/ongkinh.js
 
 document.addEventListener("DOMContentLoaded", function() {

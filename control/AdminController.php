@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: AdminController.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến AdminController
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Lớp AdminController xử lý toàn bộ các hành động Quản trị (Admin) thông qua AJAX POST
  * bao gồm: quản lý sản phẩm (thêm/sửa/xóa), chuyển đổi thông số kỹ thuật sang JSON, upload ảnh base64, thêm mã voucher và cập nhật trạng thái đơn hàng.
  */

@@ -1,3 +1,9 @@
+/**
+ * Tệp tin: mayanh.js
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến mayanh
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
 // Tệp tin: js/mayanh.js
 
 document.addEventListener("DOMContentLoaded", function() {

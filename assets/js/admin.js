@@ -1,3 +1,9 @@
+/**
+ * Tệp tin: admin.js
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến admin
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
 let adminApiBase = window.location.pathname;
 if (adminApiBase.match(/\/admin\/?$/)) {
     adminApiBase = adminApiBase.replace(/\/admin\/?$/, '/admin/index.php');
@@ -871,7 +877,7 @@ function renderAdditionalImages() {
         img.style.objectFit = 'contain';
         item.appendChild(img);
 
-        // Delete button
+        // Xóa dữ liệu button
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
         delBtn.innerHTML = '×';

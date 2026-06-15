@@ -1,3 +1,9 @@
+/**
+ * Tệp tin: taikhoan.js
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến taikhoan
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
 // Tệp tin: assets/js/taikhoan.js
 
 document.addEventListener("DOMContentLoaded", () => {

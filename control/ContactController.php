@@ -1,4 +1,10 @@
 <?php
+/**
+ * Tệp tin: ContactController.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến ContactController
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
 require_once __DIR__ . '/../model/SmtpMailer.php';
 
 class ContactController {

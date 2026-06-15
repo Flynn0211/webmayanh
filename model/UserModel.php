@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: UserModel.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến UserModel
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Lớp UserModel quản lý các truy vấn liên quan đến thông tin tài khoản (người dùng/nhân viên).
  */
 class UserModel {

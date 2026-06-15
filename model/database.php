@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: database.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến database
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Tệp kết nối Cơ sở dữ liệu MySQL sử dụng PDO
  * Đảm bảo hệ thống hoạt động ổn định, bảo mật và không bị rò rỉ thông tin máy chủ khi mất kết nối.
  */

@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: SmtpMailer.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến SmtpMailer
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Lớp SmtpMailer đã được cập nhật để sử dụng thư viện PHPMailer
  */
 

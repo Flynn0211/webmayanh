@@ -1,3 +1,9 @@
+/**
+ * Tệp tin: giohang.js
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến giohang
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
 // Tệp tin: js/giohang.js
 
 document.addEventListener("DOMContentLoaded", () => {

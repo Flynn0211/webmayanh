@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: ProductController.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến ProductController
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Lớp ProductController điều phối toàn bộ các xử lý nghiệp vụ liên quan đến hàng hóa
  */
 

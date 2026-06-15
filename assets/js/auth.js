@@ -1,3 +1,9 @@
+/**
+ * Tệp tin: auth.js
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến auth
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
 // Tệp tin: js/auth.js
 // Fake login and register have been removed because they are handled securely by backend PHP (login.php)
 

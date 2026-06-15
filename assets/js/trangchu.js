@@ -1,3 +1,9 @@
+/**
+ * Tệp tin: trangchu.js
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến trangchu
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
 // Tệp tin: js/trangchu.js
 
 document.addEventListener("DOMContentLoaded", function() {

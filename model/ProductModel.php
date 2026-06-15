@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: ProductModel.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến ProductModel
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Lớp ProductModel xử lý các truy vấn liên quan đến hàng hóa (sản phẩm) từ cơ sở dữ liệu.
  */
 class ProductModel {

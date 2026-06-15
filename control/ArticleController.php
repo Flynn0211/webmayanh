@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: ArticleController.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến ArticleController
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Lớp ArticleController quản lý toàn bộ các bài viết (blog/tin tức) của hệ thống CMS
  */
 require_once __DIR__ . '/../model/database.php';

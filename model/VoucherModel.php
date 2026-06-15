@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: VoucherModel.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến VoucherModel
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Lớp VoucherModel xử lý các truy vấn và kiểm tra điều kiện áp dụng mã giảm giá (voucher).
  */
 class VoucherModel {

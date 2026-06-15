@@ -1,5 +1,11 @@
 <?php
 /**
+ * Tệp tin: OrderController.php
+ * Chức năng: Xử lý logic và nghiệp vụ liên quan đến OrderController
+ * Tác giả: Nhóm Lập Trình Web Nâng Cao
+ */
+
+/**
  * Lớp OrderController quản lý toàn bộ các quy trình liên quan đến Đơn hàng (Checkout, Lịch sử đơn hàng, Cập nhật trạng thái)
  * Sử dụng cơ chế Transaction (giao dịch CSDL) an toàn tuyệt đối khi thanh toán, tự động trừ kho đa kho thông minh, tính điểm thành viên, áp dụng voucher và gửi thư thông báo tự động.
  */
