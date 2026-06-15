@@ -171,16 +171,41 @@ class AdminController {
                 $price_cleaned = (float)preg_replace('/[^0-9.]/', '', $price);
                 
                 $saved_image = $image;
-                // Không lưu file tĩnh nữa, lưu trực tiếp chuỗi Base64 vào DB
+                // Lưu file tĩnh từ Base64
+                if (strpos($image, 'data:image') === 0) {
+                    list($type, $img_data) = explode(';', $image);
+                    list(, $img_data)      = explode(',', $img_data);
+                    $img_decoded      = base64_decode($img_data);
+                    $ext = explode('/', $type)[1];
+                    if ($ext === 'jpeg') $ext = 'jpg';
+                    $filename = uniqid('prod_') . '.' . $ext;
+                    $filepath = __DIR__ . '/../uploads/products/' . $filename;
+                    if (file_put_contents($filepath, $img_decoded)) {
+                        $saved_image = 'uploads/products/' . $filename;
+                    }
+                }
 
-                // 3.5. Xử lý mảng ảnh phụ (Option 2) lưu trữ dạng mảng JSON
+                // 3.5. Xử lý mảng ảnh phụ
                 $additional_images = isset($_POST['additional_images']) ? trim($_POST['additional_images']) : '[]';
                 $add_images_arr = json_decode($additional_images, true);
                 $saved_add_images = [];
                 if (is_array($add_images_arr)) {
                     foreach ($add_images_arr as $img_val) {
                         if (!empty($img_val)) {
-                            $saved_add_images[] = $img_val; // Lưu nguyên chuỗi Base64
+                            if (strpos($img_val, 'data:image') === 0) {
+                                list($type, $img_data) = explode(';', $img_val);
+                                list(, $img_data)      = explode(',', $img_data);
+                                $img_decoded      = base64_decode($img_data);
+                                $ext = explode('/', $type)[1];
+                                if ($ext === 'jpeg') $ext = 'jpg';
+                                $filename = uniqid('prod_sub_') . '.' . $ext;
+                                $filepath = __DIR__ . '/../uploads/products/' . $filename;
+                                if (file_put_contents($filepath, $img_decoded)) {
+                                    $saved_add_images[] = 'uploads/products/' . $filename;
+                                }
+                            } else {
+                                $saved_add_images[] = $img_val; // Keep existing path
+                            }
                         }
                     }
                 }

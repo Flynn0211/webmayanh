@@ -1,6 +1,21 @@
-﻿# NHẬT KÝ THAY ĐỔI & BÁO CÁO PHIÊN BẢN (CHANGELOG)
+# NHẬT KÝ THAY ĐỔI & BÁO CÁO PHIÊN BẢN (CHANGELOG)
 
-Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng cấp kỹ thuật của hệ thống website Máy ảnh & Ống kính (LENS & LIGHT) theo trình t�## [Phiên Bản Cập Nhật Ngày 11/06/2026] - Tích hợp Rich Text Editor (CKEditor 5), Đồng bộ CSDL bài viết & Quản lý Danh mục Sản phẩm an toàn
+Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng cấp kỹ thuật của hệ thống website Máy ảnh & Ống kính (LENS & LIGHT) theo trình tự thời gian.
+
+---
+
+## [Phiên Bản Cập Nhật Ngày 15/06/2026] - Chuyển đổi Cơ chế Lưu trữ Hình ảnh về File Tĩnh (Static Files)
+
+### 🖼️ Phục hồi Cơ chế Upload File tĩnh thay cho Base64
+- **Giảm tải Database:** Loại bỏ cơ chế lưu trữ trực tiếp chuỗi Base64 dài vào cơ sở dữ liệu cho Sản phẩm và Bài viết, nhằm tránh phình to dung lượng CSDL và cải thiện tốc độ truy vấn.
+- **Tái tạo cấu trúc thư mục upload:** Thiết lập thư mục tĩnh `uploads/products/` và `uploads/articles/` để lưu trữ file ảnh vật lý thật.
+- **Xử lý Tự động tại Controller:** 
+  - Tại `AdminController.php`: tự động nhận diện và decode chuỗi Base64 từ phía Front-end, ghi xuống file tĩnh và lưu đường dẫn vật lý (vd: `uploads/products/prod_123.jpg`) vào DB cho ảnh chính và mảng ảnh phụ.
+  - Tại `ArticleController.php`: Cập nhật logic để xử lý trực tiếp mảng `$_FILES` và chuyển `handleCKEditorUpload` sang lưu trữ file vật lý bằng `move_uploaded_file`, trả về URL ảnh cho người dùng.
+
+---
+
+## [Phiên Bản Cập Nhật Ngày 11/06/2026] - Tích hợp Rich Text Editor (CKEditor 5), Đồng bộ CSDL bài viết & Quản lý Danh mục Sản phẩm an toàn
 
 ### 📝 Tích hợp Trình soạn thảo văn bản Rich Text (CKEditor 5) cho Bài viết
 - **Editor cao cấp:** Thay thế thẻ `<textarea>` thông thường bằng **CKEditor 5** (phiên bản Classic CDN) cho ô nhập nội dung bài viết trong trang Admin. Quản trị viên dễ dàng định dạng văn bản (in đậm, in nghiêng, tiêu đề, liên kết, danh sách...).
