@@ -170,7 +170,7 @@ while ($row = $res_ch->fetch()) {
     <!-- ── Sidebar ─────────────────────────────────────────── -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar__logo">
-            <a href="../index.php" class="admin-sidebar__logo-link">
+            <a href="<?php echo str_replace('admin/index.php', 'index.php', $_SERVER['SCRIPT_NAME']); ?>" class="admin-sidebar__logo-link">
                 <span class="material-symbols-outlined">camera</span>
                 <span>LENS & LIGHT</span>
             </a>
