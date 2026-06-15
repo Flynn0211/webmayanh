@@ -254,11 +254,10 @@ class AdminController {
                 $discount_val = (float)preg_replace('/[^0-9.]/', '', $discount);
                 $loai_giam_gia = (strpos($discount, '%') !== false) ? 'PhanTram' : 'TienMat';
                 
-                $ngay_bat_dau = date('Y-m-d H:i:s');
-                $ngay_het_han = date('Y-m-d H:i:s', strtotime($expire));
+                $ngay_het_han = $expire . ' 23:59:59';
                 
-                $stmt_v = $this->conn->prepare("INSERT INTO voucher (ma_code, loai_giam_gia, gia_tri_giam, don_toi_thieu, so_luong, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, ?, 0.00, ?, ?, ?, 'HoatDong')");
-                if ($stmt_v->execute([$code, $loai_giam_gia, $discount_val, $quantity, $ngay_bat_dau, $ngay_het_han])) {
+                $stmt_v = $this->conn->prepare("INSERT INTO voucher (ma_code, loai_giam_gia, gia_tri_giam, don_toi_thieu, so_luong, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, ?, 0.00, ?, NOW(), ?, 'HoatDong')");
+                if ($stmt_v->execute([$code, $loai_giam_gia, $discount_val, $quantity, $ngay_het_han])) {
                     echo json_encode(['success' => true]);
                 } else {
                     echo json_encode(['success' => false, 'error' => $stmt_v->errorInfo()[2]]);
@@ -284,13 +283,13 @@ class AdminController {
                 
                 $discount_val = (float)preg_replace('/[^0-9.]/', '', $discount);
                 $loai_giam_gia = (strpos($discount, '%') !== false) ? 'PhanTram' : 'TienMat';
-                $ngay_bat_dau = date('Y-m-d H:i:s');
-                $ngay_het_han = date('Y-m-d H:i:s', strtotime($expire));
+                
+                $ngay_het_han = $expire . ' 23:59:59';
                 
                 $this->conn->beginTransaction();
                 try {
-                    $stmt_km = $this->conn->prepare("INSERT INTO khuyen_mai (loai_giam_gia, gia_tri_giam, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, ?, ?, 'HoatDong')");
-                    $stmt_km->execute([$loai_giam_gia, $discount_val, $ngay_bat_dau, $ngay_het_han]);
+                    $stmt_km = $this->conn->prepare("INSERT INTO khuyen_mai (loai_giam_gia, gia_tri_giam, ngay_bat_dau, ngay_het_han, trang_thai) VALUES (?, ?, NOW(), ?, 'HoatDong')");
+                    $stmt_km->execute([$loai_giam_gia, $discount_val, $ngay_het_han]);
                     $ma_km = $this->conn->lastInsertId();
                     
                     if ($product_id > 0) {
