@@ -74,15 +74,12 @@ class ArticleController {
 
             // Xử lý upload tệp hình ảnh đại diện của bài viết
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                // Mã hóa trực tiếp sang Base64
-                $fileTmp = $_FILES['image']['tmp_name'];
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                $mimeType = finfo_file($finfo, $fileTmp);
-                finfo_close($finfo);
-                
-                $data = file_get_contents($fileTmp);
-                $base64 = 'data:' . $mimeType . ';base64,' . base64_encode($data);
-                $imagePath = $base64;
+                $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+                $filename = uniqid('art_') . '.' . $ext;
+                $targetPath = __DIR__ . '/../uploads/articles/' . $filename;
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
+                    $imagePath = 'uploads/articles/' . $filename;
+                }
             }
 
             $data = [
@@ -159,15 +156,19 @@ class ArticleController {
                 exit;
             }
 
-            // Xử lý ghi trực tiếp ảnh dưới dạng Base64
-            $data = file_get_contents($file['tmp_name']);
-            $base64 = 'data:' . $mimeType . ';base64,' . base64_encode($data);
-
-            echo json_encode([
-                'uploaded' => 1,
-                'fileName' => $file['name'],
-                'url' => $base64
-            ]);
+            // Lưu file vào thư mục tĩnh
+            $filename = uniqid('ck_') . '.' . $fileExtension;
+            $targetPath = __DIR__ . '/../uploads/articles/' . $filename;
+            
+            if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+                echo json_encode([
+                    'uploaded' => 1,
+                    'fileName' => $filename,
+                    'url' => 'uploads/articles/' . $filename
+                ]);
+            } else {
+                echo json_encode(['error' => ['message' => 'Lỗi: Không thể lưu file.']]);
+            }
             exit;
         }
     }

@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Populate Description and Specs (with fallback if empty)
         const descElem = document.getElementById('detailDescription');
-        descElem.innerText = product.description || 'Chưa có mô tả cho sản phẩm này.';
+        descElem.innerHTML = product.description || 'Chưa có mô tả cho sản phẩm này.';
         
         const specsElem = document.getElementById('detailSpecs');
         specsElem.innerText = product.specs || 'Chưa có thông số kỹ thuật cho sản phẩm này.';

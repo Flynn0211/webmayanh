@@ -173,7 +173,7 @@ class AdminController {
                 // Giải mã Base64 và lưu thành File tĩnh thay vì lưu thẳng vào DB
                 $saved_image = $this->saveBase64Image($image, "main");
 
-                // 3.5. Xử lý mảng ảnh phụ (Option 2) lưu trữ dạng mảng JSON
+                // 3.5. Xử lý mảng ảnh phụ
                 $additional_images = isset($_POST['additional_images']) ? trim($_POST['additional_images']) : '[]';
                 $add_images_arr = json_decode($additional_images, true);
                 $saved_add_images = [];

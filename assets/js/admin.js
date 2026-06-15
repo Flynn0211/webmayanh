@@ -235,6 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         switchTab('revenue');
     }
+    if (typeof populateBrandFilter === 'function') {
+        populateBrandFilter();
+    }
 });
 
 // ── Products ──────────────────────────────────────────────────
@@ -345,11 +348,56 @@ document.getElementById('categoryForm')?.addEventListener('submit', function(e) 
 function renderAdminProducts() {
     const tbody = document.getElementById('adminProductTableBody');
     if (!tbody) return;
-    if (products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="td-muted" style="text-align:center;padding:2rem;">Không có sản phẩm nào.</td></tr>`;
+    
+    let displayProducts = [...products];
+
+    // Apply search
+    const searchInput = document.getElementById('productSearchInput');
+    if (searchInput) {
+        const query = searchInput.value.toLowerCase().trim();
+        if (query) {
+            displayProducts = displayProducts.filter(p => 
+                (p.name && p.name.toLowerCase().includes(query)) || 
+                (p.brand && p.brand.toLowerCase().includes(query)) ||
+                String(p.id).includes(query)
+            );
+        }
+    }
+    
+    // Apply filter
+    const brandFilter = document.getElementById('productFilterBrand');
+    if (brandFilter && brandFilter.value) {
+        displayProducts = displayProducts.filter(p => p.brand && p.brand.toLowerCase() === brandFilter.value.toLowerCase());
+    }
+    
+    // Apply sort
+    const sortSelect = document.getElementById('productSort');
+    if (sortSelect) {
+        const sortVal = sortSelect.value;
+        if (sortVal === 'price_asc') {
+            displayProducts.sort((a, b) => {
+                const pA = parseFloat(String(a.price).replace(/[^0-9.-]+/g, ""));
+                const pB = parseFloat(String(b.price).replace(/[^0-9.-]+/g, ""));
+                return pA - pB;
+            });
+        } else if (sortVal === 'price_desc') {
+            displayProducts.sort((a, b) => {
+                const pA = parseFloat(String(a.price).replace(/[^0-9.-]+/g, ""));
+                const pB = parseFloat(String(b.price).replace(/[^0-9.-]+/g, ""));
+                return pB - pA;
+            });
+        } else if (sortVal === 'stock_asc') {
+            displayProducts.sort((a, b) => (a.stock || 0) - (b.stock || 0));
+        } else if (sortVal === 'newest') {
+            displayProducts.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        }
+    }
+
+    if (displayProducts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="td-muted" style="text-align:center;padding:2rem;">Không tìm thấy sản phẩm nào phù hợp.</td></tr>`;
         return;
     }
-    tbody.innerHTML = products.map(p => `
+    tbody.innerHTML = displayProducts.map(p => `
         <tr>
             <td class="td-id center">#${p.id}</td>
             <td>
@@ -373,6 +421,17 @@ function renderAdminProducts() {
             </td>
         </tr>
     `).join('');
+}
+
+function populateBrandFilter() {
+    const filter = document.getElementById('productFilterBrand');
+    if (!filter) return;
+    const brands = [...new Set(products.map(p => p.brand))].filter(b => b);
+    let html = '<option value="">Tất cả thương hiệu</option>';
+    brands.forEach(b => {
+        html += `<option value="${b}">${b}</option>`;
+    });
+    filter.innerHTML = html;
 }
 
 // ── Orders ────────────────────────────────────────────────────
@@ -887,6 +946,7 @@ function initModal() {
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            syncProductCKEditor();
             const originalId = document.getElementById('originalProductId').value;
             const id         = document.getElementById('productId').value.trim();
             const category   = document.getElementById('productCategory').value;
@@ -958,7 +1018,8 @@ function openProductModal(id = null) {
         el.readOnly = false;
         el.classList.remove('admin-input--disabled');
     });
-    document.getElementById('productDescription').value = '';
+    
+    let initialDescContent = '';
     document.getElementById('productSpecs').value = '';
 
     document.getElementById('modalTitle').innerText = id ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm';
@@ -973,8 +1034,26 @@ function openProductModal(id = null) {
         document.getElementById('productPrice').value       = p.price || '';
         document.getElementById('productStock').value       = p.stock !== undefined ? p.stock : 10;
         document.getElementById('productImage').value       = p.image;
-        document.getElementById('productDescription').value = p.description || '';
-        document.getElementById('productSpecs').value       = p.specs || '';
+        initialDescContent = p.description || '';
+        
+        let formattedSpecs = p.specs || '';
+        if (formattedSpecs.trim().startsWith('{')) {
+            try {
+                const specsObj = JSON.parse(formattedSpecs);
+                const specLines = [];
+                for (const [key, value] of Object.entries(specsObj)) {
+                    if (value === "Có") {
+                        specLines.push(key);
+                    } else {
+                        specLines.push(`${key}: ${value}`);
+                    }
+                }
+                formattedSpecs = specLines.join('\n');
+            } catch (e) {
+                // keep original if parse fails
+            }
+        }
+        document.getElementById('productSpecs').value = formattedSpecs;
 
         idInput.readOnly = true;
         idInput.classList.add('admin-input--disabled');
@@ -1006,6 +1085,42 @@ function openProductModal(id = null) {
     }
 
     modal.classList.add('open');
+    initProductCKEditor(initialDescContent);
+}
+
+let productEditorInstance;
+
+function initProductCKEditor(initialContent) {
+    if (productEditorInstance) {
+        productEditorInstance.destroy()
+            .then(() => createProductEditor(initialContent))
+            .catch(error => console.error(error));
+    } else {
+        createProductEditor(initialContent);
+    }
+}
+
+function createProductEditor(initialContent) {
+    ClassicEditor
+        .create(document.querySelector('#productDescription'), {
+            simpleUpload: {
+                uploadUrl: adminApiBase + '?action=upload_image'
+            }
+        })
+        .then(editor => {
+            productEditorInstance = editor;
+            editor.setData(initialContent);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+}
+
+function syncProductCKEditor() {
+    if (productEditorInstance) {
+        document.getElementById('productDescription').value = productEditorInstance.getData();
+    }
+    return true;
 }
 
 function closeProductModal() {

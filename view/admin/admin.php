@@ -345,6 +345,18 @@ while ($row = $res_ch->fetch()) {
                                 <span class="material-symbols-outlined">add</span> Thêm
                             </button>
                         </div>
+                        <div class="admin-filter-bar" style="display:flex; gap:1rem; margin-bottom:1rem; align-items:center; flex-wrap:wrap; padding: 0 1.5rem;">
+                            <input type="text" id="productSearchInput" placeholder="Tìm kiếm sản phẩm (Tên, ID, Thương hiệu)..." class="admin-input" oninput="renderAdminProducts()" style="max-width:300px; flex:1;">
+                            <select id="productFilterBrand" class="admin-input" onchange="renderAdminProducts()" style="max-width:200px;">
+                                <option value="">Tất cả thương hiệu</option>
+                            </select>
+                            <select id="productSort" class="admin-input" onchange="renderAdminProducts()" style="max-width:200px;">
+                                <option value="newest">Mới nhất</option>
+                                <option value="price_asc">Giá tăng dần</option>
+                                <option value="price_desc">Giá giảm dần</option>
+                                <option value="stock_asc">Tồn kho thấp nhất</option>
+                            </select>
+                        </div>
                         <div class="table-wrap">
                             <table class="admin-table" style="min-width:800px;">
                                 <thead>
@@ -797,6 +809,9 @@ while ($row = $res_ch->fetch()) {
                             <textarea id="productSpecs" rows="5"
                                 placeholder="Cảm biến: Full-Frame 60MP&#10;Kết nối: Wi-Fi, Bluetooth..."
                                 class="admin-textarea admin-textarea--mono"></textarea>
+                            <small style="color:var(--on-surface-variant); display:block; margin-top:0.25rem; font-size: 0.85rem;">
+                                * Nhập mỗi thông số trên 1 dòng theo định dạng <strong>Tên thông số: Giá trị</strong>. Hệ thống sẽ tự động chuyển đổi.
+                            </small>
                         </div>
                     </div>
 

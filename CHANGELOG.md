@@ -1,6 +1,35 @@
-﻿# NHẬT KÝ THAY ĐỔI & BÁO CÁO PHIÊN BẢN (CHANGELOG)
+# NHẬT KÝ THAY ĐỔI & BÁO CÁO PHIÊN BẢN (CHANGELOG)
 
-Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng cấp kỹ thuật của hệ thống website Máy ảnh & Ống kính (LENS & LIGHT) theo trình t�## [Phiên Bản Cập Nhật Ngày 11/06/2026] - Tích hợp Rich Text Editor (CKEditor 5), Đồng bộ CSDL bài viết & Quản lý Danh mục Sản phẩm an toàn
+Tệp này ghi nhận toàn bộ các mốc cập nhật, sửa lỗi và nâng cấp kỹ thuật của hệ thống website Máy ảnh & Ống kính (LENS & LIGHT) theo trình tự thời gian.
+
+---
+
+## [Phiên Bản Cập Nhật Ngày 15/06/2026] - Lưu trữ Ảnh Tĩnh, Bộ lọc Sản phẩm Admin & Tối ưu Nhập liệu UI/UX
+
+### 🖼️ Phục hồi Cơ chế Upload File tĩnh thay cho Base64
+- **Giảm tải Database:** Loại bỏ cơ chế lưu trữ trực tiếp chuỗi Base64 dài vào cơ sở dữ liệu cho Sản phẩm và Bài viết, nhằm tránh phình to dung lượng CSDL và cải thiện tốc độ truy vấn.
+- **Tái tạo cấu trúc thư mục upload:** Thiết lập thư mục tĩnh `uploads/products/` và `uploads/articles/` để lưu trữ file ảnh vật lý thật.
+- **Xử lý Tự động tại Controller:** 
+  - Tại `AdminController.php`: tự động nhận diện và decode chuỗi Base64 từ phía Front-end, ghi xuống file tĩnh và lưu đường dẫn vật lý (vd: `uploads/products/prod_123.jpg`) vào DB cho ảnh chính và mảng ảnh phụ.
+  - Tại `ArticleController.php`: Cập nhật logic để xử lý trực tiếp mảng `$_FILES` và chuyển `handleCKEditorUpload` sang lưu trữ file vật lý bằng `move_uploaded_file`, trả về URL ảnh cho người dùng.
+
+### 🔍 Bộ lọc, Tìm kiếm và Sắp xếp Sản phẩm Admin
+- **Thanh công cụ lọc mới:** Thêm thanh bộ lọc vào Tab Sản phẩm trong trang Quản trị [admin.php](file:///c:/xampp/htdocs/webmayanh/view/admin/admin.php), bao gồm: ô tìm kiếm sản phẩm theo tên, danh sách chọn lọc theo Thương hiệu (Brand), và sắp xếp theo Giá (tăng/giảm), Tồn kho (tăng/giảm), hoặc sản phẩm Mới nhất.
+- **Xử lý JavaScript thời gian thực:** Cập nhật `renderAdminProducts()` trong [admin.js](file:///c:/xampp/htdocs/webmayanh/assets/js/admin.js) để lọc và sắp xếp danh sách sản phẩm hiển thị trên giao diện theo thời gian thực mà không cần tải lại trang. Tự động thu thập danh sách thương hiệu thực tế từ dữ liệu sản phẩm để điền vào bộ lọc Brand (`populateBrandFilter()`).
+
+### ✍️ Trải nghiệm Nhập liệu UI/UX Sản phẩm nâng cao
+- **Tích hợp CKEditor 5 cho Mô tả:** Chuyển đổi trường Mô tả Sản phẩm trong modal thêm/sửa từ thẻ `<textarea>` sang trình soạn thảo trực quan **CKEditor 5 Classic** để định dạng bài giới thiệu sản phẩm chuyên nghiệp.
+- **Định dạng Thông số kỹ thuật (Specs) trực quan:** 
+  - Tự động phân tích chuỗi JSON lưu trữ của trường `p.specs` và hiển thị ra giao diện modal chỉnh sửa dưới dạng các dòng text đơn giản `Tên_thông_số: Giá_trị` (mỗi dòng một cặp) thay vì bắt người dùng phải nhập định dạng JSON thô dễ sai sót.
+  - Backend tự động nhận diện và chuyển đổi text này về JSON để lưu trữ an toàn trong CSDL.
+  - Bổ sung dòng ghi chú hướng dẫn sử dụng trực quan bên dưới ô nhập thông số kỹ thuật.
+
+### 🐛 Khắc phục lỗi hiển thị Chi tiết Sản phẩm
+- **Hiển thị định dạng Rich Text:** Sửa lỗi hiển thị các thẻ HTML thô (như `<p>`, `<strong>`) trong phần Mô tả chi tiết sản phẩm ở giao diện khách hàng. Thay đổi việc gán dữ liệu từ `.innerText` sang `.innerHTML` trong [chitietsanpham.js](file:///c:/xampp/htdocs/webmayanh/assets/js/chitietsanpham.js) giúp trình duyệt render đúng nội dung Rich Text được định dạng từ CKEditor.
+
+---
+
+## [Phiên Bản Cập Nhật Ngày 11/06/2026] - Tích hợp Rich Text Editor (CKEditor 5), Đồng bộ CSDL bài viết & Quản lý Danh mục Sản phẩm an toàn
 
 ### 📝 Tích hợp Trình soạn thảo văn bản Rich Text (CKEditor 5) cho Bài viết
 - **Editor cao cấp:** Thay thế thẻ `<textarea>` thông thường bằng **CKEditor 5** (phiên bản Classic CDN) cho ô nhập nội dung bài viết trong trang Admin. Quản trị viên dễ dàng định dạng văn bản (in đậm, in nghiêng, tiêu đề, liên kết, danh sách...).

@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const products    = liveProducts.filter(p => p.category === 'camera');
     
     let currentPage = 1;
-    const itemsPerPage = 8;
+    const itemsPerPage = 16;
     window.changePage = function(page) {
         currentPage = page;
         renderHomeProducts();
