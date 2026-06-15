@@ -13,11 +13,11 @@ class ArticleModel {
         if ($this->conn === false) return [];
         $sql = "SELECT bv.*, tk.ho_ten AS tac_gia 
                 FROM bai_viet bv 
-                LEFT JOIN tai_khoan tk ON bv.ma_tk = tk.ma_tk ";
+                LEFT JOIN tai_khoan tk ON bv.ma_tk_dang = tk.ma_tk ";
         if ($status) {
             $sql .= "WHERE bv.trang_thai = :status ";
         }
-        $sql .= "ORDER BY bv.ngay_tao DESC";
+        $sql .= "ORDER BY bv.ngay_dang DESC";
         
         $stmt = $this->conn->prepare($sql);
         if ($status) {
@@ -34,7 +34,7 @@ class ArticleModel {
         if ($this->conn === false) return false;
         $sql = "SELECT bv.*, tk.ho_ten AS tac_gia 
                 FROM bai_viet bv 
-                LEFT JOIN tai_khoan tk ON bv.ma_tk = tk.ma_tk 
+                LEFT JOIN tai_khoan tk ON bv.ma_tk_dang = tk.ma_tk 
                 WHERE bv.slug = :slug LIMIT 1";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':slug', $slug, PDO::PARAM_STR);
@@ -49,7 +49,7 @@ class ArticleModel {
         if ($this->conn === false) return false;
         $sql = "SELECT bv.*, tk.ho_ten AS tac_gia 
                 FROM bai_viet bv 
-                LEFT JOIN tai_khoan tk ON bv.ma_tk = tk.ma_tk 
+                LEFT JOIN tai_khoan tk ON bv.ma_tk_dang = tk.ma_tk 
                 WHERE bv.ma_bv = :id LIMIT 1";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -62,16 +62,16 @@ class ArticleModel {
      */
     public function addArticle($data) {
         if ($this->conn === false) return false;
-        $sql = "INSERT INTO bai_viet (tieu_de, slug, anh_dai_dien, mo_ta_ngan, noi_dung, ma_tk, trang_thai) 
-                VALUES (:tieu_de, :slug, :anh_dai_dien, :mo_ta_ngan, :noi_dung, :ma_tk, :trang_thai)";
+        $sql = "INSERT INTO bai_viet (tieu_de, slug, anh_bia, tom_tat, noi_dung, ma_tk_dang, trang_thai) 
+                VALUES (:tieu_de, :slug, :anh_bia, :tom_tat, :noi_dung, :ma_tk_dang, :trang_thai)";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([
             ':tieu_de' => $data['tieu_de'],
             ':slug' => $data['slug'],
-            ':anh_dai_dien' => $data['anh_bia'],
-            ':mo_ta_ngan' => $data['tom_tat'],
+            ':anh_bia' => $data['anh_bia'],
+            ':tom_tat' => $data['tom_tat'],
             ':noi_dung' => $data['noi_dung'],
-            ':ma_tk' => $data['ma_tk_dang'],
+            ':ma_tk_dang' => $data['ma_tk_dang'],
             ':trang_thai' => $data['trang_thai']
         ]);
     }
@@ -84,8 +84,8 @@ class ArticleModel {
         $sql = "UPDATE bai_viet SET 
                 tieu_de = :tieu_de, 
                 slug = :slug, 
-                anh_dai_dien = :anh_dai_dien, 
-                mo_ta_ngan = :mo_ta_ngan, 
+                anh_bia = :anh_bia, 
+                tom_tat = :tom_tat, 
                 noi_dung = :noi_dung, 
                 trang_thai = :trang_thai 
                 WHERE ma_bv = :id";
@@ -93,8 +93,8 @@ class ArticleModel {
         return $stmt->execute([
             ':tieu_de' => $data['tieu_de'],
             ':slug' => $data['slug'],
-            ':anh_dai_dien' => $data['anh_bia'],
-            ':mo_ta_ngan' => $data['tom_tat'],
+            ':anh_bia' => $data['anh_bia'],
+            ':tom_tat' => $data['tom_tat'],
             ':noi_dung' => $data['noi_dung'],
             ':trang_thai' => $data['trang_thai'],
             ':id' => $id
