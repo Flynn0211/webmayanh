@@ -84,8 +84,6 @@ document.addEventListener("DOMContentLoaded", () => {
             totalRawAll += (parseInt(String(item.price).replace(/\D/g, '')) || 0) * item.quantity;
         });
 
-        const products = window.dbProducts || JSON.parse(localStorage.getItem('products')) || [];
-
         let discountRemaining = 0;
         if (window.appliedVoucher) {
             if (window.appliedVoucher.type === 'PhanTram') {
