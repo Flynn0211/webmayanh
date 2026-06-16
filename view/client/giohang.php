@@ -60,7 +60,7 @@
 
                 <div class="cart-summary__form-group" style="margin-top: 1rem;">
                     <label for="customerPhone" style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.5rem; letter-spacing: 0.5px;">SỐ ĐIỆN THOẠI GIAO HÀNG *</label>
-                    <input type="text" id="customerPhone" placeholder="Nhập số điện thoại..." style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit;" required>
+                    <input type="text" id="customerPhone" placeholder="Nhập số điện thoại..." style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: inherit;" value="<?= htmlspecialchars($_SESSION['client_phone'] ?? '') ?>" required>
                 </div>
 
                 <div class="cart-summary__form-group" style="margin-top: 1rem;">
@@ -121,6 +121,9 @@
 
 <?php include 'view/client/layout/_footer_dark.php'; ?>
 
+<script>
+window.clientAddressStr = <?= isset($_SESSION['client_address']) && $_SESSION['client_address'] ? json_encode($_SESSION['client_address']) : 'null' ?>;
+</script>
 <script src="assets/js/auth.js?v=2.0"></script>
 <script src="assets/js/giohang.js"></script>
 </body>

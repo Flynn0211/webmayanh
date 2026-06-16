@@ -57,13 +57,13 @@ class AuthController {
                 }
 
                 if ($is_password_correct) {
-                    // Thiết lập thông tin phiên SESSION của Client
                     $_SESSION['client_logged_in'] = true;
                     $_SESSION['client_username']  = $row['username'];
                     $_SESSION['client_fullname']  = $row['ho_ten'];
                     $_SESSION['client_role']      = strtolower($row['loai_tk']);
                     $_SESSION['client_email']     = $row['email'];
                     $_SESSION['client_phone']     = $row['sdt'];
+                    $_SESSION['client_address']   = $row['dia_chi'];
 
                     // Nếu là tài khoản Admin, cấp thêm quyền SESSION Quản trị và chuyển hướng thẳng vào Admin Dashboard
                     if ($row['loai_tk'] === 'Admin') {
@@ -101,6 +101,8 @@ class AuthController {
             $fullname = isset($_POST['fullname']) ? trim($_POST['fullname']) : '';
             $username = isset($_POST['username']) ? trim($_POST['username']) : '';
             $password = isset($_POST['password']) ? trim($_POST['password']) : '';
+            $phone    = isset($_POST['phone']) ? trim($_POST['phone']) : '';
+            $address  = isset($_POST['address']) ? trim($_POST['address']) : '';
 
             // Kiểm tra tính duy nhất của tên đăng nhập
             $existing = $this->userModel->getUserByUsername($username);
@@ -108,14 +110,15 @@ class AuthController {
                 $login_error = "Tên đăng nhập này đã tồn tại trên hệ thống!";
             } else {
                 // Thực thi thêm mới tài khoản
-                if ($this->userModel->registerUser($fullname, $username, $password)) {
+                if ($this->userModel->registerUser($fullname, $username, $password, $phone, $address)) {
                     // Tự động đăng nhập người dùng ngay sau khi đăng ký thành công
                     $_SESSION['client_logged_in'] = true;
                     $_SESSION['client_username']  = $username;
                     $_SESSION['client_fullname']  = $fullname;
                     $_SESSION['client_role']      = 'user';
                     $_SESSION['client_email']     = '';
-                    $_SESSION['client_phone']     = '';
+                    $_SESSION['client_phone']     = $phone;
+                    $_SESSION['client_address']   = $address;
 
                     header("Location: index.php?page=trangchu");
                     exit;
@@ -171,6 +174,7 @@ class AuthController {
                             $_SESSION['client_role']      = 'admin';
                             $_SESSION['client_email']     = $row['email'];
                             $_SESSION['client_phone']     = $row['sdt'];
+                            $_SESSION['client_address']   = $row['dia_chi'];
 
                             header("Location: index.php");
                             exit;
@@ -199,6 +203,7 @@ class AuthController {
         unset($_SESSION['client_role']);
         unset($_SESSION['client_email']);
         unset($_SESSION['client_phone']);
+        unset($_SESSION['client_address']);
         header("Location: index.php?page=trangchu");
         exit;
     }
@@ -216,6 +221,7 @@ class AuthController {
         unset($_SESSION['client_role']);
         unset($_SESSION['client_email']);
         unset($_SESSION['client_phone']);
+        unset($_SESSION['client_address']);
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_destroy();
         }
@@ -239,7 +245,7 @@ class AuthController {
             return;
         }
 
-        $stmt = $this->conn->prepare("SELECT ho_ten, email, sdt, hang_thanh_vien, diem_tich_luy FROM tai_khoan WHERE username = ?");
+        $stmt = $this->conn->prepare("SELECT ho_ten, email, sdt, dia_chi, hang_thanh_vien, diem_tich_luy FROM tai_khoan WHERE username = ?");
         $stmt->execute([$username]);
         if ($row = $stmt->fetch()) {
             // Tự động phân cấp hạng thành viên thực tế dựa trên tổng điểm tích lũy
@@ -288,14 +294,17 @@ class AuthController {
         $ho_ten = isset($data['ho_ten']) ? trim($data['ho_ten']) : '';
         $email = isset($data['email']) ? trim($data['email']) : '';
         $sdt = isset($data['sdt']) ? trim($data['sdt']) : '';
+        // If data['dia_chi'] is object, encode to JSON string, otherwise string
+        $dia_chi = isset($data['dia_chi']) ? (is_array($data['dia_chi']) ? json_encode($data['dia_chi'], JSON_UNESCAPED_UNICODE) : trim($data['dia_chi'])) : '';
 
         try {
-            $stmt = $this->conn->prepare("UPDATE tai_khoan SET ho_ten = ?, email = ?, sdt = ? WHERE username = ?");
-            if ($stmt->execute([$ho_ten, $email, $sdt, $username])) {
+            $stmt = $this->conn->prepare("UPDATE tai_khoan SET ho_ten = ?, email = ?, sdt = ?, dia_chi = ? WHERE username = ?");
+            if ($stmt->execute([$ho_ten, $email, $sdt, $dia_chi, $username])) {
                 // Đồng bộ lại các biến Session
                 $_SESSION['client_fullname'] = $ho_ten;
                 $_SESSION['client_email'] = $email;
                 $_SESSION['client_phone'] = $sdt;
+                $_SESSION['client_address'] = $dia_chi;
                 echo json_encode(['success' => true, 'message' => 'Cập nhật thông tin thành công']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Lỗi khi cập nhật vào cơ sở dữ liệu']);

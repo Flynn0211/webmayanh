@@ -42,15 +42,15 @@ class UserModel {
      * @param string $password Mật khẩu dạng thuần (sẽ băm trước khi lưu)
      * @return bool Trạng thái đăng ký thành công hay thất bại
      */
-    public function registerUser($fullname, $username, $password) {
+    public function registerUser($fullname, $username, $password, $phone, $address) {
         if ($this->conn === false) {
             return false;
         }
-        $stmt = $this->conn->prepare("INSERT INTO tai_khoan (username, mat_khau, ho_ten, loai_tk, hang_thanh_vien, diem_tich_luy, trang_thai) VALUES (?, ?, ?, 'User', 'None', 0, 'HoatDong')");
+        $stmt = $this->conn->prepare("INSERT INTO tai_khoan (username, mat_khau, ho_ten, loai_tk, sdt, dia_chi, hang_thanh_vien, diem_tich_luy, trang_thai) VALUES (?, ?, ?, 'User', ?, ?, 'None', 0, 'HoatDong')");
         if ($stmt) {
             // Thực hiện băm mật khẩu chuẩn bảo mật cao chống tấn công dò mật khẩu
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            return $stmt->execute([$username, $hashed_password, $fullname]);
+            return $stmt->execute([$username, $hashed_password, $fullname, $phone, $address]);
         }
         return false;
     }

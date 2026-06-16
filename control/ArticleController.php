@@ -79,12 +79,27 @@ class ArticleController {
             }
 
             // Xử lý upload tệp hình ảnh đại diện của bài viết
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
+                if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+                    die("Lỗi tải ảnh lên máy chủ (Mã lỗi: " . $_FILES['image']['error'] . "). Vui lòng kiểm tra lại kích thước ảnh hoặc cấu hình PHP.");
+                }
+                
                 $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
                 $filename = uniqid('art_') . '.' . $ext;
-                $targetPath = __DIR__ . '/../uploads/articles/' . $filename;
+                $targetDir = __DIR__ . '/../uploads/articles/';
+                
+                // Tự động tạo thư mục uploads/articles nếu chưa có
+                if (!is_dir($targetDir)) {
+                    if (!mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
+                        die("Lỗi: Không thể tạo thư mục lưu trữ ảnh bài viết tại {$targetDir}. Vui lòng phân quyền ghi (CHMOD) cho thư mục cha.");
+                    }
+                }
+                
+                $targetPath = $targetDir . $filename;
                 if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
                     $imagePath = 'uploads/articles/' . $filename;
+                } else {
+                    die("Lỗi: Không thể ghi file ảnh vật lý lên máy chủ tại {$targetPath}. Vui lòng kiểm tra dung lượng ổ đĩa và cấp quyền ghi (CHMOD 755 hoặc 777) cho thư mục uploads/articles/.");
                 }
             }
 
@@ -164,7 +179,17 @@ class ArticleController {
 
             // Lưu file vào thư mục tĩnh
             $filename = uniqid('ck_') . '.' . $fileExtension;
-            $targetPath = __DIR__ . '/../uploads/articles/' . $filename;
+            $targetDir = __DIR__ . '/../uploads/articles/';
+            
+            // Tự động tạo thư mục uploads/articles nếu chưa có
+            if (!is_dir($targetDir)) {
+                if (!mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
+                    echo json_encode(['error' => ['message' => "Lỗi: Không thể tạo thư mục lưu trữ tại {$targetDir}. Vui lòng phân quyền ghi (CHMOD) cho thư mục cha."]]);
+                    exit;
+                }
+            }
+            
+            $targetPath = $targetDir . $filename;
             
             if (move_uploaded_file($file['tmp_name'], $targetPath)) {
                 echo json_encode([
@@ -173,7 +198,7 @@ class ArticleController {
                     'url' => 'uploads/articles/' . $filename
                 ]);
             } else {
-                echo json_encode(['error' => ['message' => 'Lỗi: Không thể lưu file.']]);
+                echo json_encode(['error' => ['message' => "Lỗi: Không thể lưu file tại {$targetPath}. Vui lòng kiểm tra quyền ghi (CHMOD 755 hoặc 777) của thư mục uploads/articles/."]]);
             }
             exit;
         }

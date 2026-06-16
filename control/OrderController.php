@@ -432,10 +432,43 @@ class OrderController {
         $orderId = (int)$data['order_id'];
         $status = trim($data['status']);
 
-        // Cập nhật trạng thái đơn hàng
-        $stmt = $this->conn->prepare("UPDATE don_hang SET trang_thai_don = ? WHERE ma_dh = ?");
+        // Kiểm tra trạng thái hiện tại của đơn hàng
+        $stmt_cur = $this->conn->prepare("SELECT trang_thai_don FROM don_hang WHERE ma_dh = ?");
+        $stmt_cur->execute([$orderId]);
+        $cur_order = $stmt_cur->fetch();
         
-        if ($stmt->execute([$status, $orderId])) {
+        if (!$cur_order) {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy đơn hàng.']);
+            return;
+        }
+        
+        // Chặn không cho đổi trạng thái khi đơn hàng đã Hoàn Thành hoặc Đã hủy
+        if ($cur_order['trang_thai_don'] === 'Hoàn Thành' || $cur_order['trang_thai_don'] === 'Đã hủy') {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Đơn hàng đã hoàn thành hoặc đã huỷ, không thể thay đổi trạng thái.'
+            ]);
+            return;
+        }
+
+        $this->conn->beginTransaction();
+        try {
+            // Cập nhật trạng thái đơn hàng
+            $stmt = $this->conn->prepare("UPDATE don_hang SET trang_thai_don = ? WHERE ma_dh = ?");
+            $stmt->execute([$status, $orderId]);
+
+            // Nếu trạng thái mới là "Đã hủy", tiến hành hoàn lại số lượng tồn kho
+            if ($status === 'Đã hủy' && $cur_order['trang_thai_don'] !== 'Đã hủy') {
+                $stmt_items = $this->conn->prepare("SELECT ma_hh, so_luong FROM chi_tiet_don_hang WHERE ma_dh = ?");
+                $stmt_items->execute([$orderId]);
+                $items = $stmt_items->fetchAll();
+                
+                $stmt_restore = $this->conn->prepare("UPDATE ton_kho_chi_tiet SET so_luong_ton = so_luong_ton + ? WHERE ma_hh = ? LIMIT 1");
+                foreach ($items as $item) {
+                    $stmt_restore->execute([$item['so_luong'], $item['ma_hh']]);
+                }
+            }
+
             // Đồng thời ghi nhận hành trình cập nhật vào lịch sử giao dịch đơn hàng
             $stmt_history = $this->conn->prepare("INSERT INTO lich_su_giao_hang (ma_dh, trang_thai, mo_ta) VALUES (?, ?, 'Trạng thái đơn hàng được cập nhật bởi Ban quản lý')");
             if ($stmt_history) {
@@ -450,10 +483,13 @@ class OrderController {
             if ($info && !empty($info['email'])) {
                 // Map status to human-readable format
                 $statusMap = [
-                    'ChoXacNhan' => 'Chờ Xác Nhận',
-                    'DangGiao'   => 'Đang Giao Hàng',
-                    'HoanThanh'  => 'Đã Hoàn Thành',
-                    'DaHuy'      => 'Đã Hủy'
+                    'Chờ Xác Nhận' => 'Chờ Xác Nhận',
+                    'Đã Xác Nhận'  => 'Đã Xác Nhận',
+                    'Đang Xử Lý'   => 'Đang Xử Lý',
+                    'Đang Giao'    => 'Đang Giao Hàng',
+                    'Đã Giao'      => 'Đã Giao Hàng',
+                    'Hoàn Thành'   => 'Đã Hoàn Thành',
+                    'Đã hủy'       => 'Đã Hủy'
                 ];
                 $readableStatus = isset($statusMap[$status]) ? $statusMap[$status] : $status;
                 
@@ -481,9 +517,11 @@ class OrderController {
                 }
             }
             
+            $this->conn->commit();
             echo json_encode(['success' => true]);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Cập nhật trạng thái đơn hàng thất bại.']);
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống khi cập nhật: ' . $e->getMessage()]);
         }
     }
 }

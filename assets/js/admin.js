@@ -441,7 +441,10 @@ function populateBrandFilter() {
 }
 
 // ── Orders ────────────────────────────────────────────────────
-window.updateOrderStatus = function(orderId, newStatus) {
+window.updateOrderStatus = function(orderId, newStatus, selectEl) {
+    // Khôi phục giá trị cũ nếu gặp lỗi (lưu giá trị trước khi gửi request)
+    const prevStatus = selectEl ? selectEl.getAttribute('data-prev') : null;
+    
     fetch(clientApiBase + '?action=update_order_status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -450,8 +453,7 @@ window.updateOrderStatus = function(orderId, newStatus) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // alert('Đã cập nhật trạng thái đơn hàng!');
-            // Update local dbOrders data to reflect change immediately without reload
+            // Cập nhật dữ liệu local để phản ánh thay đổi ngay lập tức không cần reload
             const idx = window.dbOrders.findIndex(o => String(o.id) === String(orderId));
             if (idx > -1) {
                 window.dbOrders[idx].status = newStatus;
@@ -459,11 +461,17 @@ window.updateOrderStatus = function(orderId, newStatus) {
             }
         } else {
             alert('Lỗi cập nhật: ' + (data.message || 'Unknown'));
+            if (selectEl && prevStatus) {
+                selectEl.value = prevStatus;
+            }
         }
     })
     .catch(err => {
         console.error(err);
         alert('Lỗi mạng không thể cập nhật đơn hàng.');
+        if (selectEl && prevStatus) {
+            selectEl.value = prevStatus;
+        }
     });
 };
 
@@ -549,7 +557,7 @@ window.switchOrderTab = function(tab) {
 
 function renderAdminOrders() {
     let allOrders = window.dbOrders || [];
-    const statuses = ['Chờ Xác Nhận', 'Đang Xử Lý', 'Đang Giao', 'Đã Giao', 'Hoàn Thành', 'Đã hủy'];
+    const statuses = ['Chờ Xác Nhận', 'Đã Xác Nhận', 'Đang Xử Lý', 'Đang Giao', 'Đã Giao', 'Hoàn Thành', 'Đã hủy'];
 
     let orders = [];
     if (window.currentOrderTab === 'completed') {
@@ -567,7 +575,22 @@ function renderAdminOrders() {
     }
 
     const sortedOrders = [...orders];
-    document.getElementById('adminOrderTableBody').innerHTML = sortedOrders.map(o => `
+    document.getElementById('adminOrderTableBody').innerHTML = sortedOrders.map(o => {
+        const isCompleted = o.status === 'Hoàn Thành' || o.status === 'Đã hủy';
+        const selectHtml = isCompleted
+            ? `<select disabled title="Đơn hàng đã ${o.status}, không thể thay đổi trạng thái" class="order-status-select" style="padding:0.25rem;border-radius:4px;border:1px solid var(--border-color);opacity:0.6;cursor:not-allowed;">
+                <option selected>${o.status}</option>
+              </select>`
+            : `<select
+                data-prev="${o.status}"
+                onchange="updateOrderStatus('${o.id}', this.value, this)"
+                class="order-status-select"
+                style="padding:0.25rem;border-radius:4px;border:1px solid var(--border-color);">
+                ${statuses.map(s =>
+                    `<option ${s === o.status ? 'selected' : ''}>${s}</option>`
+                ).join('')}
+              </select>`;
+        return `
         <tr>
             <td class="td-primary td-mono">#${o.id}</td>
             <td>
@@ -576,18 +599,15 @@ function renderAdminOrders() {
             </td>
             <td class="td-mono">${o.total}</td>
             <td class="td-muted">${o.date}</td>
-            <td class="center">
-                <select onchange="updateOrderStatus('${o.id}', this.value)" class="order-status-select" style="padding: 0.25rem; border-radius:4px; border:1px solid var(--border-color);">
-                    ${statuses.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
-                </select>
-            </td>
+            <td class="center">${selectHtml}</td>
             <td class="center">
                 <button class="btn-table-action btn-table-action--view" title="Xem chi tiết" onclick="showOrderDetails('${o.id}')">
                     <span class="material-symbols-outlined" style="font-size:1.25rem;">visibility</span>
                 </button>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 
     const processingCount = allOrders.filter(o => o.status !== 'Hoàn Thành' && o.status !== 'Đã hủy').length;
     document.getElementById('newOrdersBadge').innerText = processingCount.toString();

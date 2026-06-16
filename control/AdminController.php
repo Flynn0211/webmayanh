@@ -128,130 +128,147 @@ class AdminController {
             
             // --- XỬ LÝ THÊM HOẶC CẬP NHẬT SẢN PHẨM ---
             if ($action === 'add_product' || $action === 'edit_product') {
-                $id = isset($_POST['id']) ? trim($_POST['id']) : '';
-                $categoryId = isset($_POST['category']) ? (int)$_POST['category'] : 1;
-                $brand = isset($_POST['brand']) ? trim($_POST['brand']) : 'Generic';
-                $name = isset($_POST['name']) ? trim($_POST['name']) : '';
-                $price = isset($_POST['price']) ? trim($_POST['price']) : '0';
-                $stock = isset($_POST['stock']) ? (int)$_POST['stock'] : 0;
-                $image = isset($_POST['image']) ? trim($_POST['image']) : '';
-                $desc = isset($_POST['description']) ? trim($_POST['description']) : '';
-                $specs = isset($_POST['specs']) ? trim($_POST['specs']) : '';
-                
-                // --- XỬ LÝ TỰ ĐỘNG CHUYỂN THÔNG SỐ TỪ PLAIN TEXT SANG MẢNG JSON ---
-                $specs_json = '{}';
-                if (!empty($specs)) {
-                    json_decode($specs);
-                    if (json_last_error() === JSON_ERROR_NONE) {
-                        $specs_json = $specs;
-                    } else {
-                        // Người dùng nhập dạng thô: "Cảm biến: 61MP \n Chống rung: Có"
-                        $specs_array = [];
-                        $lines = explode("\n", str_replace("\r", "", $specs));
-                        foreach ($lines as $line) {
-                            $line = trim($line);
-                            if (!empty($line)) {
-                                if (strpos($line, ':') !== false) {
-                                    list($key, $val) = explode(':', $line, 2);
-                                    $specs_array[trim($key)] = trim($val);
-                                } else {
-                                    $specs_array[$line] = "Có";
+                try {
+                    $id = isset($_POST['id']) ? trim($_POST['id']) : '';
+                    $categoryId = isset($_POST['category']) ? (int)$_POST['category'] : 1;
+                    $brand = isset($_POST['brand']) ? trim($_POST['brand']) : 'Generic';
+                    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+                    $price = isset($_POST['price']) ? trim($_POST['price']) : '0';
+                    $stock = isset($_POST['stock']) ? (int)$_POST['stock'] : 0;
+                    $image = isset($_POST['image']) ? trim($_POST['image']) : '';
+                    $desc = isset($_POST['description']) ? trim($_POST['description']) : '';
+                    $specs = isset($_POST['specs']) ? trim($_POST['specs']) : '';
+                    
+                    // --- XỬ LÝ TỰ ĐỘNG CHUYỂN THÔNG SỐ TỪ PLAIN TEXT SANG MẢNG JSON ---
+                    $specs_json = '{}';
+                    if (!empty($specs)) {
+                        json_decode($specs);
+                        if (json_last_error() === JSON_ERROR_NONE) {
+                            $specs_json = $specs;
+                        } else {
+                            // Người dùng nhập dạng thô: "Cảm biến: 61MP \n Chống rung: Có"
+                            $specs_array = [];
+                            $lines = explode("\n", str_replace("\r", "", $specs));
+                            foreach ($lines as $line) {
+                                $line = trim($line);
+                                if (!empty($line)) {
+                                    if (strpos($line, ':') !== false) {
+                                        list($key, $val) = explode(':', $line, 2);
+                                        $specs_array[trim($key)] = trim($val);
+                                    } else {
+                                        $specs_array[$line] = "Có";
+                                    }
                                 }
                             }
+                            $specs_json = json_encode($specs_array, JSON_UNESCAPED_UNICODE);
                         }
-                        $specs_json = json_encode($specs_array, JSON_UNESCAPED_UNICODE);
                     }
-                }
-                
-                // 1. Tìm hoặc tạo mới Nhà cung cấp (ma_ncc) dựa trên tên Thương hiệu nhập vào
-                $ma_ncc = 1;
-                $stmt = $this->conn->prepare("SELECT ma_ncc FROM nha_cung_cap WHERE LOWER(ten_ncc) = LOWER(?)");
-                $stmt->execute([$brand]);
-                if ($row = $stmt->fetch()) {
-                    $ma_ncc = $row['ma_ncc'];
-                } else {
-                    $stmt_ins = $this->conn->prepare("INSERT INTO nha_cung_cap (ten_ncc, sdt_lien_he, dia_chi) VALUES (?, '0900000000', 'Unknown')");
-                    $stmt_ins->execute([$brand]);
-                    $ma_ncc = $this->conn->lastInsertId();
-                }
-                
-                // 1.5. Đảm bảo danh mục tồn tại an toàn
-                $ma_dm = 1;
-                $stmt_cat = $this->conn->query("SELECT ma_dm FROM danh_muc LIMIT 1");
-                if ($row_cat = $stmt_cat->fetch()) {
-                    $ma_dm = $row_cat['ma_dm'];
-                } else {
-                    $this->conn->query("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES ('Máy ảnh', 'may-anh')");
-                    $ma_dm = $this->conn->lastInsertId();
-                }
+                    
+                    // 1. Tìm hoặc tạo mới Nhà cung cấp (ma_ncc) dựa trên tên Thương hiệu nhập vào
+                    $ma_ncc = 1;
+                    $stmt = $this->conn->prepare("SELECT ma_ncc FROM nha_cung_cap WHERE LOWER(ten_ncc) = LOWER(?)");
+                    $stmt->execute([$brand]);
+                    if ($row = $stmt->fetch()) {
+                        $ma_ncc = $row['ma_ncc'];
+                    } else {
+                        $stmt_ins = $this->conn->prepare("INSERT INTO nha_cung_cap (ten_ncc, sdt_lien_he, dia_chi) VALUES (?, '0900000000', 'Unknown')");
+                        $stmt_ins->execute([$brand]);
+                        $ma_ncc = $this->conn->lastInsertId();
+                    }
+                    
+                    // 1.5. Đảm bảo danh mục tồn tại an toàn
+                    $ma_dm = 1;
+                    $stmt_cat = $this->conn->query("SELECT ma_dm FROM danh_muc LIMIT 1");
+                    if ($row_cat = $stmt_cat->fetch()) {
+                        $ma_dm = $row_cat['ma_dm'];
+                    } else {
+                        $this->conn->query("INSERT INTO danh_muc (ten_danh_muc, slug) VALUES ('Máy ảnh', 'may-anh')");
+                        $ma_dm = $this->conn->lastInsertId();
+                    }
 
-                // 1.7 Đảm bảo kho hàng mặc định tồn tại an toàn
-                try {
-                    $stmt_kho = $this->conn->query("SELECT ma_kho FROM kho_hang WHERE ma_kho = 1");
-                    if ($stmt_kho && !$stmt_kho->fetch()) {
-                        $this->conn->query("INSERT INTO kho_hang (ma_kho, ten_kho) VALUES (1, 'Kho Tổng')");
+                    // 1.7 Đảm bảo kho hàng mặc định tồn tại an toàn
+                    try {
+                        $stmt_kho = $this->conn->query("SELECT ma_kho FROM kho_hang WHERE ma_kho = 1");
+                        if ($stmt_kho && !$stmt_kho->fetch()) {
+                            $this->conn->query("INSERT INTO kho_hang (ma_kho, ten_kho) VALUES (1, 'Kho Tổng')");
+                        }
+                    } catch (Exception $e) {
+                        // Ignore if table doesn't exist
+                    }
+                    
+                    // 2. Chuẩn hóa giá bán (loại bỏ ký tự phân tách nghìn)
+                    $price_cleaned = (float)preg_replace('/[^0-9.]/', '', $price);
+                    
+                    // Giải mã Base64 và lưu thành File tĩnh thay vì lưu thẳng vào DB
+                    $saved_image = $this->saveBase64Image($image, "main");
+
+                    // 3.5. Xử lý mảng ảnh phụ
+                    $additional_images = isset($_POST['additional_images']) ? trim($_POST['additional_images']) : '[]';
+                    $add_images_arr = json_decode($additional_images, true);
+                    $saved_add_images = [];
+                    if (is_array($add_images_arr)) {
+                        foreach ($add_images_arr as $idx => $img_val) {
+                            if (!empty($img_val)) {
+                                $saved_add_images[] = $this->saveBase64Image($img_val, "sub_$idx");
+                            }
+                        }
+                    }
+                    $anh_phu_json = json_encode($saved_add_images, JSON_UNESCAPED_SLASHES);
+                    
+                    // Tạo slug thân thiện với SEO
+                    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
+                    
+                    // Thực thi thêm mới sản phẩm
+                    if ($action === 'add_product') {
+                        $stmt_add = $this->conn->prepare("INSERT INTO hang_hoa (ma_dm, ma_ncc, ten_hang_hoa, slug, anh, anh_phu, mo_ta, thong_so_ky_thuat, gia_hien_tai) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        if ($stmt_add->execute([$categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned])) {
+                            $new_id = $this->conn->lastInsertId();
+                            // Lưu số lượng tồn kho mặc định vào kho số 1
+                            $stmt_stock = $this->conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
+                            $stmt_stock->execute([$new_id, $stock]);
+                            echo json_encode(['success' => true, 'id' => $new_id]);
+                        } else {
+                            echo json_encode(['success' => false, 'error' => $stmt_add->errorInfo()[2]]);
+                        }
+                    } else {
+                        // Cập nhật thông tin sản phẩm hiện tại
+                        $original_id = (int)$id;
+                        $stmt_edit = $this->conn->prepare("UPDATE hang_hoa SET ma_dm = ?, ma_ncc = ?, ten_hang_hoa = ?, slug = ?, anh = ?, anh_phu = ?, mo_ta = ?, thong_so_ky_thuat = ?, gia_hien_tai = ? WHERE ma_hh = ?");
+                        if ($stmt_edit->execute([$categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned, $original_id])) {
+                            // Xóa cũ thêm mới số lượng tồn kho
+                            $stmt_del = $this->conn->prepare("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = ?");
+                            $stmt_del->execute([$original_id]);
+                            $stmt_stock = $this->conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
+                            $stmt_stock->execute([$original_id, $stock]);
+                            echo json_encode(['success' => true]);
+                        } else {
+                            echo json_encode(['success' => false, 'error' => $stmt_edit->errorInfo()[2]]);
+                        }
                     }
                 } catch (Exception $e) {
-                    // Ignore if table doesn't exist
-                }
-                
-                // 2. Chuẩn hóa giá bán (loại bỏ ký tự phân tách nghìn)
-                $price_cleaned = (float)preg_replace('/[^0-9.]/', '', $price);
-                
-                // Giải mã Base64 và lưu thành File tĩnh thay vì lưu thẳng vào DB
-                $saved_image = $this->saveBase64Image($image, "main");
-
-                // 3.5. Xử lý mảng ảnh phụ
-                $additional_images = isset($_POST['additional_images']) ? trim($_POST['additional_images']) : '[]';
-                $add_images_arr = json_decode($additional_images, true);
-                $saved_add_images = [];
-                if (is_array($add_images_arr)) {
-                    foreach ($add_images_arr as $idx => $img_val) {
-                        if (!empty($img_val)) {
-                            $saved_add_images[] = $this->saveBase64Image($img_val, "sub_$idx");
-                        }
-                    }
-                }
-                $anh_phu_json = json_encode($saved_add_images, JSON_UNESCAPED_SLASHES);
-                
-                // Tạo slug thân thiện với SEO
-                $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
-                
-                // Thực thi thêm mới sản phẩm
-                if ($action === 'add_product') {
-                    $stmt_add = $this->conn->prepare("INSERT INTO hang_hoa (ma_dm, ma_ncc, ten_hang_hoa, slug, anh, anh_phu, mo_ta, thong_so_ky_thuat, gia_hien_tai) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    if ($stmt_add->execute([$categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned])) {
-                        $new_id = $this->conn->lastInsertId();
-                        // Lưu số lượng tồn kho mặc định vào kho số 1
-                        $stmt_stock = $this->conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
-                        $stmt_stock->execute([$new_id, $stock]);
-                        echo json_encode(['success' => true, 'id' => $new_id]);
-                    } else {
-                        echo json_encode(['success' => false, 'error' => $stmt_add->errorInfo()[2]]);
-                    }
-                } else {
-                    // Cập nhật thông tin sản phẩm hiện tại
-                    $original_id = (int)$id;
-                    $stmt_edit = $this->conn->prepare("UPDATE hang_hoa SET ma_dm = ?, ma_ncc = ?, ten_hang_hoa = ?, slug = ?, anh = ?, anh_phu = ?, mo_ta = ?, thong_so_ky_thuat = ?, gia_hien_tai = ? WHERE ma_hh = ?");
-                    if ($stmt_edit->execute([$categoryId, $ma_ncc, $name, $slug, $saved_image, $anh_phu_json, $desc, $specs_json, $price_cleaned, $original_id])) {
-                        // Xóa cũ thêm mới số lượng tồn kho
-                        $stmt_del = $this->conn->prepare("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = ?");
-                        $stmt_del->execute([$original_id]);
-                        $stmt_stock = $this->conn->prepare("INSERT INTO ton_kho_chi_tiet (ma_kho, ma_hh, so_luong_ton) VALUES (1, ?, ?)");
-                        $stmt_stock->execute([$original_id, $stock]);
-                        echo json_encode(['success' => true]);
-                    } else {
-                        echo json_encode(['success' => false, 'error' => $stmt_edit->errorInfo()[2]]);
-                    }
+                    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
                 }
             } 
             elseif ($action === 'delete_product') {
                 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+                
+                // Kiểm tra xem sản phẩm đã có trong đơn hàng nào chưa
+                $stmt_check = $this->conn->prepare(
+                    "SELECT COUNT(*) as cnt FROM chi_tiet_don_hang WHERE ma_hh = ?"
+                );
+                $stmt_check->execute([$id]);
+                $row_check = $stmt_check->fetch();
+                if ($row_check && (int)$row_check['cnt'] > 0) {
+                    echo json_encode([
+                        'success' => false,
+                        'error' => 'Không thể xóa sản phẩm này vì đã có ' . (int)$row_check['cnt'] . ' đơn hàng liên quan. Hãy vô hiệu hóa sản phẩm thay vì xóa để giữ lịch sử đơn hàng.'
+                    ]);
+                    exit;
+                }
+                
                 // Xóa các bảng liên quan trước để tránh lỗi ràng buộc khóa ngoại (Constraint)
                 $stmt1 = $this->conn->prepare("DELETE FROM ton_kho_chi_tiet WHERE ma_hh = ?");
                 $stmt1->execute([$id]);
-                $stmt2 = $this->conn->prepare("DELETE FROM chi_tiet_don_hang WHERE ma_hh = ?");
-                $stmt2->execute([$id]);
                 $stmt_km = $this->conn->prepare("DELETE FROM chi_tiet_khuyen_mai WHERE ma_hh = ?");
                 $stmt_km->execute([$id]);
                 $stmt_bl = $this->conn->prepare("DELETE FROM binh_luan_danh_gia WHERE ma_hh = ?");
@@ -503,9 +520,6 @@ class AdminController {
         }
     }
 
-    /**
-     * Hàm hỗ trợ giải mã Base64 thành File ảnh vật lý và lưu vào uploads/products/
-     */
     private function saveBase64Image($base64String, $prefix = 'img') {
         // Nếu không phải định dạng base64 (ví dụ đã là URL tĩnh), giữ nguyên
         if (strpos($base64String, 'data:image/') !== 0) {
@@ -526,12 +540,25 @@ class AdminController {
         }
 
         $filename = "img_" . uniqid() . "_{$prefix}.{$ext}";
+        $dirpath = __DIR__ . '/../uploads/products/';
+        
+        // Tự động tạo thư mục uploads/products nếu chưa có
+        if (!is_dir($dirpath)) {
+            if (!mkdir($dirpath, 0755, true) && !is_dir($dirpath)) {
+                throw new Exception("Lỗi: Không thể tạo thư mục lưu trữ ảnh sản phẩm tại {$dirpath}. Vui lòng phân quyền ghi (CHMOD) cho thư mục cha.");
+            }
+        }
+        
         $filepath = "uploads/products/{$filename}";
+        $fullPath = __DIR__ . '/../' . $filepath;
 
         $decodedData = base64_decode($data);
         if ($decodedData !== false) {
-            file_put_contents(__DIR__ . '/../' . $filepath, $decodedData);
-            return $filepath;
+            if (file_put_contents($fullPath, $decodedData) !== false) {
+                return $filepath;
+            } else {
+                throw new Exception("Lỗi: Không thể ghi file ảnh vật lý lên máy chủ tại {$filepath}. Vui lòng kiểm tra dung lượng ổ đĩa và cấp quyền ghi (CHMOD 755 hoặc 777) cho thư mục uploads/products/.");
+            }
         }
 
         return $base64String;

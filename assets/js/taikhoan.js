@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileName = document.getElementById('profileName');
     const profileEmail = document.getElementById('profileEmail');
     const profilePhone = document.getElementById('profilePhone');
+    const profileAddress = document.getElementById('profileAddress');
     const profileTier = document.getElementById('profileTier');
 
     // 2. Fetch Profile from Backend
@@ -31,6 +32,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (profileName) profileName.textContent = p.ho_ten || user.username;
                     if (profileEmail) profileEmail.textContent = p.email || 'Chưa cập nhật email';
                     if (profilePhone) profilePhone.textContent = p.sdt || 'Chưa cập nhật SĐT';
+
+                    if (profileAddress) {
+                        if (p.dia_chi) {
+                            try {
+                                const addrObj = JSON.parse(p.dia_chi);
+                                profileAddress.textContent = addrObj.full || p.dia_chi;
+                                window.userAddressObj = addrObj;
+                            } catch(e) {
+                                profileAddress.textContent = p.dia_chi;
+                                window.userAddressObj = null;
+                            }
+                        } else {
+                            profileAddress.textContent = 'Chưa cập nhật địa chỉ';
+                            window.userAddressObj = null;
+                        }
+                    }
 
                     // Render Total Spent and Next Tier
                     const profileSpent = document.getElementById('profileSpent');
@@ -146,17 +163,104 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadProfile();
 
-    // Edit Profile Logic
     const editBtn = document.querySelector('.profile-card__edit-btn');
     const editModal = document.getElementById('editProfileModal');
     const cancelEditBtn = document.getElementById('btnCancelEdit');
     const editForm = document.getElementById('editProfileForm');
+
+    const provinceSelect = document.getElementById('editProvinceSelect');
+    const districtSelect = document.getElementById('editDistrictSelect');
+    const wardSelect = document.getElementById('editWardSelect');
+    let vnData = [];
+
+    function loadDistricts(provCode, selDist, selWard) {
+        districtSelect.innerHTML = '<option value="" disabled selected>Chọn Quận / Huyện</option>';
+        wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
+        districtSelect.disabled = true;
+        wardSelect.disabled = true;
+        if(!provCode) return;
+        
+        const p = vnData.find(x => String(x.code) === String(provCode));
+        if (p && p.districts) {
+            p.districts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.code;
+                opt.text = d.name;
+                districtSelect.add(opt);
+            });
+            districtSelect.disabled = false;
+            if(selDist) {
+                districtSelect.value = selDist;
+                loadWards(selDist, selWard);
+            }
+        }
+    }
+
+    function loadWards(distCode, selWard) {
+        wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
+        wardSelect.disabled = true;
+        if(!distCode) return;
+        
+        const pCode = provinceSelect.value;
+        const p = vnData.find(x => String(x.code) === String(pCode));
+        if (p && p.districts) {
+            const d = p.districts.find(x => String(x.code) === String(distCode));
+            if (d && d.wards) {
+                d.wards.forEach(w => {
+                    const opt = document.createElement('option');
+                    opt.value = w.code;
+                    opt.text = w.name;
+                    wardSelect.add(opt);
+                });
+                wardSelect.disabled = false;
+                if(selWard) {
+                    wardSelect.value = selWard;
+                }
+            }
+        }
+    }
+
+    if (provinceSelect) {
+        fetch('assets/js/provinces_data.json')
+            .then(res => res.json())
+            .then(data => {
+                vnData = data;
+                data.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.code;
+                    opt.text = p.name;
+                    provinceSelect.add(opt);
+                });
+            })
+            .catch(err => console.error(err));
+            
+        provinceSelect.addEventListener('change', function() {
+            loadDistricts(this.value);
+        });
+        districtSelect.addEventListener('change', function() {
+            loadWards(this.value);
+        });
+    }
 
     if (editBtn && editModal) {
         editBtn.addEventListener('click', () => {
             document.getElementById('editName').value = user.fullname || '';
             document.getElementById('editEmail').value = user.email || '';
             document.getElementById('editPhone').value = user.phone || '';
+            
+            if (window.userAddressObj && provinceSelect) {
+                provinceSelect.value = window.userAddressObj.provinceCode;
+                loadDistricts(window.userAddressObj.provinceCode, window.userAddressObj.districtCode, window.userAddressObj.wardCode);
+                document.getElementById('editAddressDetail').value = window.userAddressObj.detail || '';
+            } else if (provinceSelect) {
+                provinceSelect.value = "";
+                districtSelect.innerHTML = '<option value="" disabled selected>Chọn Quận / Huyện</option>';
+                wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
+                districtSelect.disabled = true;
+                wardSelect.disabled = true;
+                document.getElementById('editAddressDetail').value = '';
+            }
+
             editModal.classList.add('active');
         });
 
@@ -166,10 +270,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
         editForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            
+            let dia_chi_json = '';
+            if (provinceSelect && districtSelect && wardSelect) {
+                const addressDetail = document.getElementById('editAddressDetail');
+                const addressObj = {
+                    provinceCode: provinceSelect.value,
+                    provinceName: provinceSelect.options[provinceSelect.selectedIndex].text,
+                    districtCode: districtSelect.value,
+                    districtName: districtSelect.options[districtSelect.selectedIndex].text,
+                    wardCode: wardSelect.value,
+                    wardName: wardSelect.options[wardSelect.selectedIndex].text,
+                    detail: addressDetail.value.trim(),
+                    full: addressDetail.value.trim() + ", " + wardSelect.options[wardSelect.selectedIndex].text + ", " + districtSelect.options[districtSelect.selectedIndex].text + ", " + provinceSelect.options[provinceSelect.selectedIndex].text
+                };
+                dia_chi_json = addressObj;
+            }
+
             const payload = {
                 ho_ten: document.getElementById('editName').value,
                 email: document.getElementById('editEmail').value,
-                sdt: document.getElementById('editPhone').value
+                sdt: document.getElementById('editPhone').value,
+                dia_chi: dia_chi_json
             };
 
             fetch('index.php?action=update_profile', {

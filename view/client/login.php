@@ -94,6 +94,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_register'])) {
                     <label class="form-label" for="regPassword">Mật khẩu</label>
                     <input type="password" name="password" id="regPassword" required placeholder="Tạo mật khẩu" class="form-input"/>
                 </div>
+                <div class="form-group">
+                    <label class="form-label" for="regPhone">Số điện thoại giao hàng</label>
+                    <input type="text" name="phone" id="regPhone" required placeholder="Ví dụ: 0912345678" class="form-input"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Địa chỉ giao hàng mặc định</label>
+                    <select id="provinceSelect" class="form-input" style="margin-bottom: 0.5rem;" required>
+                        <option value="" disabled selected>Chọn Tỉnh / Thành phố</option>
+                    </select>
+                    <select id="districtSelect" class="form-input" style="margin-bottom: 0.5rem;" required disabled>
+                        <option value="" disabled selected>Chọn Quận / Huyện</option>
+                    </select>
+                    <select id="wardSelect" class="form-input" style="margin-bottom: 0.5rem;" required disabled>
+                        <option value="" disabled selected>Chọn Phường / Xã</option>
+                    </select>
+                    <input type="text" id="addressDetail" placeholder="Số nhà, tên đường..." class="form-input" required>
+                    <input type="hidden" name="address" id="regAddress">
+                </div>
                 <button type="submit" name="action_register" class="btn-auth btn-auth--secondary">TẠO TÀI KHOẢN</button>
             </form>
 
@@ -134,6 +152,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_register'])) {
         <?php if (isset($_POST['action_register'])): ?>
         setTab('register');
         <?php endif; ?>
+
+        // Address API logic (using local JSON for speed and reliability)
+        const provinceSelect = document.getElementById('provinceSelect');
+        const districtSelect = document.getElementById('districtSelect');
+        const wardSelect = document.getElementById('wardSelect');
+        let vnData = [];
+        
+        if (provinceSelect) {
+            fetch('assets/js/provinces_data.json')
+                .then(res => res.json())
+                .then(data => {
+                    vnData = data;
+                    data.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.code;
+                        opt.text = p.name;
+                        provinceSelect.add(opt);
+                    });
+                })
+                .catch(err => console.error(err));
+
+            provinceSelect.addEventListener('change', function() {
+                const code = this.value;
+                districtSelect.innerHTML = '<option value="" disabled selected>Chọn Quận / Huyện</option>';
+                wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
+                districtSelect.disabled = true;
+                wardSelect.disabled = true;
+                
+                const p = vnData.find(x => String(x.code) === String(code));
+                if (p && p.districts) {
+                    p.districts.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d.code;
+                        opt.text = d.name;
+                        districtSelect.add(opt);
+                    });
+                    districtSelect.disabled = false;
+                }
+            });
+
+            districtSelect.addEventListener('change', function() {
+                const code = this.value;
+                wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
+                wardSelect.disabled = true;
+
+                const pCode = provinceSelect.value;
+                const p = vnData.find(x => String(x.code) === String(pCode));
+                if (p && p.districts) {
+                    const d = p.districts.find(x => String(x.code) === String(code));
+                    if (d && d.wards) {
+                        d.wards.forEach(w => {
+                            const opt = document.createElement('option');
+                            opt.value = w.code;
+                            opt.text = w.name;
+                            wardSelect.add(opt);
+                        });
+                        wardSelect.disabled = false;
+                    }
+                }
+            });
+        }
+
+        // On register form submit, build address JSON
+        if (registerForm) {
+            registerForm.addEventListener('submit', function(e) {
+                const addressDetail = document.getElementById('addressDetail');
+                if (provinceSelect && districtSelect && wardSelect && addressDetail) {
+                    const addressObj = {
+                        provinceCode: provinceSelect.value,
+                        provinceName: provinceSelect.options[provinceSelect.selectedIndex].text,
+                        districtCode: districtSelect.value,
+                        districtName: districtSelect.options[districtSelect.selectedIndex].text,
+                        wardCode: wardSelect.value,
+                        wardName: wardSelect.options[wardSelect.selectedIndex].text,
+                        detail: addressDetail.value.trim(),
+                        full: addressDetail.value.trim() + ", " + wardSelect.options[wardSelect.selectedIndex].text + ", " + districtSelect.options[districtSelect.selectedIndex].text + ", " + provinceSelect.options[provinceSelect.selectedIndex].text
+                    };
+                    document.getElementById('regAddress').value = JSON.stringify(addressObj);
+                }
+            });
+        }
 
     });
     </script>

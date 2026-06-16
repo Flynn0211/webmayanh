@@ -356,3 +356,19 @@ document.addEventListener('DOMContentLoaded', () => {
         <?php endif; ?>
     </div>
 </div>
+
+<?php if ($_nav_logged_in && (empty($_SESSION['client_phone']) || empty($_SESSION['client_address'])) && $activeNav !== 'taikhoan'): ?>
+<div id="missingInfoPopup" class="modal-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10000; opacity: 1; pointer-events: auto;">
+    <div class="modal-content" style="background: var(--surface); padding: 2rem; border-radius: 8px; width: 100%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); text-align: center;">
+        <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem; display: block;">info</span>
+        <h2 style="margin-top: 0; margin-bottom: 1rem;">Cập nhật thông tin giao hàng</h2>
+        <p style="margin-bottom: 1.5rem; color: var(--on-surface-variant); font-size: 0.95rem;">
+            Chào <b><?= $_nav_fullname ?></b>, bạn chưa cập nhật đầy đủ số điện thoại hoặc địa chỉ giao hàng. Vui lòng cập nhật để trải nghiệm thanh toán nhanh chóng hơn!
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="button" onclick="document.getElementById('missingInfoPopup').style.display='none'" style="padding: 0.5rem 1.5rem; background: transparent; border: 1px solid var(--outline); color: var(--on-surface); cursor: pointer; border-radius: 4px;">Bỏ qua</button>
+            <a href="index.php?page=taikhoan" style="padding: 0.5rem 1.5rem; background: var(--primary); border: none; color: var(--on-primary); cursor: pointer; border-radius: 4px; font-weight: 500; text-decoration: none;">Cập nhật ngay</a>
+        </div>
+    </div>
+</div>
+<?php endif; ?>

@@ -409,72 +409,98 @@ document.addEventListener("DOMContentLoaded", () => {
     const wardSelect = document.getElementById('wardSelect');
     
     if (provinceSelect) {
-        // Fetch Tỉnh/Thành
-        fetch('https://provinces.open-api.vn/api/p/')
+        let userAddrObj = null;
+        if (window.clientAddressStr) {
+            try { userAddrObj = JSON.parse(window.clientAddressStr); } catch(e){}
+        }
+
+        let vnData = [];
+
+        function loadDistricts(provCode, selDist, selWard) {
+            districtSelect.innerHTML = '<option value="" disabled selected>Chọn Quận / Huyện</option>';
+            wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
+            districtSelect.disabled = true;
+            wardSelect.disabled = true;
+            if(!provCode) return;
+
+            // Tính phí ship
+            const pName = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
+            if (pName.includes('Hà Nội') || pName.includes('Hồ Chí Minh')) {
+                window.shippingFee = 20000;
+            } else {
+                window.shippingFee = 40000;
+            }
+            renderCart();
+
+            const p = vnData.find(x => String(x.code) === String(provCode));
+            if (p && p.districts) {
+                p.districts.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.code;
+                    opt.text = d.name;
+                    districtSelect.add(opt);
+                });
+                districtSelect.disabled = false;
+                if(selDist) {
+                    districtSelect.value = selDist;
+                    loadWards(selDist, selWard);
+                }
+            }
+        }
+
+        function loadWards(distCode, selWard) {
+            wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
+            wardSelect.disabled = true;
+            if(!distCode) return;
+            
+            const pCode = provinceSelect.value;
+            const p = vnData.find(x => String(x.code) === String(pCode));
+            if (p && p.districts) {
+                const d = p.districts.find(x => String(x.code) === String(distCode));
+                if (d && d.wards) {
+                    d.wards.forEach(w => {
+                        const opt = document.createElement('option');
+                        opt.value = w.code;
+                        opt.text = w.name;
+                        wardSelect.add(opt);
+                    });
+                    wardSelect.disabled = false;
+                    if(selWard) {
+                        wardSelect.value = selWard;
+                    }
+                }
+            }
+        }
+
+        // Fetch Tỉnh/Thành từ local JSON
+        fetch('assets/js/provinces_data.json')
             .then(res => res.json())
             .then(data => {
+                vnData = data;
                 data.forEach(p => {
                     const opt = document.createElement('option');
                     opt.value = p.code;
                     opt.text = p.name;
                     provinceSelect.add(opt);
                 });
+
+                if (userAddrObj && userAddrObj.provinceCode) {
+                    provinceSelect.value = userAddrObj.provinceCode;
+                    loadDistricts(userAddrObj.provinceCode, userAddrObj.districtCode, userAddrObj.wardCode);
+                    const addressDetail = document.getElementById('addressDetail');
+                    if (addressDetail && userAddrObj.detail) {
+                        addressDetail.value = userAddrObj.detail;
+                    }
+                }
             })
             .catch(err => console.error("API Tỉnh Thành Lỗi: ", err));
 
         provinceSelect.addEventListener('change', function() {
-            const code = this.value;
-            const name = this.options[this.selectedIndex].text;
-            
-            // Reset quận/huyện và phường/xã
-            districtSelect.innerHTML = '<option value="" disabled selected>Chọn Quận / Huyện</option>';
-            wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
-            districtSelect.disabled = true;
-            wardSelect.disabled = true;
-            
-            // Tính phí ship
-            if (name.includes('Hà Nội') || name.includes('Hồ Chí Minh')) {
-                window.shippingFee = 20000;
-            } else {
-                window.shippingFee = 40000;
-            }
-            renderCart(); // Cập nhật lại tổng tiền
-
-            // Fetch Quận/Huyện
-            fetch(`https://provinces.open-api.vn/api/p/${code}?depth=2`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.districts) {
-                        data.districts.forEach(d => {
-                            const opt = document.createElement('option');
-                            opt.value = d.code;
-                            opt.text = d.name;
-                            districtSelect.add(opt);
-                        });
-                        districtSelect.disabled = false;
-                    }
-                });
+            loadDistricts(this.value);
         });
 
         districtSelect.addEventListener('change', function() {
-            const code = this.value;
-            wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
-            wardSelect.disabled = true;
-
-            // Fetch Phường/Xã
-            fetch(`https://provinces.open-api.vn/api/d/${code}?depth=2`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.wards) {
-                        data.wards.forEach(w => {
-                            const opt = document.createElement('option');
-                            opt.value = w.code;
-                            opt.text = w.name;
-                            wardSelect.add(opt);
-                        });
-                        wardSelect.disabled = false;
-                    }
-                });
+            loadWards(this.value);
         });
     }
 

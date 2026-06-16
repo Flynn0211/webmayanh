@@ -15,10 +15,10 @@ if (APP_ENV === 'development') {
 }
 
 // Cấu hình Database
-define('DB_HOST', 'sql202.infinityfree.com');
-define('DB_USER', 'if0_42187545');
-define('DB_PASS', 'Tuananh021104');
-define('DB_NAME', 'if0_42187545_webmayanh');
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'webmayanh');
 
 // Cấu hình SMTP Email 
 define('SMTP_HOST', 'smtp.gmail.com');

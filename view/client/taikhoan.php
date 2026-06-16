@@ -70,6 +70,10 @@
                         <span class="profile-info-label">Số điện thoại</span>
                         <span class="profile-info-val" id="profilePhone">-</span>
                     </div>
+                    <div class="profile-info-item" style="margin-top: 10px;">
+                        <span class="profile-info-label">Địa chỉ giao hàng</span>
+                        <span class="profile-info-val" id="profileAddress">-</span>
+                    </div>
                 </div>
             </div>
 
@@ -187,9 +191,22 @@
                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Email</label>
                 <input type="email" id="editEmail" style="width: 100%; padding: 0.75rem; border: 1px solid var(--outline); background: transparent; color: var(--on-surface); border-radius: 4px;" required>
             </div>
-            <div style="margin-bottom: 1.5rem;">
+            <div style="margin-bottom: 1rem;">
                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Số điện thoại</label>
                 <input type="text" id="editPhone" style="width: 100%; padding: 0.75rem; border: 1px solid var(--outline); background: transparent; color: var(--on-surface); border-radius: 4px;" required>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Địa chỉ giao hàng mặc định</label>
+                <select id="editProvinceSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; border: 1px solid var(--outline); background: transparent; color: var(--on-surface); border-radius: 4px;" required>
+                    <option value="" disabled selected>Chọn Tỉnh / Thành phố</option>
+                </select>
+                <select id="editDistrictSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; border: 1px solid var(--outline); background: transparent; color: var(--on-surface); border-radius: 4px;" required disabled>
+                    <option value="" disabled selected>Chọn Quận / Huyện</option>
+                </select>
+                <select id="editWardSelect" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; border: 1px solid var(--outline); background: transparent; color: var(--on-surface); border-radius: 4px;" required disabled>
+                    <option value="" disabled selected>Chọn Phường / Xã</option>
+                </select>
+                <input type="text" id="editAddressDetail" placeholder="Số nhà, tên đường..." style="width: 100%; padding: 0.75rem; border: 1px solid var(--outline); background: transparent; color: var(--on-surface); border-radius: 4px;" required>
             </div>
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
                 <button type="button" id="btnCancelEdit" style="padding: 0.5rem 1rem; background: transparent; border: 1px solid var(--outline); color: var(--on-surface); cursor: pointer; border-radius: 4px;">Hủy</button>
