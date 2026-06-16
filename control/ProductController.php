@@ -77,7 +77,8 @@ class ProductController {
                 'specs' => $specs_formatted,
                 'image' => $main_image,
                 'additional_images' => $additional_images,
-                'category' => $cat
+                'category' => $cat,
+                'stock' => isset($row['stock']) ? (int)$row['stock'] : 0
             ];
         }
 

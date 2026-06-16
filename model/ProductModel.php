@@ -44,7 +44,8 @@ class ProductModel {
                     hh.thong_so_ky_thuat AS specs,
                     hh.anh AS image,
                     hh.anh_phu AS additional_images,
-                    dm.slug AS category_slug
+                    dm.slug AS category_slug,
+                    IFNULL((SELECT SUM(so_luong_ton) FROM ton_kho_chi_tiet WHERE ma_hh = hh.ma_hh), 0) AS stock
                 FROM hang_hoa hh
                 LEFT JOIN danh_muc dm ON hh.ma_dm = dm.ma_dm
                 LEFT JOIN nha_cung_cap ncc ON hh.ma_ncc = ncc.ma_ncc
