@@ -68,9 +68,15 @@ document.addEventListener("DOMContentLoaded", () => {
         let cartUpdated = false;
         cart.forEach(item => {
             const currentProduct = products.find(p => String(p.id) === String(item.id));
-            if (currentProduct && currentProduct.price !== item.price) {
-                item.price = currentProduct.price;
-                cartUpdated = true;
+            if (currentProduct) {
+                if (currentProduct.price !== item.price) {
+                    item.price = currentProduct.price;
+                    cartUpdated = true;
+                }
+                if (currentProduct.stock !== undefined && currentProduct.stock !== item.stock) {
+                    item.stock = currentProduct.stock;
+                    cartUpdated = true;
+                }
             }
         });
         if (cartUpdated) {
