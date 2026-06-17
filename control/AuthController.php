@@ -249,6 +249,7 @@ class AuthController {
         $stmt->execute([$username]);
         if ($row = $stmt->fetch()) {
             // Tự động phân cấp hạng thành viên thực tế dựa trên tổng điểm tích lũy
+            // Logic: Dưới 1000đ = None, >= 1000đ = Silver, >= 5000đ = Gold, >= 10000đ = Diamond
             $pts = (int)$row['diem_tich_luy'];
             $tier = 'None';
             if ($pts >= 10000) $tier = 'Diamond';
@@ -298,9 +299,10 @@ class AuthController {
         $dia_chi = isset($data['dia_chi']) ? (is_array($data['dia_chi']) ? json_encode($data['dia_chi'], JSON_UNESCAPED_UNICODE) : trim($data['dia_chi'])) : '';
 
         try {
+            // Thực thi truy vấn cập nhật hồ sơ cá nhân người dùng vào cơ sở dữ liệu
             $stmt = $this->conn->prepare("UPDATE tai_khoan SET ho_ten = ?, email = ?, sdt = ?, dia_chi = ? WHERE username = ?");
             if ($stmt->execute([$ho_ten, $email, $sdt, $dia_chi, $username])) {
-                // Đồng bộ lại các biến Session
+                // Đồng bộ lại các biến Session của PHP để giao diện người dùng cập nhật ngay lập tức mà không cần đăng nhập lại
                 $_SESSION['client_fullname'] = $ho_ten;
                 $_SESSION['client_email'] = $email;
                 $_SESSION['client_phone'] = $sdt;

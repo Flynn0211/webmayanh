@@ -1,4 +1,10 @@
-<?php $activeNav = 'giohang'; ?>
+<?php 
+/**
+ * Giao diện Giỏ hàng (Cart / Checkout)
+ * Hiển thị danh sách sản phẩm đã chọn, hỗ trợ áp dụng mã giảm giá (Voucher) và điền thông tin thanh toán (Checkout Form).
+ */
+$activeNav = 'giohang'; 
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>

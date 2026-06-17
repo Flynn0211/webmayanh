@@ -13,6 +13,8 @@ document.addEventListener("DOMContentLoaded", function() {
     
     let currentPage = 1;
     const itemsPerPage = 8;
+    // Xử lý chuyển trang (Pagination) trên trang chủ
+    // Cập nhật trang hiện tại, gọi lại hàm render và cuộn màn hình lên vị trí danh sách sản phẩm
     window.changePage = function(page) {
         currentPage = page;
         renderHomeProducts();
@@ -47,6 +49,8 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     if (productGrid) {
+        // ── Render Giao Diện Sản Phẩm Nổi Bật Trang Chủ ────────────────────────────────
+        // Hiển thị danh sách sản phẩm, tính toán phân trang và chèn HTML các thẻ sản phẩm (Card) vào lưới.
         function renderHomeProducts() {
         const existingPagination = document.getElementById('paginationControls');
         if (existingPagination) existingPagination.remove();
@@ -112,7 +116,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     updateCartBadge();
 
-    // ── Đăng ký nhận bản tin (Newsletter) ─────────────────────────
+    // ── Đăng ký nhận bản tin (Newsletter) qua Email ─────────────────────────
+    // Bắt sự kiện submit form, gửi email về server qua API (index.php?action=subscribe_newsletter)
+    // Áp dụng kỹ thuật Optimistic UI: hiển thị thông báo thành công ngay lập tức để tăng UX.
     const newsletterForm = document.getElementById('homeNewsletterForm');
     if (newsletterForm) {
         newsletterForm.addEventListener('submit', function(e) {

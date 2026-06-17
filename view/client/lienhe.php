@@ -1,4 +1,8 @@
 <?php
+/**
+ * Giao diện Liên Hệ (Contact Us)
+ * Cung cấp thông tin địa chỉ cửa hàng, bản đồ Google Maps tương tác và biểu mẫu Form gửi lời nhắn.
+ */
 $activeNav = 'lienhe';
 ?>
 <!DOCTYPE html>

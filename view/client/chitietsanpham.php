@@ -1,4 +1,10 @@
-<?php $activeNav = 'mayanh'; ?>
+<?php 
+/**
+ * Giao diện Chi tiết sản phẩm (Product Detail)
+ * Hiển thị toàn bộ thông tin sản phẩm: Ảnh (Gallery), Tên, Giá, Thông số kỹ thuật, Mô tả chi tiết và Form Đánh giá (Reviews).
+ */
+$activeNav = 'mayanh'; 
+?>
 <!DOCTYPE html>
 <html lang="vi">
 

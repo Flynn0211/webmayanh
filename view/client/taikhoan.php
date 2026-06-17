@@ -1,4 +1,10 @@
-<?php $activeNav = 'taikhoan'; ?>
+<?php 
+/**
+ * Giao diện Tài Khoản (User Profile / Dashboard)
+ * Nơi khách hàng quản lý thông tin cá nhân, xem tiến trình hạng thành viên, lịch sử mua hàng và danh sách yêu thích.
+ */
+$activeNav = 'taikhoan'; 
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>

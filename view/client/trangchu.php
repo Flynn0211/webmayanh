@@ -1,4 +1,10 @@
-<?php $activeNav = 'trangchu'; ?>
+<?php 
+/**
+ * Giao diện Trang Chủ (Home Page)
+ * Hiển thị Banner nổi bật (Hero Section), Danh sách sản phẩm, Bài viết (Journal) và Form đăng ký nhận bản tin (Newsletter).
+ */
+$activeNav = 'trangchu'; 
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>

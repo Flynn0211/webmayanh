@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function() {
     updateCartBadge();
 
     // ── Hàm Hỗ Trợ (Helpers) ──────────────────────────────
+    // Các hàm định dạng màu sắc thương hiệu và chuẩn hóa chuỗi giá tiền để tính toán
     function getBrandClass(brand) {
         if (!brand) return 'catalog-card__brand--default';
         const b = brand.toLowerCase();
@@ -46,6 +47,8 @@ document.addEventListener("DOMContentLoaded", function() {
     let currentPage = 1;
     const itemsPerPage = 8;
 
+    // Xử lý chuyển trang (Pagination)
+    // Cập nhật biến currentPage, render lại danh sách và cuộn (scroll) mượt mà lên đầu trang
     window.changePage = function(page) {
         currentPage = page;
         renderProducts(false);
@@ -61,7 +64,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
-    // ── Render Giao Diện ────────────────────────────────
+    // ── Render Giao Diện Danh Sách Phụ Kiện ────────────────────────────────
+    // 1. Lọc sản phẩm theo danh mục 'accessory', phân loại phụ kiện và từ khóa tìm kiếm (search)
+    // 2. Sắp xếp danh sách (sort) theo giá
+    // 3. Phân trang (slice mảng) và đổ HTML ra màn hình kèm hiệu ứng animation
     function renderProducts(resetPage = true) {
         if (resetPage) currentPage = 1;
         // Exclude camera items and show only accessories precisely

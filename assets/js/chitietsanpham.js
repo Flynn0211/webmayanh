@@ -5,7 +5,9 @@
  */
 
 document.addEventListener("DOMContentLoaded", function() {
-    // Utilities format from trangchu.js
+    // Các hàm tiện ích (Utilities format)
+    // getBrandColor: Đổi màu chữ theo thương hiệu máy ảnh
+    // formatPrice: Định dạng số tiền thành chuỗi tiền tệ VNĐ (vd: 1.000.000 ₫)
     function getBrandColor(brand) {
         if (!brand) return 'text-primary';
         const b = brand.toLowerCase();
@@ -26,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function() {
         return priceStr;
     }
 
-    // Get product ID from URL
+    // 1. Lấy mã sản phẩm (ID) từ tham số trên thanh URL (ví dụ: ?page=chitietsanpham&id=123)
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
 
@@ -35,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const errorState = document.getElementById('errorState');
     const detailContainer = document.getElementById('productDetailContainer');
 
-    // Find the product
+    // 2. Tìm kiếm thông tin chi tiết của sản phẩm trong mảng dữ liệu (được đổ từ backend vào window.dbProducts)
     const product = products.find(p => String(p.id) === String(productId));
 
     if (!product) {
@@ -66,7 +68,8 @@ document.addEventListener("DOMContentLoaded", function() {
             priceElem.innerText = formatPrice(product.price);
         }
 
-        // Populate Gallery & Thumbnails
+        // 3. Xử lý thư viện ảnh (Gallery & Thumbnails)
+        // Gom ảnh chính và các ảnh phụ vào một mảng, tạo các nút bấm thu nhỏ để người dùng có thể xem qua lại các góc độ sản phẩm
         const mainImage = document.getElementById('detailImage');
         if (mainImage) {
             mainImage.src = product.image;
@@ -133,7 +136,8 @@ document.addEventListener("DOMContentLoaded", function() {
         // Update document title for SEO
         document.title = `${product.name} | LENS & LIGHT`;
         
-        // Add To Cart Logic
+        // 4. Xử lý logic Thêm vào Giỏ hàng (Add To Cart)
+        // Kiểm tra số lượng tồn kho, tính toán và lưu dữ liệu giỏ hàng vào trình duyệt (LocalStorage)
         document.getElementById('btnAddToCart').onclick = function() {
             const user = getCurrentUser();
             if (!user) {
@@ -212,7 +216,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
     
-    // Reviews Logic
+    // 5. Xử lý logic Đánh giá (Reviews)
+    // Gọi API để lấy danh sách bình luận/đánh giá của sản phẩm này và hiển thị ra giao diện
     function loadReviews() {
         fetch(`index.php?action=get_reviews&ma_hh=${product.id}`)
         .then(res => res.json())

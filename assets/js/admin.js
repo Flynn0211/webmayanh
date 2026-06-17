@@ -41,6 +41,8 @@ const tabNames = {
     'reviews':    'Quản lý đánh giá'
 };
 
+// Hàm chuyển đổi giữa các tab chức năng trong trang quản trị
+// Cập nhật giao diện (ẩn tab cũ, hiện tab mới, thay đổi tiêu đề) và gọi hàm render tương ứng
 function switchTab(tabId) {
     window.currentAdminTab = tabId;
     document.getElementById('pageTitle').innerText = tabNames[tabId];
@@ -58,6 +60,7 @@ function switchTab(tabId) {
 window.switchTab = switchTab;
 
 // ====== RENDERING ======
+// Hàm phân phối việc gọi các hàm render dữ liệu con dựa trên tab đang được mở
 function renderTab(tabId) {
     if (tabId === 'products')   renderAdminProducts();
     else if (tabId === 'categories')  renderAdminCategories();
@@ -72,6 +75,8 @@ function renderTab(tabId) {
 }
 
 // ── Articles ──────────────────────────────────────────────────
+// Hiển thị danh sách Bài viết ra bảng (table)
+// Lặp qua mảng articles (lấy từ biến toàn cục window.dbArticles) để tạo các dòng <tr>
 function renderAdminArticles() {
     const tbody = document.getElementById('adminArticleTableBody');
     if (!tbody) return;
@@ -119,6 +124,9 @@ function syncCKEditor() {
     return true;
 }
 
+// Mở hộp thoại (Modal) để Thêm mới hoặc Sửa Bài viết
+// Nếu truyền vào id, hệ thống sẽ tự động tìm bài viết và điền dữ liệu cũ vào form
+// Đồng thời khởi tạo hoặc làm mới trình soạn thảo văn bản phong phú (CKEditor)
 window.openArticleModal = function(id = null) {
     const imageInput      = document.getElementById('articleImageFile');
     const imagePreview    = document.getElementById('articleImagePreviewContainer');
@@ -351,6 +359,10 @@ document.getElementById('categoryForm')?.addEventListener('submit', function(e) 
 });
 
 // ── Products ──────────────────────────────────────────────────
+// Hiển thị danh sách Sản phẩm kèm theo các tính năng:
+// 1. Tìm kiếm (theo ID, Tên, Thương hiệu)
+// 2. Lọc (theo Thương hiệu cụ thể)
+// 3. Sắp xếp (theo Giá, Số lượng tồn kho, Mới nhất)
 function renderAdminProducts() {
     const tbody = document.getElementById('adminProductTableBody');
     if (!tbody) return;
@@ -454,6 +466,8 @@ function populateBrandFilter() {
 }
 
 // ── Orders ────────────────────────────────────────────────────
+// Cập nhật trạng thái đơn hàng thông qua gọi API (POST request)
+// Nếu API trả về lỗi hoặc mất mạng, trạng thái của ô dropdown sẽ được khôi phục về trạng thái cũ
 window.updateOrderStatus = function(orderId, newStatus, selectEl) {
     // Khôi phục giá trị cũ nếu gặp lỗi (lưu giá trị trước khi gửi request)
     const prevStatus = selectEl ? selectEl.getAttribute('data-prev') : null;

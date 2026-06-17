@@ -9,6 +9,8 @@
 
 
 
+// Lấy thông tin người dùng đang đăng nhập hiện tại từ LocalStorage
+// Trả về object chứa thông tin hoặc null nếu chưa đăng nhập
 function getCurrentUser() {
     const userStr = localStorage.getItem('currentUser');
     if (!userStr || userStr === '[object Object]') {
@@ -22,6 +24,8 @@ function getCurrentUser() {
         return null;
     }
 }
+// ── Quản Lý Yêu Thích (Favorites) ────────────────────────────────────────────────
+// Hàm kiểm tra xem sản phẩm đã có trong danh sách yêu thích của người dùng hay chưa
 window.isFavorited = function(productId) {
     const user = getCurrentUser();
     if (!user) return false;
@@ -31,6 +35,8 @@ window.isFavorited = function(productId) {
     return favs.includes(String(productId));
 };
 
+// Hàm xử lý việc thêm/xóa sản phẩm vào danh sách yêu thích
+// Cập nhật lại LocalStorage và đổi màu icon (trái tim đỏ/trắng) ngay lập tức
 window.handleFavorite = function(productId, btnElement) {
     const user = getCurrentUser();
     if (!user) {
@@ -62,6 +68,9 @@ window.handleFavorite = function(productId, btnElement) {
     }
 };
 
+// ── Mua Nhanh (Fast Add to Cart) ─────────────────────────────────────────────────
+// Thêm trực tiếp sản phẩm vào giỏ hàng từ trang danh sách (trang chủ, máy ảnh,...)
+// Có kiểm tra trạng thái đăng nhập và số lượng tồn kho (stock)
 window.addToCartFast = function(productId) {
     const user = getCurrentUser();
     if (!user) {

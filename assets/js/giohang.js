@@ -36,6 +36,10 @@ document.addEventListener("DOMContentLoaded", () => {
     window.appliedVoucher = null;
     window.shippingFee = 0;
 
+    // Hàm chính: Hiển thị Giỏ Hàng (renderCart)
+    // 1. Cập nhật số lượng trên icon Navbar
+    // 2. Cập nhật giá và tồn kho nếu có sự thay đổi từ dữ liệu Backend
+    // 3. Tính toán tổng tiền, chiết khấu hạng thành viên, mã giảm giá, phí ship và hiển thị HTML
     function renderCart() {
         let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
 
@@ -206,6 +210,8 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .catch(() => renderCart());
 
+    // Tăng/giảm số lượng sản phẩm trong giỏ hàng
+    // Đảm bảo người dùng không thể mua vượt quá số lượng tồn kho (stock) hiện có
     window.changeQty = function(index, delta) {
         let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
         if (cart[index]) {
@@ -224,6 +230,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cart[index]) { cart.splice(index, 1); localStorage.setItem(cartKey, JSON.stringify(cart)); renderCart(); }
     };
 
+    // Xử lý nút Áp dụng Mã giảm giá (Voucher)
+    // Gọi API (index.php?action=check_voucher) để kiểm tra tính hợp lệ và số tiền được giảm
     const btnApplyVoucher = document.getElementById('btnApplyVoucher');
     if (btnApplyVoucher) {
         btnApplyVoucher.onclick = function() {
@@ -270,6 +278,9 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
+    // Xử lý nút Đặt Hàng (Checkout)
+    // Thu thập thông tin giao hàng, phương thức thanh toán và gửi API (index.php?action=checkout)
+    // Nếu khách chọn chuyển khoản ngân hàng, sẽ tạo popup mã QR động từ VietQR.
     document.getElementById('btnCheckout').onclick = function() {
         let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
         if (cart.length === 0) { alert("Giỏ hàng trống! Không thể thanh toán."); return; }
@@ -403,7 +414,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    // --- ĐỊA GIỚI HÀNH CHÍNH & PHÍ SHIP ---
+    // --- ĐỊA GIỚI HÀNH CHÍNH & TÍNH PHÍ SHIP TỰ ĐỘNG ---
+    // Gọi API (open-api.vn) để nạp danh sách Tỉnh/Thành phố
+    // Logic phí ship cơ bản: Hà Nội, Hồ Chí Minh = 20.000đ. Các tỉnh khác = 40.000đ.
     const provinceSelect = document.getElementById('provinceSelect');
     const districtSelect = document.getElementById('districtSelect');
     const wardSelect = document.getElementById('wardSelect');

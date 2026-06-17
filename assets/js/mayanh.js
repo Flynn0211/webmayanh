@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function() {
     updateCartBadge();
 
     // ── Hàm Hỗ Trợ (Helpers) ──────────────────────────────
+    // Các hàm định dạng màu sắc thương hiệu và chuẩn hóa chuỗi giá tiền để tính toán
     function getBrandClass(brand) {
         if (!brand) return 'catalog-card__brand--default';
         const b = brand.toLowerCase();
@@ -46,6 +47,8 @@ document.addEventListener("DOMContentLoaded", function() {
     let currentPage = 1;
     const itemsPerPage = 8;
 
+    // Xử lý chuyển trang (Pagination)
+    // Cập nhật biến currentPage, render lại danh sách và cuộn (scroll) mượt mà lên đầu danh sách
     window.changePage = function(page) {
         currentPage = page;
         renderProducts(false);
@@ -61,7 +64,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
-    // ── Render Giao Diện ────────────────────────────────
+    // ── Render Giao Diện Danh Sách Sản Phẩm ────────────────────────────────
+    // 1. Lọc sản phẩm theo danh mục 'camera', theo thương hiệu (brand) và từ khóa tìm kiếm (search)
+    // 2. Sắp xếp danh sách (sort) theo giá từ thấp đến cao hoặc ngược lại
+    // 3. Cắt mảng dữ liệu (slice) để phân trang và đổ ra HTML kèm theo hiệu ứng animation
     function renderProducts(resetPage = true) {
         if (resetPage) currentPage = 1;
         // Exclude lens items and show only cameras precisely

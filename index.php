@@ -85,7 +85,8 @@ if ($action === 'client_logout') {
 }
 
 // ==========================================
-// BỘ ĐỊNH TUYẾN (ROUTING) HIỂN THỊ GIAO DIỆN
+// BỘ ĐỊNH TUYẾN (ROUTING) HIỂN THỊ GIAO DIỆN FRONTEND
+// Đóng vai trò như một Front Controller cốt lõi, điều hướng (route) các luồng truy cập URL (trang) về đúng file hiển thị (View)
 // ==========================================
 
 // Danh sách các trang hợp lệ thuộc khu vực Khách hàng (Client)

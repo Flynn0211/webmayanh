@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const favoritesContainer= document.getElementById('favoritesContainer');
 
     // ── Remove favorite ───────────────────────────────────────
+    // Xóa sản phẩm khỏi danh sách yêu thích (lưu trong trình duyệt LocalStorage)
     window.removeFavorite = function(productId) {
         const favKey = `favorites_${user.username}`;
         let favs = JSON.parse(localStorage.getItem(favKey)) || [];
@@ -27,6 +28,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // ── Render Favorites ──────────────────────────────────────
+    // Đọc danh sách mã (ID) sản phẩm yêu thích từ LocalStorage, 
+    // sau đó tra cứu thông tin chi tiết từ cơ sở dữ liệu sản phẩm để hiển thị ra giao diện
     function renderFavorites() {
         const favKey  = `favorites_${user.username}`;
         let favs      = JSON.parse(localStorage.getItem(favKey)) || [];
@@ -69,6 +72,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ── Fetch and Render Orders from Database ─────────────────────────────────────────
+    // Gửi yêu cầu GET tới API (index.php?action=get_orders) để lấy lịch sử mua hàng của tài khoản hiện tại
+    // Tự động phân loại màu sắc nhãn (badge) dựa trên trạng thái của đơn (Thành công, Đang giao, Đã hủy)
     function renderOrders() {
         ordersContainer.innerHTML = '<div style="text-align:center; padding: 2rem;">Đang tải đơn hàng...</div>';
 

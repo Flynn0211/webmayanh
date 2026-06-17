@@ -53,6 +53,7 @@ class ArticleController {
 
     /**
      * Xử lý các hành động nghiệp vụ của quản trị viên (POST) cho bài viết.
+     * Bao gồm: Thêm mới, Cập nhật, Xóa bài viết và tải lên (upload) ảnh bìa đại diện.
      */
     public function handleAdminAction() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
@@ -78,7 +79,8 @@ class ArticleController {
                 }
             }
 
-            // Xử lý upload tệp hình ảnh đại diện của bài viết
+            // Xử lý upload tệp hình ảnh đại diện (Thumbnail/Cover) của bài viết
+            // Tải file vật lý vào thư mục máy chủ (uploads/articles/) thay vì lưu mã hóa tĩnh vào Database
             if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
                 if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
                     die("Lỗi tải ảnh lên máy chủ (Mã lỗi: " . $_FILES['image']['error'] . "). Vui lòng kiểm tra lại kích thước ảnh hoặc cấu hình PHP.");
@@ -141,8 +143,9 @@ class ArticleController {
     }
 
     /**
-     * Xử lý API Upload hình ảnh từ CKEditor
-     * CKEditor yêu cầu trả về JSON có dạng { "url": "..." } khi thành công.
+     * Xử lý API Upload hình ảnh nội dung từ trình soạn thảo văn bản phong phú CKEditor.
+     * Tự động kiểm tra bảo mật phần mở rộng (extension) và định dạng thực (MIME type) chống tải lên mã độc.
+     * CKEditor yêu cầu kết quả trả về bằng JSON có dạng { "url": "..." } khi xử lý thành công.
      */
     public function handleCKEditorUpload() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['upload'])) {

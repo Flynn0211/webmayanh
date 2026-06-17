@@ -140,6 +140,7 @@ class AdminController {
                     $specs = isset($_POST['specs']) ? trim($_POST['specs']) : '';
                     
                     // --- XỬ LÝ TỰ ĐỘNG CHUYỂN THÔNG SỐ TỪ PLAIN TEXT SANG MẢNG JSON ---
+                    // Chuyển đổi định dạng các dòng thông số nhập thô (VD: "Cảm biến: 61MP") thành chuỗi định dạng JSON chuẩn
                     $specs_json = '{}';
                     if (!empty($specs)) {
                         json_decode($specs);
@@ -199,7 +200,8 @@ class AdminController {
                     // 2. Chuẩn hóa giá bán (loại bỏ ký tự phân tách nghìn)
                     $price_cleaned = (float)preg_replace('/[^0-9.]/', '', $price);
                     
-                    // Giải mã Base64 và lưu thành File tĩnh thay vì lưu thẳng vào DB
+                    // Giải mã chuỗi Base64 và lưu thành File ảnh tĩnh (.jpg, .png) trên server
+                    // Giúp tối ưu hóa tốc độ tải trang thay vì lưu thẳng chuỗi mã hóa khổng lồ trực tiếp vào database
                     $saved_image = $this->saveBase64Image($image, "main");
 
                     // 3.5. Xử lý mảng ảnh phụ
@@ -252,7 +254,8 @@ class AdminController {
             elseif ($action === 'delete_product') {
                 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
                 
-                // Kiểm tra xem sản phẩm đã có trong đơn hàng nào chưa
+                // Kiểm tra ràng buộc dữ liệu: Không cho phép xóa sản phẩm đã có đơn hàng
+                // Nhằm đảm bảo lịch sử mua sắm và doanh thu không bị hỏng hóc hoặc mất mát
                 $stmt_check = $this->conn->prepare(
                     "SELECT COUNT(*) as cnt FROM chi_tiet_don_hang WHERE ma_hh = ?"
                 );
@@ -363,6 +366,8 @@ class AdminController {
                     $this->conn->commit();
                     
                     // --- GỬI EMAIL THÔNG BÁO CHO TẤT CẢ KHÁCH HÀNG ĐÃ ĐĂNG KÝ ---
+                    // Sau khi khuyến mãi được tạo, hệ thống tự động quét danh sách người dùng đăng ký bản tin
+                    // Gửi email marketing hàng loạt (BCC) qua SmtpMailer
                     try {
                         // Lấy toàn bộ email từ bảng người đăng ký VÀ các tài khoản có khai báo email
                         $sql = "SELECT email FROM email_dang_ky UNION SELECT email FROM tai_khoan WHERE email IS NOT NULL AND email != ''";
@@ -537,6 +542,10 @@ class AdminController {
         }
     }
 
+    /**
+     * Hàm tiện ích giải mã chuỗi ảnh Base64 thành file ảnh tĩnh vật lý (.png, .jpg)
+     * và lưu vào thư mục `uploads/products/` trên Server. Trả về đường dẫn để lưu DB.
+     */
     private function saveBase64Image($base64String, $prefix = 'img') {
         // Nếu không phải định dạng base64 (ví dụ đã là URL tĩnh), giữ nguyên
         if (strpos($base64String, 'data:image/') !== 0) {

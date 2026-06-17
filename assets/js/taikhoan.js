@@ -22,7 +22,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileAddress = document.getElementById('profileAddress');
     const profileTier = document.getElementById('profileTier');
 
-    // 2. Fetch Profile from Backend
+    // 2. Load Profile (Lấy thông tin tài khoản)
+    // Hàm này gọi API (index.php?action=get_profile) để lấy thông tin mới nhất
+    // Tính toán số điểm tích lũy, hiển thị hạng thành viên và tiến trình lên hạng tiếp theo.
     function loadProfile() {
         fetch('index.php?action=get_profile')
             .then(res => res.json())
@@ -179,6 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const wardSelect = document.getElementById('editWardSelect');
     let vnData = [];
 
+    // Hàm nạp danh sách Quận/Huyện dựa trên mã Tỉnh/Thành phố
     function loadDistricts(provCode, selDist, selWard) {
         districtSelect.innerHTML = '<option value="" disabled selected>Chọn Quận / Huyện</option>';
         wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
@@ -202,6 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Hàm nạp danh sách Phường/Xã dựa trên mã Quận/Huyện
     function loadWards(distCode, selWard) {
         wardSelect.innerHTML = '<option value="" disabled selected>Chọn Phường / Xã</option>';
         wardSelect.disabled = true;
@@ -248,6 +252,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Xử lý sự kiện mở hộp thoại (Modal) Chỉnh sửa thông tin cá nhân
+    // Tự động điền dữ liệu người dùng (tên, sđt, địa chỉ) vào các trường (input)
     if (editBtn && editModal) {
         editBtn.addEventListener('click', () => {
             document.getElementById('editName').value = user.fullname || '';
@@ -338,6 +344,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 3. Render danh sách 3 đơn hàng gần đây nhất từ Backend
+    // Lấy dữ liệu các đơn hàng từ API (index.php?action=get_orders) và hiển thị ra bảng.
     const recentOrdersBody = document.getElementById('recentOrdersBody');
     if (recentOrdersBody) {
         fetch('index.php?action=get_orders')
@@ -395,6 +402,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 5. Slider Navigation Logic
+    // Quản lý việc chuyển đổi giữa các tab (Tài khoản, Đơn hàng, Yêu thích)
+    // bằng cách thêm/xóa các class CSS điều khiển hiệu ứng trượt (transform).
     const navProfile = document.getElementById('navProfile');
     const navOrders = document.getElementById('navOrders');
     const navFavorites = document.getElementById('navFavorites');

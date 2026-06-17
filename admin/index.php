@@ -15,7 +15,11 @@ if ($conn === false) {
     die("Kết nối cơ sở dữ liệu thất bại.");
 }
 
-// Xử lý đăng xuất
+// ==========================================
+// ĐỊNH TUYẾN (ROUTING) GIAO DIỆN QUẢN TRỊ (ADMIN)
+// ==========================================
+
+// Xử lý đăng xuất phiên quản trị (Admin Logout)
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     (new AuthController($conn))->handleAdminLogout();
 }
@@ -36,7 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_admin'])) {
 // Kiểm tra xem đã đăng nhập chưa
 $is_authenticated = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
 
-// Nếu đã authenticated, nhúng trang dashboard admin, ngược lại hiển thị trang login
+// Nếu đã xác thực (authenticated) thành công, nhúng giao diện trang tổng quan Admin (Dashboard)
+// Ngược lại, chặn truy cập và hiển thị màn hình đăng nhập (Login) an toàn
 if ($is_authenticated) {
     include __DIR__ . '/../view/admin/admin.php';
 } else {

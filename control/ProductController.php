@@ -33,6 +33,7 @@ class ProductController {
             return [];
         }
         
+        // Gọi tới Model để truy vấn danh sách sản phẩm từ cơ sở dữ liệu (chỉ lấy những sản phẩm Đang bán)
         $rawProducts = $this->productModel->getActiveProducts();
         $db_products = [];
 
@@ -40,6 +41,7 @@ class ProductController {
             $main_image = $row['image'];
             $additional_images = $row['additional_images'] ? $row['additional_images'] : '[]';
 
+            // Chuẩn hóa đường dẫn danh mục (slug) để gán tag (category) cho frontend phân loại dễ dàng
             $slug = $row['category_slug'];
             if ($slug === 'ong-kinh') {
                 $cat = 'lens';
@@ -96,6 +98,8 @@ class ProductController {
         if (!isset($_GET['ma_hh'])) return;
         $ma_hh = (int)$_GET['ma_hh'];
         
+        // Truy vấn danh sách bình luận, đánh giá từ ReviewModel dựa trên ID sản phẩm (ma_hh)
+        // Trả kết quả về dạng JSON để Client Javascript dễ dàng render (hiển thị)
         $reviews = $this->reviewModel->getReviewsByProduct($ma_hh);
         echo json_encode(['success' => true, 'reviews' => $reviews]);
     }
@@ -118,6 +122,8 @@ class ProductController {
             return;
         }
 
+        // Đọc luồng dữ liệu JSON thô do AJAX (Frontend) gửi lên bằng 'php://input'
+        // Giải mã (decode) thành mảng PHP array để truy xuất các trường (ma_hh, so_sao, noi_dung)
         $input = file_get_contents('php://input');
         $data = json_decode($input, true);
 
@@ -138,6 +144,8 @@ class ProductController {
             return;
         }
 
+        // Kiểm tra xem khách hàng này (ma_tk) đã từng đánh giá sản phẩm này (ma_hh) chưa
+        // Quy tắc chống SPAM: Mỗi tài khoản chỉ được phép đánh giá 1 lần cho mỗi sản phẩm
         $stmt_check = $this->conn->prepare("SELECT COUNT(*) as cnt FROM binh_luan_danh_gia WHERE ma_tk = ? AND ma_hh = ?");
         $product_id = (int)$data['ma_hh'];
         $stmt_check->execute([$ma_tk, $product_id]);

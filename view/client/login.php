@@ -1,4 +1,8 @@
 <?php
+/**
+ * Giao diện Cổng Xác Thực (Login & Register)
+ * Tích hợp cả Đăng nhập và Đăng ký trên cùng một trang bằng giao diện thẻ (Tabs). Tự động điều hướng nếu đã đăng nhập.
+ */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

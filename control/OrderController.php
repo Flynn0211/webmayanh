@@ -26,6 +26,7 @@ class OrderController {
 
     /**
      * Xử lý quy trình Checkout (Thanh toán & Tạo đơn hàng mới).
+     * Bao gồm các bước: xác thực giỏ hàng, áp dụng voucher, tính điểm/ship, trừ kho bằng Transaction và gửi Email.
      */
     public function handleCheckout() {
         
@@ -401,7 +402,8 @@ class OrderController {
     }
 
     /**
-     * Cập nhật trạng thái đơn hàng (Sử dụng bởi Ban Quản Trị trong Admin Panel).
+     * Cập nhật trạng thái đơn hàng (Sử dụng bởi Ban Quản Trị trong bảng điều khiển Admin).
+     * Hỗ trợ tự động hoàn lại tồn kho nếu đơn bị hủy (Rollback stock) và gửi email thông báo tự động cho khách.
      */
     public function handleUpdateStatus() {
         
