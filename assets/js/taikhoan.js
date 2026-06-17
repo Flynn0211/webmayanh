@@ -154,6 +154,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     user.phone = p.sdt;
                     localStorage.setItem('currentUser', JSON.stringify(user));
                 } else {
+                    if (data.message === 'Chưa đăng nhập') {
+                        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+                        localStorage.removeItem('user');
+                        window.location.href = 'index.php?page=login';
+                        return;
+                    }
                     // Fallback
                     if (profileName) profileName.textContent = user.fullname || user.username;
                     if (profileTier) profileTier.textContent = 'MEMBER';
