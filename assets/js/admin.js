@@ -171,7 +171,9 @@ window.openArticleModal = function(id = null) {
     if (articleEditorInstance) {
         articleEditorInstance.destroy()
             .then(() => initCKEditor(initialContent))
-            .catch(error => console.log(error));
+            .catch(error => {
+                alert('Lỗi kết nối. Vui lòng thử lại sau.');
+            });
     } else {
         initCKEditor(initialContent);
     }

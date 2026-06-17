@@ -122,9 +122,8 @@ class ArticleController {
             }
             
             if (!$success) {
-                // In ra lỗi để debug
-                $errorInfo = $this->conn->errorInfo();
-                die("Lỗi thao tác CSDL: " . print_r($errorInfo, true));
+                // In ra lỗi
+                die("Lỗi thao tác CSDL. Vui lòng thử lại sau.");
             }
             
             echo "<script>window.location.href='" . htmlspecialchars($_SERVER['PHP_SELF']) . "?tab=articles';</script>";
