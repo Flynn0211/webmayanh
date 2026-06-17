@@ -125,7 +125,7 @@
 window.clientAddressStr = <?= isset($_SESSION['client_address']) && $_SESSION['client_address'] ? json_encode($_SESSION['client_address']) : 'null' ?>;
 </script>
 <script src="assets/js/auth.js?v=2.0"></script>
-<script src="assets/js/giohang.js"></script>
+<script src="assets/js/giohang.js?v=<?= time() ?>"></script>
 </body>
 </html>
 

@@ -249,6 +249,6 @@
 
 <script src="assets/js/auth.js?v=2.0"></script>
 <script src="assets/js/donhang.js"></script>
-<script src="assets/js/taikhoan.js"></script>
+<script src="assets/js/taikhoan.js?v=<?= time() ?>"></script>
 </body>
 </html>
