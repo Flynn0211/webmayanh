@@ -105,11 +105,15 @@ class OrderController {
             $priceRaw = (float)preg_replace('/[^0-9.]/', '', $priceStr);
             $qty = (int)$item['quantity'];
             
-            // --- BỔ SUNG: KIỂM TRA TỒN KHO TRƯỚC KHI THANH TOÁN ---
-            $stmt_stock_check = $this->conn->prepare("SELECT SUM(so_luong_ton) as total_stock FROM ton_kho_chi_tiet WHERE ma_hh = ?");
-            $stmt_stock_check->execute([$ma_hh]);
-            $stockData = $stmt_stock_check->fetch();
-            $availableStock = $stockData ? (int)$stockData['total_stock'] : 0;
+            // --- BỔ SUNG: KIỂM TRA TỒN KHO VÀ LẤY ẢNH TỪ DB ---
+            $stmt_stock_check = $this->conn->prepare("
+                SELECT (SELECT SUM(so_luong_ton) FROM ton_kho_chi_tiet WHERE ma_hh = ?) as total_stock, 
+                       (SELECT anh FROM hang_hoa WHERE ma_hh = ?) as anh_sp
+            ");
+            $stmt_stock_check->execute([$ma_hh, $ma_hh]);
+            $productData = $stmt_stock_check->fetch();
+            $availableStock = $productData ? (int)$productData['total_stock'] : 0;
+            $dbImage = $productData ? $productData['anh_sp'] : '';
             
             if ($availableStock < $qty) {
                 echo json_encode([
@@ -132,6 +136,7 @@ class OrderController {
             $calculatedItems[] = [
                 'id' => (int)$item['id'],
                 'name' => isset($item['name']) ? $item['name'] : 'Sản phẩm',
+                'image' => $dbImage,
                 'quantity' => $qty,
                 'priceRaw' => $discountedPrice
             ];
@@ -246,12 +251,17 @@ class OrderController {
                         <h3 style='border-bottom: 2px solid #ea580c; padding-bottom: 5px; color: #ea580c;'>CHI TIẾT ĐƠN HÀNG</h3>
                         <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
                             <tr style='background: #f9f9f9;'>
+                                <th style='padding: 10px; border: 1px solid #ddd; text-align: center; width: 60px;'>Ảnh</th>
                                 <th style='padding: 10px; border: 1px solid #ddd; text-align: left;'>Sản phẩm</th>
                                 <th style='padding: 10px; border: 1px solid #ddd; text-align: center;'>SL</th>
                                 <th style='padding: 10px; border: 1px solid #ddd; text-align: right;'>Thành tiền</th>
                             </tr>";
                 foreach ($calculatedItems as $it) {
+                    $imgUrl = !empty($it['image']) ? (strpos($it['image'], 'http') === 0 ? $it['image'] : 'https://' . $_SERVER['HTTP_HOST'] . '/' . ltrim($it['image'], '/')) : '';
+                    $imgTag = $imgUrl ? "<img src='{$imgUrl}' style='width: 50px; height: 50px; object-fit: cover; border-radius: 4px;' />" : "";
+                    
                     $htmlEmail .= "<tr>
+                                <td style='padding: 10px; border: 1px solid #ddd; text-align: center;'>{$imgTag}</td>
                                 <td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($it['name']) . "</td>
                                 <td style='padding: 10px; border: 1px solid #ddd; text-align: center;'>" . $it['quantity'] . "</td>
                                 <td style='padding: 10px; border: 1px solid #ddd; text-align: right;'>" . number_format($it['priceRaw'] * $it['quantity']) . "đ</td>
