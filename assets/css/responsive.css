@@ -55,8 +55,28 @@
 
     .cart-page { padding-inline: var(--margin-mobile); padding-block: 2rem; }
     .cart-page__title { font-size: 1.5rem; margin-bottom: 2rem; }
-    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-    .catalog-grid__inner { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+    .catalog-grid__inner { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+
+    /* Tab buttons */
+    .tab-btn { font-size: 0.75rem; padding-bottom: 0.5rem; letter-spacing: 0.05em; }
+    .auth-tab-btn { font-size: 0.75rem; padding-bottom: 0.5rem; }
+
+    /* Account page optimization */
+    .account-layout { padding: 2rem 1rem; gap: 2rem; }
+    .account-canvas__title { font-size: 1.5rem; }
+    .account-panel { gap: 1.5rem; }
+    .profile-card { padding: 1.5rem; }
+    .profile-bento { gap: 1rem; border: none; background: transparent; }
+    .profile-card { border: 1px solid var(--outline-variant); border-radius: 8px; }
+
+    /* Product detail page optimization */
+    .detail-layout { gap: 1.5rem; }
+    .detail-name { font-size: 1.5rem; }
+    .detail-price { font-size: 1.25rem; }
+    
+    /* Table row optimization */
+    .order-spec-table__row { padding: 1rem; gap: 0.5rem; }
 }
 
 

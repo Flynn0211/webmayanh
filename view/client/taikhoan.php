@@ -180,7 +180,7 @@
 
 <!-- Edit Profile Modal -->
 <div id="editProfileModal" class="modal-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s;">
-    <div class="modal-content" style="background: var(--surface); padding: 2rem; border-radius: 8px; width: 100%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+    <div class="modal-content" style="background: var(--surface); padding: 2rem; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
         <h2 style="margin-top: 0; margin-bottom: 1.5rem;">Chỉnh sửa thông tin</h2>
         <form id="editProfileForm">
             <div style="margin-bottom: 1rem;">
@@ -218,7 +218,7 @@
 
 <!-- Perks Modal -->
 <div id="perksModal" class="modal-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s;">
-    <div class="modal-content" style="background: var(--surface); padding: 2rem; border-radius: 8px; width: 100%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+    <div class="modal-content" style="background: var(--surface); padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
         <h2 style="margin-top: 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--outline); padding-bottom: 1rem;">Đặc quyền hạng thành viên</h2>
         
         <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 4px;">

@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <?php if ($_nav_logged_in && (empty($_SESSION['client_phone']) || empty($_SESSION['client_address'])) && $activeNav !== 'taikhoan'): ?>
 <div id="missingInfoPopup" class="modal-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10000; opacity: 1; pointer-events: auto;">
-    <div class="modal-content" style="background: var(--surface); padding: 2rem; border-radius: 8px; width: 100%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); text-align: center;">
+    <div class="modal-content" style="background: var(--surface); padding: 2rem; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); text-align: center;">
         <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem; display: block;">info</span>
         <h2 style="margin-top: 0; margin-bottom: 1rem;">Cập nhật thông tin giao hàng</h2>
         <p style="margin-bottom: 1.5rem; color: var(--on-surface-variant); font-size: 0.95rem;">
