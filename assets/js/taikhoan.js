@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (provinceSelect) {
-        fetch('assets/js/provinces_data.json')
+        fetch('https://provinces.open-api.vn/api/?depth=3')
             .then(res => res.json())
             .then(data => {
                 vnData = data;
