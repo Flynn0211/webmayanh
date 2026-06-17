@@ -281,6 +281,23 @@ class AdminController {
                 } else {
                     echo json_encode(['success' => false, 'error' => $this->conn->errorInfo()[2]]);
                 }
+            }
+            // --- XỬ LÝ KHÓA/MỞ KHÓA SẢN PHẨM ---
+            elseif ($action === 'toggle_product_status') {
+                $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+                $stmt = $this->conn->prepare("SELECT trang_thai FROM hang_hoa WHERE ma_hh = ?");
+                $stmt->execute([$id]);
+                if ($row = $stmt->fetch()) {
+                    $new_status = ($row['trang_thai'] === 'DangBan') ? 'NgungBan' : 'DangBan';
+                    $stmt_up = $this->conn->prepare("UPDATE hang_hoa SET trang_thai = ? WHERE ma_hh = ?");
+                    if ($stmt_up->execute([$new_status, $id])) {
+                        echo json_encode(['success' => true]);
+                    } else {
+                        echo json_encode(['success' => false, 'error' => $this->conn->errorInfo()[2]]);
+                    }
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Sản phẩm không tồn tại']);
+                }
             } 
             // --- XỬ LÝ THÊM MỚI VOUCHER GIẢM GIÁ ---
             elseif ($action === 'add_voucher') {

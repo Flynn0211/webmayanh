@@ -403,7 +403,14 @@ function renderAdminProducts() {
         tbody.innerHTML = `<tr><td colspan="7" class="td-muted" style="text-align:center;padding:2rem;">Không tìm thấy sản phẩm nào phù hợp.</td></tr>`;
         return;
     }
-    tbody.innerHTML = displayProducts.map(p => `
+    tbody.innerHTML = displayProducts.map(p => {
+        const statusBadge = (p.status === 'NgungBan' || p.status === 'NgungKinhDoanh')
+            ? '<span class="status-badge" style="background:#ffebee; color:#c62828; padding:2px 6px; border-radius:4px; font-weight:600;">Ngừng bán</span>'
+            : '<span class="status-badge" style="background:#e8f5e9; color:#2e7d32; padding:2px 6px; border-radius:4px; font-weight:600;">Đang bán</span>';
+        const toggleIcon = (p.status === 'NgungBan' || p.status === 'NgungKinhDoanh') ? 'visibility' : 'visibility_off';
+        const toggleTitle = (p.status === 'NgungBan' || p.status === 'NgungKinhDoanh') ? 'Kích hoạt bán' : 'Vô hiệu hóa (Ngừng bán)';
+        
+        return `
         <tr>
             <td class="td-id center">#${p.id}</td>
             <td>
@@ -412,7 +419,10 @@ function renderAdminProducts() {
                 </div>
             </td>
             <td class="td-primary text-label-caps">${p.brand}</td>
-            <td class="td-bold td-truncate">${p.name}</td>
+            <td>
+                <div class="td-bold td-truncate">${p.name}</div>
+                <div style="font-size:0.75rem; margin-top:0.35rem;">${statusBadge}</div>
+            </td>
             <td class="td-mono right">${p.price}</td>
             <td class="td-mono center">${p.stock || 0}</td>
             <td class="center">
@@ -420,13 +430,16 @@ function renderAdminProducts() {
                     <button type="button" onclick="editProduct('${p.id}')" class="btn-table-action btn-table-action--edit" title="Sửa">
                         <span class="material-symbols-outlined" style="font-size:1.25rem;">edit_square</span>
                     </button>
+                    <button type="button" onclick="toggleProductStatus('${p.id}')" class="btn-table-action" title="${toggleTitle}">
+                        <span class="material-symbols-outlined" style="font-size:1.25rem;">${toggleIcon}</span>
+                    </button>
                     <button type="button" onclick="deleteProduct('${p.id}')" class="btn-table-action btn-table-action--delete" title="Xóa">
                         <span class="material-symbols-outlined" style="font-size:1.25rem;">delete</span>
                     </button>
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 function populateBrandFilter() {
@@ -1173,11 +1186,34 @@ function deleteProduct(id) {
         });
     }
 }
+
+function toggleProductStatus(id) {
+    if (confirm('Bạn có chắc chắn muốn thay đổi trạng thái bán của sản phẩm này?')) {
+        fetch(`${adminApiBase}?action=toggle_product_status&id=${id}`, {
+            method: 'POST'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Cập nhật trạng thái thành công!');
+                window.location.href = adminApiBase + '?tab=' + (window.currentAdminTab || 'products');
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể cập nhật'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Lỗi mạng không thể cập nhật sản phẩm.');
+        });
+    }
+}
+
 function editProduct(id) { openProductModal(id); }
 
 window.openProductModal  = openProductModal;
 window.closeProductModal = closeProductModal;
 window.deleteProduct     = deleteProduct;
+window.toggleProductStatus = toggleProductStatus;
 window.editProduct       = editProduct;
 
 window.addVoucherPrompt = function() {

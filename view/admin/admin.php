@@ -28,7 +28,7 @@ while ($row = $res_c->fetch()) {
 
 // 1. Products
 $dbProducts = [];
-$res_p = $conn->query("SELECT h.ma_hh as id, h.ma_dm as category_id, h.ten_hang_hoa as name, h.anh as image, h.anh_phu as additional_images, n.ten_ncc as brand, h.gia_hien_tai as price_val, IFNULL(SUM(t.so_luong_ton), 0) as stock, h.mo_ta as description, h.thong_so_ky_thuat as specs
+$res_p = $conn->query("SELECT h.ma_hh as id, h.ma_dm as category_id, h.ten_hang_hoa as name, h.anh as image, h.anh_phu as additional_images, n.ten_ncc as brand, h.gia_hien_tai as price_val, IFNULL(SUM(t.so_luong_ton), 0) as stock, h.mo_ta as description, h.thong_so_ky_thuat as specs, h.trang_thai as status
 FROM hang_hoa h
 LEFT JOIN nha_cung_cap n ON h.ma_ncc = n.ma_ncc
 LEFT JOIN ton_kho_chi_tiet t ON h.ma_hh = t.ma_hh
