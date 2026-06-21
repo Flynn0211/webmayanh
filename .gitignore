@@ -1,0 +1,5 @@
+# Bỏ qua file cấu hình chứa thông tin nhạy cảm (Mật khẩu DB, Email)
+config.php
+
+# Bỏ qua toàn bộ ảnh người dùng upload
+uploads/

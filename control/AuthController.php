@@ -141,6 +141,20 @@ class AuthController {
         $login_error = "";
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_admin'])) {
+            if (session_status() === PHP_SESSION_NONE) session_start();
+            
+            // --- Chống Brute Force ---
+            if (isset($_SESSION['login_attempts']) && $_SESSION['login_attempts'] >= 5) {
+                $time_since_last = time() - $_SESSION['last_login_attempt'];
+                if ($time_since_last < 900) { // 15 phút = 900s
+                    $wait_time = ceil((900 - $time_since_last) / 60);
+                    return "Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau $wait_time phút.";
+                } else {
+                    // Hết thời gian chờ, reset số lần thử
+                    $_SESSION['login_attempts'] = 0;
+                }
+            }
+
             $username = isset($_POST['username']) ? trim($_POST['username']) : '';
             $password = isset($_POST['password']) ? trim($_POST['password']) : '';
 
@@ -176,9 +190,15 @@ class AuthController {
                             $_SESSION['client_phone']     = $row['sdt'];
                             $_SESSION['client_address']   = $row['dia_chi'];
 
+                            // Xóa lịch sử lỗi khi đăng nhập thành công
+                            $_SESSION['login_attempts'] = 0;
+
                             header("Location: index.php");
                             exit;
                         } else {
+                            // Tăng số lần nhập sai
+                            $_SESSION['login_attempts'] = isset($_SESSION['login_attempts']) ? $_SESSION['login_attempts'] + 1 : 1;
+                            $_SESSION['last_login_attempt'] = time();
                             $login_error = "Mật khẩu đăng nhập không chính xác.";
                         }
                     } else {
