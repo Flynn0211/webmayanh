@@ -80,9 +80,9 @@ class AdminController {
                     while ($row = $res->fetch()) {
                         $reviews[] = [
                             'id' => $row['ma_bl'],
-                            'product' => $row['ten_hang_hoa'],
-                            'user' => $row['username'],
-                            'content' => $row['noi_dung'] . ' (' . $row['so_sao'] . ' sao)',
+                            'product' => htmlspecialchars($row['ten_hang_hoa'] ?? '', ENT_QUOTES, 'UTF-8'),
+                            'user' => htmlspecialchars($row['username'] ?? '', ENT_QUOTES, 'UTF-8'),
+                            'content' => htmlspecialchars($row['noi_dung'] ?? '', ENT_QUOTES, 'UTF-8') . ' (' . $row['so_sao'] . ' sao)',
                             'date' => $row['ngay_bl']
                         ];
                     }

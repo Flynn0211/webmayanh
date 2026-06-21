@@ -101,6 +101,15 @@ class ProductController {
         // Truy vấn danh sách bình luận, đánh giá từ ReviewModel dựa trên ID sản phẩm (ma_hh)
         // Trả kết quả về dạng JSON để Client Javascript dễ dàng render (hiển thị)
         $reviews = $this->reviewModel->getReviewsByProduct($ma_hh);
+        
+        // --- Chống XSS (Bảo mật) ---
+        // Lọc thẻ HTML độc hại trước khi trả về JSON cho Javascript render
+        foreach ($reviews as &$r) {
+            $r['noi_dung'] = htmlspecialchars($r['noi_dung'] ?? '', ENT_QUOTES, 'UTF-8');
+            $r['ho_ten']   = htmlspecialchars($r['ho_ten'] ?? '', ENT_QUOTES, 'UTF-8');
+            $r['username'] = htmlspecialchars($r['username'] ?? '', ENT_QUOTES, 'UTF-8');
+        }
+        
         echo json_encode(['success' => true, 'reviews' => $reviews]);
     }
 
