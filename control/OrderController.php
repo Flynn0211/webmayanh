@@ -183,7 +183,8 @@ class OrderController {
             $stmt_item = $this->conn->prepare("INSERT INTO chi_tiet_don_hang (ma_dh, ma_hh, so_luong, gia_luc_mua) VALUES (?, ?, ?, ?)");
             
             // Lấy danh sách các kho có chứa sản phẩm hiện tại, sắp xếp ưu tiên kho nhiều hàng nhất để trừ trước
-            $stmt_get_stock = $this->conn->prepare("SELECT ma_kho, so_luong_ton FROM ton_kho_chi_tiet WHERE ma_hh = ? AND so_luong_ton > 0 ORDER BY so_luong_ton DESC");
+            // SỬ DỤNG FOR UPDATE ĐỂ KHÓA DÒNG (ROW-LEVEL LOCK) TRÁNH RACE CONDITION KHI NHIỀU NGƯỜI CÙNG MUA 1 SẢN PHẨM
+            $stmt_get_stock = $this->conn->prepare("SELECT ma_kho, so_luong_ton FROM ton_kho_chi_tiet WHERE ma_hh = ? AND so_luong_ton > 0 ORDER BY so_luong_ton DESC FOR UPDATE");
             $stmt_update_stock = $this->conn->prepare("UPDATE ton_kho_chi_tiet SET so_luong_ton = ? WHERE ma_hh = ? AND ma_kho = ?");
 
             foreach ($calculatedItems as $item) {
