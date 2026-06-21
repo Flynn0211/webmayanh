@@ -619,7 +619,7 @@ function renderAdminOrders() {
                       style="padding:0.25rem;border-radius:4px;border:1px solid var(--border-color);">
                       ${statuses.map((s, index) => {
                           const isDisabled = (index < currentIndex && s !== 'Đã hủy') ? 'disabled' : '';
-                          return \`<option value="\${s}" \${s === o.status ? 'selected' : ''} \${isDisabled}>\${s}</option>\`;
+                          return `<option value="${s}" ${s === o.status ? 'selected' : ''} ${isDisabled}>${s}</option>`;
                       }).join('')}
                     </select>`;
               })();
