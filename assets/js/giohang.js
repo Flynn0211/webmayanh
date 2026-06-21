@@ -486,7 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Fetch Tỉnh/Thành từ local JSON
-        fetch('https://provinces.open-api.vn/api/?depth=3')
+        fetch('assets/js/provinces_data.json')
             .then(res => res.json())
             .then(data => {
                 vnData = data;

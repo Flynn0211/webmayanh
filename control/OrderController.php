@@ -53,7 +53,11 @@ class OrderController {
         $customerName = isset($data['customerName']) ? trim($data['customerName']) : 'Khách hàng';
         $customerUsername = isset($data['customerUsername']) ? trim($data['customerUsername']) : '';
         $totalRaw = isset($data['totalRaw']) ? (float)$data['totalRaw'] : 0;
-        $customerPhone = isset($data['customerPhone']) && !empty(trim($data['customerPhone'])) ? trim($data['customerPhone']) : '0900000000';
+        $customerPhone = isset($data['customerPhone']) ? trim($data['customerPhone']) : '';
+        if (!preg_match('/^(03|05|07|08|09)\d{8}$/', $customerPhone)) {
+            echo json_encode(['success' => false, 'message' => 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (10 số, bắt đầu bằng 03, 05, 07, 08, 09).']);
+            return;
+        }
         $voucherCode = isset($data['voucherCode']) ? trim($data['voucherCode']) : '';
         $customerAddress = isset($data['customerAddress']) ? trim($data['customerAddress']) : 'Chưa cung cấp';
         $paymentMethod = isset($data['paymentMethod']) ? trim($data['paymentMethod']) : 'COD';

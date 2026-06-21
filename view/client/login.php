@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_register'])) {
         let vnData = [];
         
         if (provinceSelect) {
-            fetch('https://provinces.open-api.vn/api/?depth=3')
+            fetch('assets/js/provinces_data.json')
                 .then(res => res.json())
                 .then(data => {
                     vnData = data;
