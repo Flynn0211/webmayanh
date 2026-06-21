@@ -318,6 +318,12 @@ class AuthController {
         // If data['dia_chi'] is object, encode to JSON string, otherwise string
         $dia_chi = isset($data['dia_chi']) ? (is_array($data['dia_chi']) ? json_encode($data['dia_chi'], JSON_UNESCAPED_UNICODE) : trim($data['dia_chi'])) : '';
 
+        // Kiểm tra số điện thoại hợp lệ (Định dạng VN: 10 số, bắt đầu bằng 03, 05, 07, 08, 09)
+        if (!empty($sdt) && !preg_match('/^(03|05|07|08|09)[0-9]{8}$/', $sdt)) {
+            echo json_encode(['success' => false, 'message' => 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (10 số).']);
+            return;
+        }
+
         try {
             // Thực thi truy vấn cập nhật hồ sơ cá nhân người dùng vào cơ sở dữ liệu
             $stmt = $this->conn->prepare("UPDATE tai_khoan SET ho_ten = ?, email = ?, sdt = ?, dia_chi = ? WHERE username = ?");
