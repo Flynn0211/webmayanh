@@ -279,6 +279,31 @@ class AdminController {
                     echo json_encode(['success' => false, 'error' => 'Sản phẩm không tồn tại']);
                 }
             } 
+            // --- XỬ LÝ KHÓA/MỞ KHÓA TÀI KHOẢN ---
+            elseif ($action === 'toggle_user_status') {
+                $id = isset($_GET['id']) ? trim($_GET['id']) : '';
+                if ($id === '') {
+                    echo json_encode(['success' => false, 'error' => 'Thiếu ID người dùng']);
+                    exit;
+                }
+                
+                $stmt = $this->conn->prepare("SELECT trang_thai FROM tai_khoan WHERE ma_tk = ?");
+                $stmt->execute([$id]);
+                $user = $stmt->fetch();
+                if ($user) {
+                    $new_status = ($user['trang_thai'] === 'BiKhoa') ? 'HoatDong' : 'BiKhoa';
+                    $stmt_up = $this->conn->prepare("UPDATE tai_khoan SET trang_thai = ? WHERE ma_tk = ?");
+                    if ($stmt_up->execute([$new_status, $id])) {
+                        echo json_encode(['success' => true]);
+                    } else {
+                        echo json_encode(['success' => false, 'error' => 'Lỗi CSDL']);
+                    }
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Không tìm thấy người dùng']);
+                }
+                exit;
+            } 
+
             // --- XỬ LÝ THÊM MỚI VOUCHER GIẢM GIÁ ---
             elseif ($action === 'add_voucher') {
                 $code = isset($_POST['code']) ? trim($_POST['code']) : '';
