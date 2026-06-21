@@ -649,7 +649,7 @@ function renderAdminOrders() {
 // ── Customers ─────────────────────────────────────────────────
 window.toggleUserStatus = function(id) {
     if(!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này?')) return;
-    fetch(`${adminApiBase}?action=toggle_user_status&id=${id}`)
+    fetch(`${adminApiBase}?action=toggle_user_status&id=${id}`, { method: 'POST' })
     .then(res => res.json())
     .then(data => {
         if (data.success) {

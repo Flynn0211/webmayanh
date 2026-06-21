@@ -60,6 +60,8 @@ FROM don_hang d
 LEFT JOIN tai_khoan t ON d.ma_khach_hang = t.ma_tk
 ORDER BY d.ma_dh DESC");
 while ($row = $res_o->fetch()) {
+    $row['customerName'] = htmlspecialchars($row['customerName'] ?? '', ENT_QUOTES, 'UTF-8');
+    $row['customerUsername'] = htmlspecialchars($row['customerUsername'] ?? '', ENT_QUOTES, 'UTF-8');
     $row['total'] = number_format($row['total_val']) . ' ₫';
     $row['date'] = date('d/m/Y', strtotime($row['date_val']));
     $row['items'] = [];
@@ -68,6 +70,8 @@ while ($row = $res_o->fetch()) {
     $stmt_item = $conn->prepare("SELECT c.ma_hh as id, h.ten_hang_hoa as name, h.anh as image, c.so_luong as quantity, c.gia_luc_mua as price_val, n.ten_ncc as brand FROM chi_tiet_don_hang c JOIN hang_hoa h ON c.ma_hh = h.ma_hh LEFT JOIN nha_cung_cap n ON h.ma_ncc = n.ma_ncc WHERE c.ma_dh = ?");
     $stmt_item->execute([$row['id']]);
     while ($i = $stmt_item->fetch()) {
+        $i['name'] = htmlspecialchars($i['name'] ?? '', ENT_QUOTES, 'UTF-8');
+        $i['brand'] = htmlspecialchars($i['brand'] ?? '', ENT_QUOTES, 'UTF-8');
         $i['price'] = number_format($i['price_val']) . ' ₫';
         $row['items'][] = $i;
     }
@@ -80,6 +84,8 @@ $dbCustomers = [];
 $dbEmployees = [];
 $res_u = $conn->query("SELECT ma_tk as id, ho_ten as name, username, email, sdt as phone, loai_tk as role, hang_thanh_vien as tier, trang_thai as status FROM tai_khoan");
 while ($row = $res_u->fetch()) {
+    $row['name'] = htmlspecialchars($row['name'] ?? '', ENT_QUOTES, 'UTF-8');
+    $row['username'] = htmlspecialchars($row['username'] ?? '', ENT_QUOTES, 'UTF-8');
     $row['active'] = ($row['status'] === 'HoatDong');
     if ($row['role'] === 'User') {
         $dbCustomers[] = $row;

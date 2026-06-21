@@ -2,7 +2,13 @@
 // Cấu hình thời gian sống của session (30 ngày = 2592000 giây)
 $session_lifetime = 30 * 24 * 60 * 60;
 ini_set('session.gc_maxlifetime', $session_lifetime);
-session_set_cookie_params($session_lifetime);
+session_set_cookie_params([
+    'lifetime' => $session_lifetime,
+    'path' => '/',
+    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 
 // Bật session bảo mật
 session_start();
