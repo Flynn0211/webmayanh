@@ -610,15 +610,19 @@ function renderAdminOrders() {
             ? `<select disabled title="Đơn hàng đã ${o.status}, không thể thay đổi trạng thái" class="order-status-select" style="padding:0.25rem;border-radius:4px;border:1px solid var(--border-color);opacity:0.6;cursor:not-allowed;">
                 <option selected>${o.status}</option>
               </select>`
-            : `<select
-                data-prev="${o.status}"
-                onchange="updateOrderStatus('${o.id}', this.value, this)"
-                class="order-status-select"
-                style="padding:0.25rem;border-radius:4px;border:1px solid var(--border-color);">
-                ${statuses.map(s =>
-                    `<option ${s === o.status ? 'selected' : ''}>${s}</option>`
-                ).join('')}
-              </select>`;
+            : (() => {
+                  const currentIndex = statuses.indexOf(o.status);
+                  return `<select
+                      data-prev="${o.status}"
+                      onchange="updateOrderStatus('${o.id}', this.value, this)"
+                      class="order-status-select"
+                      style="padding:0.25rem;border-radius:4px;border:1px solid var(--border-color);">
+                      ${statuses.map((s, index) => {
+                          const isDisabled = (index < currentIndex && s !== 'Đã hủy') ? 'disabled' : '';
+                          return \`<option value="\${s}" \${s === o.status ? 'selected' : ''} \${isDisabled}>\${s}</option>\`;
+                      }).join('')}
+                    </select>`;
+              })();
         return `
         <tr>
             <td class="td-primary td-mono">#${o.id}</td>

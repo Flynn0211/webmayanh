@@ -463,6 +463,28 @@ class OrderController {
             return;
         }
 
+        // --- BỔ SUNG: Chặn không cho lùi trạng thái ---
+        $statusOrder = [
+            'Chờ Xác Nhận' => 0,
+            'Đã Xác Nhận'  => 1,
+            'Đang Xử Lý'   => 2,
+            'Đang Giao'    => 3,
+            'Đã Giao'      => 4,
+            'Hoàn Thành'   => 5,
+            'Đã hủy'       => 6
+        ];
+        
+        $curIdx = isset($statusOrder[$cur_order['trang_thai_don']]) ? $statusOrder[$cur_order['trang_thai_don']] : 0;
+        $newIdx = isset($statusOrder[$status]) ? $statusOrder[$status] : -1;
+        
+        if ($newIdx !== -1 && $newIdx < $curIdx && $status !== 'Đã hủy') {
+             echo json_encode([
+                 'success' => false, 
+                 'message' => 'Không thể lùi trạng thái đơn hàng về bước trước đó.'
+             ]);
+             return;
+        }
+
         $this->conn->beginTransaction();
         try {
             // Cập nhật trạng thái đơn hàng
