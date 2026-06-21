@@ -87,6 +87,20 @@ class ArticleController {
                 }
                 
                 $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+                
+                // --- BẢO MẬT: Kiểm tra loại file tải lên để chống tải lên mã độc (RCE) ---
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                if (!in_array($ext, $allowedExtensions)) {
+                    die("Lỗi: Chỉ cho phép tải lên các tệp hình ảnh định dạng JPG, PNG, GIF, WEBP.");
+                }
+                
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, $_FILES['image']['tmp_name']);
+                finfo_close($finfo);
+                if (strpos($mimeType, 'image/') !== 0) {
+                    die("Lỗi: Tệp tin không phải là hình ảnh hợp lệ. Phát hiện gian lận định dạng tệp.");
+                }
+                
                 $filename = uniqid('art_') . '.' . $ext;
                 $targetDir = __DIR__ . '/../uploads/articles/';
                 
